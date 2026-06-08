@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useState, useRef } from 'preact/hooks';
+import { useState, useRef, useEffect } from 'preact/hooks';
 
 const API = '/api';
 
@@ -15,15 +15,22 @@ export default function ChatPage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
+
   const handleSend = async () => {
     const text = chatInput.trim();
     if (!text || chatLoading) return;
 
+    console.log(`[Chat] Sending message (${text.length} chars)`);
     setChatInput('');
     setChatMessages(prev => [...prev, { role: 'user', text }]);
     setChatLoading(true);
 
     try {
+      const start = performance.now();
       const res = await fetch(`${API}/v1/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -32,14 +39,19 @@ export default function ChatPage() {
           history: chatMessages.map(m => ({ role: m.role, content: m.text }))
         }),
       });
+      const elapsed = (performance.now() - start).toFixed(0);
       const data = await res.json();
       if (res.ok) {
+        console.log(`[Chat] Response OK (${elapsed}ms): ${data.answer.slice(0, 80)}...`);
         setChatMessages(prev => [...prev, { role: 'assistant', text: data.answer }]);
       } else {
+        console.error(`[Chat] API error (${elapsed}ms): ${data.error || 'unknown'}`);
         setChatMessages(prev => [...prev, { role: 'assistant', text: `❌ Error: ${data.error || 'request failed'}` }]);
       }
     } catch (err: unknown) {
-      setChatMessages(prev => [...prev, { role: 'assistant', text: `❌ Error: ${err instanceof Error ? err.message : 'unknown'}` }]);
+      const msg = err instanceof Error ? err.message : 'unknown';
+      console.error(`[Chat] Fetch failed: ${msg}`, err);
+      setChatMessages(prev => [...prev, { role: 'assistant', text: `❌ Error: ${msg}` }]);
     } finally {
       setChatLoading(false);
       chatInputRef.current?.focus();

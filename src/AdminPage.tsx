@@ -21,27 +21,46 @@ export default function AdminPage() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    console.log('[Admin] Loading system prompts...');
     fetch(`${API}/v1/system-prompts`)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data: SystemPrompts) => {
+        console.log('[Admin] Prompts loaded:', data);
         setPrompts(data);
         setEditing({ helper_prompt: data.helper_prompt || '' });
       })
-      .catch(() => setMessage('Failed to load prompts'));
+      .catch((err: Error) => {
+        console.error('[Admin] Failed to load prompts:', err.message);
+        setMessage('Failed to load prompts');
+      });
   }, []);
 
   const handleSave = async (col: string) => {
+    console.log(`[Admin] Saving ${col}...`);
     setSaving(col);
     try {
+      const start = performance.now();
       const res = await fetch(`${API}/v1/system-prompts/${col.replace('_prompt', '')}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: editing[col] }),
       });
+      const elapsed = (performance.now() - start).toFixed(0);
       const data = await res.json();
-      setMessage(res.ok ? `✅ ${col} updated` : `❌ ${data.error || 'update failed'}`);
+      if (res.ok) {
+        console.log(`[Admin] ${col} saved OK (${elapsed}ms)`);
+        setMessage(`✅ ${col} updated`);
+      } else {
+        console.error(`[Admin] ${col} save failed (${elapsed}ms): ${data.error || 'unknown'}`);
+        setMessage(`❌ ${data.error || 'update failed'}`);
+      }
     } catch (err: unknown) {
-      setMessage(`❌ ${err instanceof Error ? err.message : 'request failed'}`);
+      const msg = err instanceof Error ? err.message : 'request failed';
+      console.error(`[Admin] Save error: ${msg}`, err);
+      setMessage(`❌ ${msg}`);
     } finally {
       setSaving(null);
     }
