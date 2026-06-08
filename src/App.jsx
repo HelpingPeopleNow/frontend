@@ -33,16 +33,6 @@ function Home({ onNavigate }) {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
-  const handleHello = async () => {
-    try {
-      const res = await fetch(`${API}/v1/hello`);
-      const data = await res.json();
-      alert(data.message);
-    } catch (err) {
-      alert('Error: ' + err.message);
-    }
-  };
-
   const handleSave = async (col) => {
     setSaving(col);
     try {
@@ -121,20 +111,6 @@ function Home({ onNavigate }) {
       <h1 style={{ fontSize: '4rem', margin: '0 0 0.5rem', color: '#00d4ff' }}>
         hi hermy, p
       </h1>
-
-      <button onClick={handleHello} style={{
-        padding: '1rem 2.5rem',
-        fontSize: '1.2rem',
-        border: 'none',
-        borderRadius: '8px',
-        background: '#00d4ff',
-        color: '#1a1a2e',
-        cursor: 'pointer',
-        fontWeight: 600,
-        marginBottom: '2rem',
-      }}>
-        Say Hello
-      </button>
 
       {/* Chat Section */}
       <div style={{ width: '100%', maxWidth: '800px', marginBottom: '3rem' }}>
