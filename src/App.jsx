@@ -98,7 +98,7 @@ function Home({ onNavigate }) {
   };
 
   const promptMeta = [
-    { key: 'helper_prompt', label: 'Helper Prompt', desc: 'System prompt for the pizza assistant (helper service)' },
+    { key: 'helper_prompt', label: 'Helper Prompt', desc: 'System prompt for the helper service' },
   ];
 
   return (
@@ -134,10 +134,10 @@ function Home({ onNavigate }) {
       {/* Chat Section */}
       <div style={{ width: '100%', maxWidth: '800px', marginBottom: '3rem' }}>
         <h2 style={{ fontSize: '1.8rem', margin: '0 0 0.25rem', color: '#fff' }}>
-          💬 Chat with Pizza Assistant
+          💬 Chat
         </h2>
         <p style={{ margin: '0 0 1rem', fontSize: '0.9rem', color: '#888' }}>
-          Ask anything about pizza — ingredients, history, recipes, techniques.
+          Ask anything — the assistant will answer based on its system prompt.
         </p>
 
         {/* Chat messages */}
@@ -173,7 +173,7 @@ function Home({ onNavigate }) {
               whiteSpace: 'pre-wrap',
             }}>
               <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '0.25rem' }}>
-                {msg.role === 'user' ? 'You' : 'Pizza Assistant'}
+                {msg.role === 'user' ? 'You' : 'Assistant'}
               </div>
               {msg.text}
             </div>
@@ -200,7 +200,7 @@ function Home({ onNavigate }) {
             value={chatInput}
             onInput={(e) => setChatInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask something about pizza..."
+            placeholder="Ask something..."
             rows={2}
             disabled={chatLoading}
             style={{
