@@ -75,7 +75,10 @@ function Home({ onNavigate }) {
       const res = await fetch(`${API}/v1/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({
+          message: text,
+          history: chatMessages.map(m => ({ role: m.role, content: m.text }))
+        }),
       });
       const data = await res.json();
       if (res.ok) {
