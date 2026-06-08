@@ -16,8 +16,6 @@ function Home({ onNavigate }) {
         setPrompts(data);
         setEditing({
           helper_prompt: data.helper_prompt || '',
-          frontend_prompt: data.frontend_prompt || '',
-          backend_prompt: data.backend_prompt || '',
         });
       })
       .catch(() => setMessage('Failed to load prompts'));
@@ -56,8 +54,6 @@ function Home({ onNavigate }) {
 
   const promptMeta = [
     { key: 'helper_prompt', label: 'Helper Prompt', desc: 'System prompt for the pizza assistant (helper service)' },
-    { key: 'frontend_prompt', label: 'Frontend Prompt', desc: 'System prompt for the frontend service' },
-    { key: 'backend_prompt', label: 'Backend Prompt', desc: 'System prompt for the backend service' },
   ];
 
   return (
