@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useRef } from 'preact/hooks';
 
 const API = 'http://51.92.201.150:8081/api';
 
@@ -8,6 +8,12 @@ function Home({ onNavigate }) {
   const [editing, setEditing] = useState({});
   const [saving, setSaving] = useState(null);
   const [message, setMessage] = useState('');
+
+  // Chat state
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef(null);
 
   useEffect(() => {
     fetch(`${API}/v1/system-prompts`)
@@ -20,6 +26,11 @@ function Home({ onNavigate }) {
       })
       .catch(() => setMessage('Failed to load prompts'));
   }, []);
+
+  // Auto-scroll chat
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
 
   const handleHello = async () => {
     try {
@@ -52,6 +63,40 @@ function Home({ onNavigate }) {
     }
   };
 
+  const handleSend = async () => {
+    const text = chatInput.trim();
+    if (!text || chatLoading) return;
+
+    setChatInput('');
+    setChatMessages(prev => [...prev, { role: 'user', text }]);
+    setChatLoading(true);
+
+    try {
+      const res = await fetch(`${API}/v1/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setChatMessages(prev => [...prev, { role: 'assistant', text: data.answer }]);
+      } else {
+        setChatMessages(prev => [...prev, { role: 'assistant', text: `❌ Error: ${data.error || 'request failed'}` }]);
+      }
+    } catch (err) {
+      setChatMessages(prev => [...prev, { role: 'assistant', text: `❌ Error: ${err.message}` }]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
   const promptMeta = [
     { key: 'helper_prompt', label: 'Helper Prompt', desc: 'System prompt for the pizza assistant (helper service)' },
   ];
@@ -81,18 +126,122 @@ function Home({ onNavigate }) {
         color: '#1a1a2e',
         cursor: 'pointer',
         fontWeight: 600,
-        marginBottom: '3rem',
+        marginBottom: '2rem',
       }}>
         Say Hello
       </button>
 
-      {/* Prompts Admin */}
+      {/* Chat Section */}
+      <div style={{ width: '100%', maxWidth: '800px', marginBottom: '3rem' }}>
+        <h2 style={{ fontSize: '1.8rem', margin: '0 0 0.25rem', color: '#fff' }}>
+          💬 Chat with Pizza Assistant
+        </h2>
+        <p style={{ margin: '0 0 1rem', fontSize: '0.9rem', color: '#888' }}>
+          Ask anything about pizza — ingredients, history, recipes, techniques.
+        </p>
+
+        {/* Chat messages */}
+        <div style={{
+          background: '#16213e',
+          borderRadius: '10px',
+          padding: '1.25rem',
+          border: '1px solid #0f3460',
+          minHeight: '200px',
+          maxHeight: '400px',
+          overflowY: 'auto',
+          marginBottom: '0.75rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.75rem',
+        }}>
+          {chatMessages.length === 0 && (
+            <p style={{ color: '#555', textAlign: 'center', margin: '3rem 0' }}>
+              No messages yet. Ask a question below.
+            </p>
+          )}
+          {chatMessages.map((msg, i) => (
+            <div key={i} style={{
+              alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+              maxWidth: '80%',
+              padding: '0.65rem 1rem',
+              borderRadius: '12px',
+              background: msg.role === 'user' ? '#0f3460' : '#1a1a2e',
+              border: msg.role === 'user' ? 'none' : '1px solid #0f3460',
+              color: '#e0e0e0',
+              fontSize: '0.95rem',
+              lineHeight: '1.5',
+              whiteSpace: 'pre-wrap',
+            }}>
+              <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '0.25rem' }}>
+                {msg.role === 'user' ? 'You' : 'Pizza Assistant'}
+              </div>
+              {msg.text}
+            </div>
+          ))}
+          {chatLoading && (
+            <div style={{
+              alignSelf: 'flex-start',
+              padding: '0.65rem 1rem',
+              borderRadius: '12px',
+              background: '#1a1a2e',
+              border: '1px solid #0f3460',
+              color: '#888',
+              fontSize: '0.95rem',
+            }}>
+              Thinking...
+            </div>
+          )}
+          <div ref={chatEndRef} />
+        </div>
+
+        {/* Chat input */}
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <textarea
+            value={chatInput}
+            onInput={(e) => setChatInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask something about pizza..."
+            rows={2}
+            disabled={chatLoading}
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              fontSize: '0.95rem',
+              fontFamily: 'inherit',
+              background: '#1a1a2e',
+              color: '#e0e0e0',
+              border: '1px solid #0f3460',
+              borderRadius: '8px',
+              resize: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
+          <button
+            onClick={handleSend}
+            disabled={chatLoading || !chatInput.trim()}
+            style={{
+              padding: '0.75rem 1.5rem',
+              fontSize: '1rem',
+              border: 'none',
+              borderRadius: '8px',
+              background: chatLoading || !chatInput.trim() ? '#555' : '#00d4ff',
+              color: '#1a1a2e',
+              cursor: chatLoading || !chatInput.trim() ? 'not-allowed' : 'pointer',
+              fontWeight: 600,
+              alignSelf: 'stretch',
+            }}
+          >
+            {chatLoading ? '...' : 'Send'}
+          </button>
+        </div>
+      </div>
+
+      {/* System Prompts */}
       <h2 style={{ fontSize: '1.8rem', margin: '0 0 0.25rem', color: '#fff' }}>
         🛠 System Prompts
       </h2>
       <p style={{ margin: '0 0 2rem', fontSize: '0.9rem', color: '#888' }}>
-        Each column in the database is a different service's system prompt.
-        Edit any prompt below — changes take effect immediately.
+        Edit the system prompt for the helper service below — changes take effect immediately.
       </p>
 
       {message && (
