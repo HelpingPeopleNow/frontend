@@ -1,6 +1,8 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 
+const API = 'http://51.92.201.150:8081/api';
+
 function Home({ onNavigate }) {
   const [prompts, setPrompts] = useState(null);
   const [editing, setEditing] = useState({});
@@ -8,7 +10,7 @@ function Home({ onNavigate }) {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    fetch('/api/v1/system-prompts')
+    fetch(`${API}/v1/system-prompts`)
       .then(r => r.json())
       .then(data => {
         setPrompts(data);
@@ -23,7 +25,7 @@ function Home({ onNavigate }) {
 
   const handleHello = async () => {
     try {
-      const res = await fetch('/api/v1/hello');
+      const res = await fetch(`${API}/v1/hello`);
       const data = await res.json();
       alert(data.message);
     } catch (err) {
@@ -34,7 +36,7 @@ function Home({ onNavigate }) {
   const handleSave = async (col) => {
     setSaving(col);
     try {
-      const res = await fetch(`/api/v1/system-prompts/${col.replace('_prompt', '')}`, {
+      const res = await fetch(`${API}/v1/system-prompts/${col.replace('_prompt', '')}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: editing[col] }),
