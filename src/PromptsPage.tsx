@@ -1,13 +1,14 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { listPrompts, createPrompt, updatePrompt, deletePrompt } from './api';
+import type { PromptHelper, CreatePromptInput } from './api';
 
-const emptyForm = { title: '', content: '', category: '' };
+const emptyForm: CreatePromptInput = { title: '', content: '', category: '' };
 
-export default function PromptsPage({ onNavigate }) {
-  const [prompts, setPrompts] = useState([]);
-  const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState(emptyForm);
+export default function PromptsPage({ onNavigate }: { onNavigate: () => void }) {
+  const [prompts, setPrompts] = useState<PromptHelper[]>([]);
+  const [editing, setEditing] = useState<number | null>(null);
+  const [form, setForm] = useState<CreatePromptInput>(emptyForm);
   const [error, setError] = useState('');
 
   const load = async () => {
@@ -15,14 +16,14 @@ export default function PromptsPage({ onNavigate }) {
       setError('');
       const data = await listPrompts();
       setPrompts(Array.isArray(data) ? data : []);
-    } catch (e) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 
   useEffect(() => { load(); }, []);
 
-  const handleFormChange = (field) => (e) => {
+  const handleFormChange = (field: keyof CreatePromptInput) => (e: h.JSX.TargetedEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((f) => ({ ...f, [field]: e.currentTarget.value }));
   };
 
@@ -31,7 +32,7 @@ export default function PromptsPage({ onNavigate }) {
     setEditing(null);
   };
 
-  const handleCreate = async (e) => {
+  const handleCreate = async (e: h.JSX.TargetedEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       setError('');
@@ -42,26 +43,26 @@ export default function PromptsPage({ onNavigate }) {
       }
       resetForm();
       await load();
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   };
 
-  const handleEdit = (p) => {
+  const handleEdit = (p: PromptHelper) => {
     setForm({ title: p.title || '', content: p.content || '', category: p.category || '' });
     setEditing(p.id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     if (!confirm('Delete this prompt helper?')) return;
     try {
       setError('');
       await deletePrompt(id);
       if (editing === id) resetForm();
       await load();
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -88,7 +89,7 @@ export default function PromptsPage({ onNavigate }) {
         </div>
       )}
 
-      {/* Form — Create / Update */}
+      {/* Form */}
       <form onSubmit={handleCreate} style={{
         background: '#16213e', padding: '1.5rem', borderRadius: '10px', marginBottom: '2rem',
       }}>
@@ -111,7 +112,7 @@ export default function PromptsPage({ onNavigate }) {
           />
           <input
             placeholder="Category (optional)"
-            value={form.category}
+            value={form.category ?? ''}
             onInput={handleFormChange('category')}
             style={inputStyle}
           />
@@ -168,7 +169,7 @@ export default function PromptsPage({ onNavigate }) {
   );
 }
 
-const inputStyle = {
+const inputStyle: h.JSX.CSSProperties = {
   padding: '0.65rem 0.85rem',
   borderRadius: '6px',
   border: '1px solid #2a2a4a',
@@ -179,7 +180,7 @@ const inputStyle = {
   width: '100%',
 };
 
-function btnStyle(bg) {
+function btnStyle(bg: string): h.JSX.CSSProperties {
   return {
     padding: '0.6rem 1.5rem',
     border: 'none',
@@ -192,7 +193,7 @@ function btnStyle(bg) {
   };
 }
 
-function smBtn(color) {
+function smBtn(color: string): h.JSX.CSSProperties {
   return {
     padding: '0.3rem 0.5rem',
     border: 'none',

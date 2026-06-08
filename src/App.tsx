@@ -3,23 +3,39 @@ import { useState, useEffect, useRef } from 'preact/hooks';
 
 const API = 'http://51.92.201.150:8081/api';
 
-function Home({ onNavigate }) {
-  const [prompts, setPrompts] = useState(null);
-  const [editing, setEditing] = useState({});
-  const [saving, setSaving] = useState(null);
+interface SystemPrompts {
+  helper_prompt: string;
+  [key: string]: string;
+}
+
+interface ChatMsg {
+  role: 'user' | 'assistant';
+  text: string;
+}
+
+interface PromptMeta {
+  key: string;
+  label: string;
+  desc: string;
+}
+
+function Home({ onNavigate }: { onNavigate: () => void }) {
+  const [prompts, setPrompts] = useState<SystemPrompts | null>(null);
+  const [editing, setEditing] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState<string | null>(null);
   const [message, setMessage] = useState('');
 
   // Chat state
-  const [chatMessages, setChatMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
-  const chatEndRef = useRef(null);
-  const chatInputRef = useRef(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     fetch(`${API}/v1/system-prompts`)
       .then(r => r.json())
-      .then(data => {
+      .then((data: SystemPrompts) => {
         setPrompts(data);
         setEditing({
           helper_prompt: data.helper_prompt || '',
@@ -33,7 +49,7 @@ function Home({ onNavigate }) {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
-  const handleSave = async (col) => {
+  const handleSave = async (col: string) => {
     setSaving(col);
     try {
       const res = await fetch(`${API}/v1/system-prompts/${col.replace('_prompt', '')}`, {
@@ -47,8 +63,8 @@ function Home({ onNavigate }) {
       } else {
         setMessage(`❌ ${data.error || 'update failed'}`);
       }
-    } catch (err) {
-      setMessage(`❌ ${err.message}`);
+    } catch (err: unknown) {
+      setMessage(`❌ ${err instanceof Error ? err.message : 'request failed'}`);
     } finally {
       setSaving(null);
     }
@@ -77,22 +93,22 @@ function Home({ onNavigate }) {
       } else {
         setChatMessages(prev => [...prev, { role: 'assistant', text: `❌ Error: ${data.error || 'request failed'}` }]);
       }
-    } catch (err) {
-      setChatMessages(prev => [...prev, { role: 'assistant', text: `❌ Error: ${err.message}` }]);
+    } catch (err: unknown) {
+      setChatMessages(prev => [...prev, { role: 'assistant', text: `❌ Error: ${err instanceof Error ? err.message : 'unknown'}` }]);
     } finally {
       setChatLoading(false);
       chatInputRef.current?.focus();
     }
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: h.JSX.TargetedKeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
-  const promptMeta = [
+  const promptMeta: PromptMeta[] = [
     { key: 'helper_prompt', label: 'Helper Prompt', desc: 'System prompt for the helper service' },
   ];
 
@@ -106,7 +122,7 @@ function Home({ onNavigate }) {
       background: '#1a1a2e',
       color: '#e0e0e0',
       padding: '2rem 1rem',
-    }}>
+    } as h.JSX.CSSProperties}>
       {/* Hero */}
       <h1 style={{ fontSize: '4rem', margin: '0 0 0.5rem', color: '#00d4ff' }}>
         hi hermy, p
@@ -181,7 +197,7 @@ function Home({ onNavigate }) {
             ref={chatInputRef}
             autoFocus
             value={chatInput}
-            onInput={(e) => setChatInput(e.target.value)}
+            onInput={(e: h.JSX.TargetedEvent<HTMLTextAreaElement>) => setChatInput(e.currentTarget.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask something..."
             rows={2}
@@ -266,7 +282,7 @@ function Home({ onNavigate }) {
               </div>
               <textarea
                 value={editing[key] || ''}
-                onChange={(e) => setEditing({ ...editing, [key]: e.target.value })}
+                onChange={(e: h.JSX.TargetedEvent<HTMLTextAreaElement>) => setEditing({ ...editing, [key]: e.currentTarget.value })}
                 rows={5}
                 style={{
                   width: '100%',
