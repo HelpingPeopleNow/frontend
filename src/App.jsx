@@ -8,14 +8,14 @@ function Home({ onNavigate }) {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    fetch('/api/v1/prompts')
+    fetch('/api/v1/system-prompts')
       .then(r => r.json())
       .then(data => {
         setPrompts(data);
         setEditing({
-          helper_prompt: data.helper_prompt,
-          frontend_prompt: data.frontend_prompt,
-          backend_prompt: data.backend_prompt,
+          helper_prompt: data.helper_prompt || '',
+          frontend_prompt: data.frontend_prompt || '',
+          backend_prompt: data.backend_prompt || '',
         });
       })
       .catch(() => setMessage('Failed to load prompts'));
@@ -34,7 +34,7 @@ function Home({ onNavigate }) {
   const handleSave = async (col) => {
     setSaving(col);
     try {
-      const res = await fetch(`/api/v1/prompts/${col.replace('_prompt', '')}`, {
+      const res = await fetch(`/api/v1/system-prompts/${col.replace('_prompt', '')}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: editing[col] }),
