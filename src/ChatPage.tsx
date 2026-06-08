@@ -1,7 +1,7 @@
 import { h } from 'preact';
 import { useState, useRef } from 'preact/hooks';
 
-const API = 'http://51.92.201.150:8081/api';
+const API = '/api';
 
 interface ChatMsg {
   role: 'user' | 'assistant';

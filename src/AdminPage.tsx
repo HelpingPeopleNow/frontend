@@ -1,7 +1,7 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 
-const API = 'http://51.92.201.150:8081/api';
+const API = '/api';
 
 interface SystemPrompts {
   helper_prompt: string;
