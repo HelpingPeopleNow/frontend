@@ -14,6 +14,7 @@ function Home({ onNavigate }) {
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const chatEndRef = useRef(null);
+  const chatInputRef = useRef(null);
 
   useEffect(() => {
     fetch(`${API}/v1/system-prompts`)
@@ -90,6 +91,7 @@ function Home({ onNavigate }) {
       setChatMessages(prev => [...prev, { role: 'assistant', text: `❌ Error: ${err.message}` }]);
     } finally {
       setChatLoading(false);
+      chatInputRef.current?.focus();
     }
   };
 
@@ -200,6 +202,8 @@ function Home({ onNavigate }) {
         {/* Chat input */}
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <textarea
+            ref={chatInputRef}
+            autoFocus
             value={chatInput}
             onInput={(e) => setChatInput(e.target.value)}
             onKeyDown={handleKeyDown}
