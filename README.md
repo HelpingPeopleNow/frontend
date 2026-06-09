@@ -25,8 +25,8 @@ Preact + Vite SPA served behind nginx. Dark-themed home-services platform where 
 | `/login` | `LoginPage.tsx` | No | Magic-link login form |
 | `/signup` | `SignupPage.tsx` | No | Registration form |
 | `/` | `ChatPage.tsx` | Yes | AI chat interface — the entry point for role detection |
-| `/admin` | `AdminPage.tsx` | Yes | Admin panel — edit system prompt + switch LLM provider |
-| `/worker` | `WorkerPage.tsx` | Yes | Worker dashboard (after role detected as "worker") |
+| `/admin` | `AdminPage.tsx` | Yes | Admin panel — edit system prompts + switch LLM provider |
+| `/worker` | `WorkerPage.tsx` | Yes | Worker dashboard — profile form + profile intake chat |
 | `/client` | `ClientPage.tsx` | Yes | Client dashboard (after role detected as "client") |
 | `/prompts` | `PromptsPage.tsx` | Yes | Saved prompt snippets list (legacy, read-only) |
 
@@ -39,6 +39,8 @@ Browser ──► Traefik (:80)
               │
               ├── /api/v1/*      ──► Backend (:8081)
               │                       ├── /chat
+              │                       ├── /worker/chat
+              │                       ├── /worker/profile
               │                       ├── /system-prompts
               │                       └── /prompts
               │
@@ -79,7 +81,7 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 | `src/api.ts` | API helper — generic fetch wrapper with error handling |
 | `src/ChatPage.tsx` | Chat UI — message list, input box, API integration with role detection |
 | `src/AdminPage.tsx` | System prompt editor — edit `helper_prompt` + switch `llm_provider` via dropdown |
-| `src/WorkerPage.tsx` | Worker dashboard — manage services, availability, job listings |
+| `src/WorkerPage.tsx` | Worker dashboard — profile form + intake chat panel (two-column layout) |
 | `src/ClientPage.tsx` | Client dashboard — search/find workers, request services |
 | `src/LoginPage.tsx` | Magic-link login — email input, send link |
 | `src/SignupPage.tsx` | Registration form — name, email, submit |
@@ -105,6 +107,48 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 5. Backend updates auth service (PUT .../role) → session.user.role = "worker"
        │
 6. Frontend can redirect to /worker or /client using the session role
+```
+
+---
+
+## Worker Profile Intake Chat
+
+The Worker Page (`/worker`) offers two ways to fill in a worker's professional profile:
+
+### Chat Panel (left column)
+
+- Users type naturally: *"I'm a plumber in Madrid with 12 years experience"*
+- The LLM (with the `worker_profile_prompt`) asks follow-up questions to gather all fields
+- Once the LLM has collected at least 6 fields, it appends `[FIELDS]{json}[/FIELDS]` to its response
+- The frontend parses `detected_fields` from the API response and auto-fills the form
+
+### Form Panel (right column)
+
+- Full manual form — users can type/edit any field directly if they prefer not to chat
+- Tags input for certifications, languages, and social links
+- Checkboxes for booleans (free estimate, insurance, emergency service)
+- "Save Profile" button persists everything via `PUT /api/v1/worker/profile`
+
+Both columns work independently and together: data from the chat auto-fills the form, and the user can correct or add more fields manually before saving.
+
+### Field Mapping
+
+The `[FIELDS]` JSON keys map to form fields:
+
+```json
+{
+  "profession": "plumber",
+  "business_name": "Alvaro's Repairs",
+  "bio": "12 years of experience fixing pipes and boilers",
+  "phone": "+34 612 345 678",
+  "city": "Madrid",
+  "service_radius_km": 30,
+  "hourly_rate": 45,
+  "free_estimate": true,
+  "years_experience": 12,
+  "has_insurance": true,
+  "languages": ["Spanish", "English"]
+}
 ```
 
 ---
@@ -155,6 +199,7 @@ Browser console logging with component prefixes:
 | Prefix | Component | Events |
 |--------|-----------|--------|
 | `[Chat]` | ChatPage | Request timing, answer length, detected_role, errors |
+| `[Worker-Chat]` | WorkerPage | Chat send/response, detected_fields, field merging |
 | `[Admin]` | AdminPage | Prompt load/save, provider switch, timing |
 | `[Nav]` | App router | Route changes, auth redirects |
 | `[Auth]` | AuthProvider | Session check, login/logout, redirect |
