@@ -89,13 +89,9 @@ export default function ChatPage() {
         const data = await res.json();
         responseText = data.answer || data.response || data.text || JSON.stringify(data);
         setMessages(m => [...m, { role: 'assistant', text: responseText }]);
-        // Role detected — disable chat, show profile button
-        if (data.role_updated) {
-          const freshSession = await refreshSession();
-          const role = freshSession?.user?.role;
-          if (role === 'worker' || role === 'client') {
-            setDetectedRole(role);
-          }
+        // Role detected — show profile button immediately
+        if (data.detected_role === 'worker' || data.detected_role === 'client') {
+          setDetectedRole(data.detected_role);
         }
       }
       const elapsed = Math.round(performance.now() - startTime);
