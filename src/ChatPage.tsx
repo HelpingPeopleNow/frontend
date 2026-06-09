@@ -11,14 +11,16 @@ interface ChatMsg {
 }
 
 export default function ChatPage() {
+  const { session, logout } = useAuth();
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [streaming, setStreaming] = useState(false);
-  const [detectedRole, setDetectedRole] = useState<'worker' | 'client' | null>(null);
-  const { session, logout, refreshSession } = useAuth();
+  const [detectedRole, setDetectedRole] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
@@ -102,6 +104,7 @@ export default function ChatPage() {
     } finally {
       setLoading(false);
       setStreaming(false);
+      inputRef.current?.focus();
     }
   };
 
@@ -153,7 +156,7 @@ export default function ChatPage() {
               onKeyDown={(e: any) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
               placeholder="Ask anything..."
               disabled={loading || streaming}
-              autofocus
+              ref={inputRef}
             />
             <button onClick={send} disabled={loading || streaming || !input.trim()}>Send</button>
           </>

@@ -54,6 +54,7 @@ export default function WorkerPage() {
   const [chatInput, setChatInput] = useState('');
   const [chatSending, setChatSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLInputElement>(null);
 
   // Input helpers
   const [certInput, setCertInput] = useState('');
@@ -208,6 +209,7 @@ export default function WorkerPage() {
       setChatMsgs([...newMsgs, { role: 'assistant', content: 'Network error — please try again.' }]);
     } finally {
       setChatSending(false);
+      chatInputRef.current?.focus();
     }
   };
 
@@ -306,6 +308,7 @@ export default function WorkerPage() {
                 onKeyDown={handleChatKeyDown}
                 placeholder={chatMsgs.length === 0 ? "I'm a plumber in Madrid…" : 'Type your answer…'}
                 disabled={chatSending}
+                ref={chatInputRef}
               />
               <button class="btn-send" onClick={sendChatMessage} disabled={chatSending || !chatInput.trim()}>
                 {chatSending ? '…' : 'Send'}
