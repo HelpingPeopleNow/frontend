@@ -53,6 +53,7 @@ export default function WorkerPage() {
   const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [chatSending, setChatSending] = useState(false);
+  const [chatConvId, setChatConvId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,9 +80,44 @@ export default function WorkerPage() {
         }
       } catch (e) {
         // Profile might not exist yet — fine
-      } finally {
-        setLoading(false);
       }
+
+      // Load last worker conversation for chat panel
+      try {
+        const convRes = await fetch('/api/v1/conversations?type=worker&limit=1', { credentials: 'include' });
+        if (convRes.ok) {
+          const convData = await convRes.json();
+          if (convData.conversations && convData.conversations.length > 0) {
+            const conv = convData.conversations[0];
+            const updated = new Date(conv.updated_at).getTime();
+            // Only resume if from last 24h
+            if (Date.now() - updated < 24 * 60 * 60 * 1000) {
+              const detailRes = await fetch(`/api/v1/conversations/${conv.id}`, { credentials: 'include' });
+              if (detailRes.ok) {
+                const detail = await detailRes.json();
+                if (detail.messages && Array.isArray(detail.messages)) {
+                  const loaded = detail.messages.map((m: any) => ({
+                    role: m.role as 'user' | 'assistant',
+                    content: m.content,
+                  }));
+                  setChatMsgs(loaded);
+                  setChatConvId(detail.id);
+
+                  // Merge extracted fields from metadata into form
+                  if (detail.metadata && detail.metadata.detected_fields) {
+                    mergeDetectedFields(detail.metadata.detected_fields);
+                    console.log('[worker] loaded extracted fields from conversation metadata');
+                  }
+                  console.log('[worker] resumed previous conversation', detail.id, loaded.length, 'messages');
+                }
+              }
+            }
+          }
+        }
+      } catch (convErr) {
+        console.log('[worker] could not load previous conversation', convErr);
+      }
+      setLoading(false);
     })();
   }, []);
 
@@ -176,7 +212,12 @@ export default function WorkerPage() {
       const res = await fetch('/api/v1/worker/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg, history }),
+        credentials: 'include',
+        body: JSON.stringify({
+          message: msg,
+          history,
+          conversation_id: chatConvId || undefined,
+        }),
       });
 
       if (!res.ok) {
@@ -204,6 +245,11 @@ export default function WorkerPage() {
       }
 
       setChatMsgs([...newMsgs, { role: 'assistant', content: data.answer || '(empty response)' }]);
+      // Save conversation ID for continued chat
+      if (data.conversation_id) {
+        setChatConvId(data.conversation_id);
+        console.log('[worker-chat] conversation_id:', data.conversation_id);
+      }
     } catch (e: any) {
       console.error('[worker-chat] network error', e);
       setChatMsgs([...newMsgs, { role: 'assistant', content: 'Network error — please try again.' }]);

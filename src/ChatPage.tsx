@@ -17,8 +17,46 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [detectedRole, setDetectedRole] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load most recent conversation on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/v1/conversations?type=main&limit=1', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.conversations && data.conversations.length > 0) {
+            const conv = data.conversations[0];
+            // Only resume if it's from the last 24 hours
+            const updated = new Date(conv.updated_at).getTime();
+            if (Date.now() - updated < 24 * 60 * 60 * 1000) {
+              const detailRes = await fetch(`/api/v1/conversations/${conv.id}`, { credentials: 'include' });
+              if (detailRes.ok) {
+                const detail = await detailRes.json();
+                if (detail.messages && Array.isArray(detail.messages)) {
+                  const loaded = detail.messages.map((m: any) => ({
+                    role: m.role as 'user' | 'assistant',
+                    text: m.content,
+                  }));
+                  setMessages(loaded);
+                  setConversationId(detail.id);
+                  console.log('[Chat] resumed conversation', detail.id, loaded.length, 'messages');
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.log('[Chat] could not load previous conversation', e);
+      } finally {
+        setInitialLoading(false);
+      }
+    })();
+  }, []);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -47,7 +85,11 @@ export default function ChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ message: text, history }),
+        body: JSON.stringify({
+          message: text,
+          history,
+          conversation_id: conversationId || undefined,
+        }),
       });
       if (!res.ok) {
         const errText = await res.text().catch(() => 'Unknown error');
@@ -91,6 +133,11 @@ export default function ChatPage() {
         const data = await res.json();
         responseText = data.answer || data.response || data.text || JSON.stringify(data);
         setMessages(m => [...m, { role: 'assistant', text: responseText }]);
+        // Save conversation ID for continued chat
+        if (data.conversation_id) {
+          setConversationId(data.conversation_id);
+          console.log('[Chat] conversation_id:', data.conversation_id);
+        }
         // Role detected — show profile button immediately
         if (data.detected_role === 'worker' || data.detected_role === 'client') {
           setDetectedRole(data.detected_role);
