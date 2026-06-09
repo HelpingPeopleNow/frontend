@@ -45,9 +45,18 @@ Browser ──► Traefik (:80)
               ├── /api/auth/*    ──► Auth Service (:8083)
               │
               └── /*             ──► Frontend nginx → SPA (index.html)
+              └── /health        ──► Frontend nginx → 200 "ok"
 ```
 
 The SPA uses client-side routing via `preact-router`. API calls use relative URLs (`/api/v1/...`) which Traefik proxies to the appropriate backend service.
+
+### Health Check
+
+The nginx config has a `/health` location block that returns `200 OK` with body `"ok"` and has `access_log off`. It is used for Docker container healthchecks.
+
+| Endpoint | Response | Notes |
+|----------|----------|-------|
+| `GET /health` | `200 OK` with body `ok` | `access_log off`; no auth required |
 
 ### Auth Flow
 
