@@ -1,12 +1,12 @@
 /**
- * Auth helpers — login, signup, logout, session check.
- * Direct fetch against the Better Auth API (no client SDK needed for Preact).
+ * Auth helpers — magic link only.
+ * Direct fetch against the Better Auth API.
  */
 
 const AUTH_BASE = '/api/auth';
 
 export interface Session {
-  user: { id: string; email: string; name?: string };
+  user: { id: string; email: string; name?: string; role?: string };
   session: { id: string; token: string; expiresAt: Date };
 }
 
@@ -23,33 +23,20 @@ export async function getSession(): Promise<Session | null> {
   }
 }
 
-export async function login(email: string, password: string): Promise<{ ok: true; session: Session } | { ok: false; error: string }> {
+export async function sendMagicLink(
+  email: string,
+  name?: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
-    const res = await fetch(`${AUTH_BASE}/sign-in/email`, {
+    const res = await fetch(`${AUTH_BASE}/sign-in/magic-link`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, name, callbackURL: '/' }),
       credentials: 'include',
     });
     const data = await res.json();
-    if (!res.ok) return { ok: false, error: data?.error?.message || data?.message || 'Login failed' };
-    return { ok: true, session: data };
-  } catch (e) {
-    return { ok: false, error: 'Network error — check your connection' };
-  }
-}
-
-export async function signup(name: string, email: string, password: string): Promise<{ ok: true; session: Session } | { ok: false; error: string }> {
-  try {
-    const res = await fetch(`${AUTH_BASE}/sign-up/email`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-      credentials: 'include',
-    });
-    const data = await res.json();
-    if (!res.ok) return { ok: false, error: data?.error?.message || data?.message || 'Signup failed' };
-    return { ok: true, session: data };
+    if (!res.ok) return { ok: false, error: data?.error?.message || data?.message || 'Failed to send link' };
+    return { ok: true };
   } catch (e) {
     return { ok: false, error: 'Network error — check your connection' };
   }

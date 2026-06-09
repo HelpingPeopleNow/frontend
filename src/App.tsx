@@ -1,39 +1,60 @@
 import { h } from 'preact';
-import { Router, Route } from 'preact-router';
+import { Router, Route, route } from 'preact-router';
 import { useEffect } from 'preact/hooks';
+import { AuthProvider, useAuth } from './AuthProvider';
 import ChatPage from './ChatPage';
 import AdminPage from './AdminPage';
+import LoginPage from './LoginPage';
+import SignupPage from './SignupPage';
+import WorkerPage from './WorkerPage';
+import ClientPage from './ClientPage';
 
-function useNavigationLogger() {
+function ProtectedRoute({ component: Component, ...props }: any) {
+  const { session, loading } = useAuth();
   useEffect(() => {
-    const handler = () => console.log(`[Nav] Route: ${window.location.pathname}${window.location.search}`);
-    window.addEventListener('popstate', handler);
-    console.log(`[Nav] Initial route: ${window.location.pathname}${window.location.search}`);
-    return () => window.removeEventListener('popstate', handler);
-  }, []);
+    if (!loading && !session) {
+      console.log('[Nav] unauthorized, redirecting to /login');
+      route('/login', true);
+    }
+  }, [loading, session]);
+  if (loading) return <div class="loading-auth">Checking authentication...</div>;
+  if (!session) return null;
+  return <Component {...props} />;
+}
+
+function AppRouter() {
+  const { loading } = useAuth();
+
+  const handleRoute = (e: any) => {
+    const path = e?.url || '/';
+    console.log('[Nav] route:', path);
+  };
+
+  if (loading) {
+    return <div class="loading-auth">Loading...</div>;
+  }
+
+  return (
+    <div id="app">
+      <Router onChange={handleRoute}>
+        <Route path="/login" component={LoginPage} onNavigate={(p: string) => route(p)} />
+        <Route path="/signup" component={SignupPage} onNavigate={(p: string) => route(p)} />
+        <Route path="/admin" component={() => <ProtectedRoute component={AdminPage} />} />
+        <Route path="/worker" component={() => <ProtectedRoute component={WorkerPage} />} />
+        <Route path="/client" component={() => <ProtectedRoute component={ClientPage} />} />
+        <Route path="/" component={() => <ProtectedRoute component={ChatPage} />} />
+      </Router>
+      <style>{`
+        .loading-auth { display: flex; justify-content: center; align-items: center; min-height: 80vh; color: #888; font-size: 1.2rem; }
+      `}</style>
+    </div>
+  );
 }
 
 export default function App() {
-  useNavigationLogger();
-
-  const handleRouteChange = (e: { url: string }) => {
-    console.log(`[Nav] Navigated to: ${e.url}`);
-  };
-
   return (
-    <div style={{ minHeight: '100vh', background: '#1a1a2e' }}>
-      <nav style={{ padding: '1rem 2rem', background: '#0f3460', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <a href="/" onClick={() => console.log('[Nav] Click: Home')} style={{ color: '#00d4ff', textDecoration: 'none', fontWeight: 600, fontSize: '1.2rem' }}>
-          🏠 Home
-        </a>
-        <a href="/admin" onClick={() => console.log('[Nav] Click: Admin')} style={{ color: '#e0e0e0', textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '6px' }}>
-          ⚙️ Admin
-        </a>
-      </nav>
-      <Router onChange={handleRouteChange}>
-        <Route path="/" component={ChatPage} />
-        <Route path="/admin" component={AdminPage} />
-      </Router>
-    </div>
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
   );
 }

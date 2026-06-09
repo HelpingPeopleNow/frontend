@@ -4,36 +4,64 @@ import { useAuth } from './AuthProvider';
 
 export default function LoginPage({ onNavigate }: { onNavigate: (path: string) => void }) {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const { login } = useAuth();
+  const { sendMagicLink } = useAuth();
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
     setError('');
-    if (!email || !password) { setError('Email and password are required'); return; }
+    if (!email) { setError('Email is required'); return; }
     setSubmitting(true);
-    console.log('[Auth] login attempt:', email);
-    const result = await login(email, password);
+    console.log('[Auth] sending magic link to:', email);
+    const result = await sendMagicLink(email);
     setSubmitting(false);
     if (!result.ok) {
       setError(result.error);
-      console.error('[Auth] login failed:', result.error);
+      console.error('[Auth] failed:', result.error);
     } else {
-      console.log('[Auth] login ok, redirecting to /');
-      setTimeout(() => onNavigate('/'), 50);
+      console.log('[Auth] magic link sent');
+      setSent(true);
     }
   };
+
+  if (sent) {
+    return (
+      <div class="auth-page">
+        <div class="auth-form" style={{ textAlign: 'center' }}>
+          <h2>Check your email ✉️</h2>
+          <p style={{ color: '#aaa', lineHeight: 1.6 }}>
+            We sent a magic link to <strong style={{ color: '#00d4ff' }}>{email}</strong>.<br />
+            Click the link in the email to sign in.
+          </p>
+          <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '1rem' }}>
+            Link expires in 5 minutes.
+          </p>
+          <button onClick={() => { setSent(false); setEmail(''); }}
+            style={{ marginTop: '1rem', padding: '0.5rem 1rem', background: 'transparent', color: '#4a6cf7', border: '1px solid #4a6cf7', borderRadius: '4px', cursor: 'pointer' }}>
+            Send again
+          </button>
+        </div>
+        <style>{`
+          .auth-page { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
+          .auth-form { background: #1a1a2e; padding: 2rem; border-radius: 8px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 1rem; }
+          .auth-form h2 { margin: 0; text-align: center; color: #e0e0ff; }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div class="auth-page">
       <form onSubmit={handleSubmit} class="auth-form">
         <h2>Sign In</h2>
+        <p style={{ color: '#888', fontSize: '0.85rem', textAlign: 'center', margin: 0 }}>
+          Enter your email and we'll send you a magic link.
+        </p>
         {error && <p class="error">{error}</p>}
         <input type="email" placeholder="Email" value={email} onInput={(e: any) => setEmail(e.target.value)} required />
-        <input type="password" placeholder="Password" value={password} onInput={(e: any) => setPassword(e.target.value)} required />
-        <button type="submit" disabled={submitting}>{submitting ? 'Signing in...' : 'Sign In'}</button>
+        <button type="submit" disabled={submitting}>{submitting ? 'Sending...' : 'Send Magic Link'}</button>
         <p class="auth-link">
           Don't have an account? <a href="/signup" onClick={(e) => { e.preventDefault(); onNavigate('/signup'); }}>Sign up</a>
         </p>
