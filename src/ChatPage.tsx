@@ -116,6 +116,12 @@ export default function ChatPage() {
       <div class="chat-header">
         <h2>HelpingPeopleNow</h2>
         <div class="header-right">
+          {session?.user?.role === 'worker' && (
+            <button class="btn-nav" onClick={() => route('/worker', true)}>Worker Profile</button>
+          )}
+          {session?.user?.role === 'client' && (
+            <button class="btn-nav" onClick={() => route('/client', true)}>Client Portal</button>
+          )}
           <button class="btn-admin" onClick={() => route('/admin')}>Admin</button>
           <span class="user-email">{session?.user?.email}</span>
           <button class="btn-logout" onClick={handleLogout}>Logout</button>
@@ -163,6 +169,7 @@ export default function ChatPage() {
         .btn-admin, .btn-logout { padding: 0.35rem 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
         .btn-admin { background: #4a6cf7; color: white; }
         .btn-logout { background: #444; color: #ccc; }
+        .btn-nav { padding: 0.35rem 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; background: #27ae60; color: white; }
         .message-list { flex: 1; overflow-y: auto; padding: 1rem; }
         .msg { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 0.5rem; white-space: pre-wrap; }
         .msg-user { background: #4a6cf7; color: white; align-self: flex-end; margin-left: 3rem; }
