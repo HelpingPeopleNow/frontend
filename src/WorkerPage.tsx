@@ -38,7 +38,7 @@ interface ChatMsg {
 }
 
 export default function WorkerPage() {
-  const { session, logout } = useAuth();
+  const { session, logout, refreshSession } = useAuth();
   const { t } = useLanguage();
   const [profile, setProfile] = useState<WorkerProfile>({
     user_id: '', profession: '', business_name: '', bio: '', phone: '',
@@ -79,6 +79,8 @@ export default function WorkerPage() {
               social_links: data.social_links || [],
             }));
           }
+        } else {
+          console.warn('[worker] profile restore failed', res.status);
         }
       } catch (e) {
         // Profile might not exist yet — fine
@@ -106,15 +108,27 @@ export default function WorkerPage() {
                   setChatConvId(detail.id);
 
                   // Merge extracted fields from metadata into form
-                  if (detail.metadata && detail.metadata.detected_fields) {
-                    mergeDetectedFields(detail.metadata.detected_fields);
-                    console.log('[worker] loaded extracted fields from conversation metadata');
+                  const extractedFields = detail.metadata?.extracted_fields || detail.metadata?.detected_fields;
+                  if (extractedFields) {
+                    try {
+                      const fields = typeof extractedFields === 'string'
+                        ? JSON.parse(extractedFields)
+                        : extractedFields;
+                      mergeDetectedFields(fields);
+                      console.log('[worker] loaded extracted fields from conversation metadata');
+                    } catch (parseErr) {
+                      console.warn('[worker] failed to parse conversation metadata fields', parseErr);
+                    }
                   }
                   console.log('[worker] resumed previous conversation', detail.id, loaded.length, 'messages');
                 }
+              } else {
+                console.warn('[worker] conversation detail restore failed', detailRes.status);
               }
             }
           }
+        } else {
+          console.warn('[worker] conversation list restore failed', convRes.status);
         }
       } catch (convErr) {
         console.log('[worker] could not load previous conversation', convErr);
@@ -338,6 +352,25 @@ export default function WorkerPage() {
     route('/login', true);
   };
 
+  const handleResetRole = async () => {
+    try {
+      const res = await fetch(`/api/auth/user/${session?.user?.id}/role`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: '' }),
+      });
+      if (!res.ok) {
+        console.error('[Worker] failed to reset role', res.status);
+        return;
+      }
+      await refreshSession();
+      route('/', true);
+    } catch (e) {
+      console.error('[Worker] failed to reset role', e);
+    }
+  };
+
   if (loading) {
     return (
       <div class="role-page">
@@ -356,6 +389,7 @@ export default function WorkerPage() {
           <LangToggle />
           <span class="user-email">{session?.user?.email}</span>
           <button class="btn-chat" onClick={() => route('/', true)}>{t('nav.chat')}</button>
+          <button class="btn-reset" onClick={handleResetRole}>{t('worker.reset.role')}</button>
           <button class="btn-logout" onClick={handleLogout}>{t('auth.logout')}</button>
         </div>
       </div>
@@ -557,9 +591,10 @@ export default function WorkerPage() {
         .role-content { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; }
         .header-right { display: flex; align-items: center; gap: 0.5rem; }
         .user-email { color: #888; font-size: 0.85rem; }
-        .btn-chat, .btn-logout { padding: 0.35rem 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+        .btn-chat, .btn-logout, .btn-reset { padding: 0.35rem 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
         .btn-chat { background: #4a6cf7; color: white; }
         .btn-logout { background: #444; color: #ccc; }
+        .btn-reset { background: #6b1a1a; color: #f88; }
 
         .two-col { display: flex; gap: 1rem; flex: 1; min-height: 0; }
 

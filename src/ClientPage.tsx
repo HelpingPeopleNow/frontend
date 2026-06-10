@@ -4,12 +4,31 @@ import { useAuth } from './AuthProvider';
 import { useLanguage, LangToggle } from './i18n';
 
 export default function ClientPage() {
-  const { session, logout } = useAuth();
+  const { session, logout, refreshSession } = useAuth();
   const { t } = useLanguage();
 
   const handleLogout = async () => {
     await logout();
     route('/login', true);
+  };
+
+  const handleResetRole = async () => {
+    try {
+      const res = await fetch(`/api/auth/user/${session?.user?.id}/role`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: '' }),
+      });
+      if (!res.ok) {
+        console.error('[Client] failed to reset role', res.status);
+        return;
+      }
+      await refreshSession();
+      route('/', true);
+    } catch (e) {
+      console.error('[Client] failed to reset role', e);
+    }
   };
 
   return (
@@ -20,6 +39,7 @@ export default function ClientPage() {
           <LangToggle />
           <span class="user-email">{session?.user?.email}</span>
           <button class="btn-chat" onClick={() => route('/', true)}>{t('nav.chat')}</button>
+          <button class="btn-reset" onClick={handleResetRole}>{t('client.reset.role')}</button>
           <button class="btn-logout" onClick={handleLogout}>{t('auth.logout')}</button>
         </div>
       </div>
@@ -47,9 +67,10 @@ export default function ClientPage() {
         .placeholder-card p { color: #888; margin: 0; font-size: 0.9rem; }
         .header-right { display: flex; align-items: center; gap: 0.5rem; }
         .user-email { color: #888; font-size: 0.85rem; }
-        .btn-chat, .btn-logout { padding: 0.35rem 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+        .btn-chat, .btn-logout, .btn-reset { padding: 0.35rem 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
         .btn-chat { background: #4a6cf7; color: white; }
         .btn-logout { background: #444; color: #ccc; }
+        .btn-reset { background: #6b1a1a; color: #f88; }
       `}</style>
     </div>
   );

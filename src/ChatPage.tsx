@@ -21,8 +21,33 @@ export default function ChatPage() {
   const [detectedRole, setDetectedRole] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [promptsCheck, setPromptsCheck] = useState<'loading' | 'ok' | 'missing'>('loading');
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check system prompts on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/v1/system-prompts', { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.helper_prompt && data.worker_profile_prompt) {
+            setPromptsCheck('ok');
+          } else {
+            console.warn('[Chat] system prompts missing or empty');
+            setPromptsCheck('missing');
+          }
+        } else {
+          console.warn('[Chat] failed to fetch system prompts:', res.status);
+          setPromptsCheck('missing');
+        }
+      } catch (e) {
+        console.warn('[Chat] system prompts check failed:', e);
+        setPromptsCheck('missing');
+      }
+    })();
+  }, []);
 
   // Load most recent conversation on mount
   useEffect(() => {
@@ -46,11 +71,20 @@ export default function ChatPage() {
                   }));
                   setMessages(loaded);
                   setConversationId(detail.id);
+                  const role = detail.metadata?.detected_role;
+                  const sessionRole = session?.user?.role;
+                  if ((role === 'worker' || role === 'client') && role === sessionRole) {
+                    setDetectedRole(role);
+                  }
                   console.log('[Chat] resumed conversation', detail.id, loaded.length, 'messages');
                 }
+              } else {
+                console.warn('[Chat] conversation detail restore failed', detailRes.status);
               }
             }
           }
+        } else {
+          console.warn('[Chat] conversation list restore failed', res.status);
         }
       } catch (e) {
         console.log('[Chat] could not load previous conversation', e);
@@ -168,6 +202,26 @@ export default function ChatPage() {
     await logout();
     route('/login', true);
   };
+
+  if (promptsCheck === 'missing') {
+    return (
+      <div class="chat-container">
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          height: '100vh', textAlign: 'center', padding: '2rem',
+        }}>
+          <div style={{
+            background: '#2d1b1b', border: '1px solid #ff4444', borderRadius: '12px',
+            padding: '2rem', maxWidth: '500px', color: '#ff6666',
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+            <h2 style={{ margin: '0 0 0.75rem', color: '#ff8888' }}>System Prompts Missing</h2>
+            <p style={{ margin: 0, lineHeight: 1.6, color: '#ff9999' }}>{t('chat.prompts.missing')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div class="chat-container">

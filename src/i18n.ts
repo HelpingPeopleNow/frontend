@@ -69,6 +69,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.complete.profile': 'Complete your Worker Profile →',
     'chat.post.request': 'Post Your First Request →',
     'chat.no.messages': 'No messages yet.',
+    'chat.prompts.missing': 'Cannot continue — system prompts are not configured. Please ask an admin to set them up.',
 
     // Worker Page
     'worker.title': 'Worker Profile',
@@ -112,6 +113,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'worker.form.social': 'Social Networks',
     'worker.form.save': 'Save Profile',
     'worker.form.saving': 'Saving…',
+    'worker.reset.role': '✕ Stop being a worker',
 
     // Client Page
     'client.title': 'Client Portal',
@@ -121,6 +123,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'client.post.desc': 'Describe what you need done — plumber, electrician, cleaner, handyman, etc.',
     'client.requests': 'Your Requests',
     'client.requests.desc': 'Track your open requests and see responses from available workers.',
+    'client.reset.role': '✕ Stop being a client',
 
     // General
     'lang.switch': 'Language',
@@ -188,6 +191,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.complete.profile': 'Completa tu Perfil de Trabajador →',
     'chat.post.request': 'Publica tu Primera Solicitud →',
     'chat.no.messages': 'Aún no hay mensajes.',
+    'chat.prompts.missing': 'No se puede continuar — los prompts del sistema no están configurados. Pídele a un administrador que los configure.',
 
     // Worker Page
     'worker.title': 'Perfil de Trabajador',
@@ -231,6 +235,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'worker.form.social': 'Redes Sociales',
     'worker.form.save': 'Guardar Perfil',
     'worker.form.saving': 'Guardando…',
+    'worker.reset.role': '✕ Dejar de ser trabajador',
 
     // Client Page
     'client.title': 'Portal de Cliente',
@@ -240,6 +245,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'client.post.desc': 'Describe lo que necesitas — fontanero, electricista, limpiador, manitas, etc.',
     'client.requests': 'Tus Solicitudes',
     'client.requests.desc': 'Sigue tus solicitudes abiertas y ve las respuestas de los trabajadores disponibles.',
+    'client.reset.role': '✕ Dejar de ser cliente',
 
     // General
     'lang.switch': 'Idioma',
