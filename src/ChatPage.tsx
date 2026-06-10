@@ -2,6 +2,7 @@ import { h } from 'preact';
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useAuth } from './AuthProvider';
+import { useLanguage, LangToggle } from './i18n';
 
 const API = '/api';
 
@@ -12,6 +13,7 @@ interface ChatMsg {
 
 export default function ChatPage() {
   const { session, logout } = useAuth();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -62,6 +64,13 @@ export default function ChatPage() {
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
+
+  // Focus input after sending completes (state has settled)
+  useEffect(() => {
+    if (!loading && !streaming && !initialLoading) {
+      inputRef.current?.focus();
+    }
+  }, [loading, streaming, initialLoading]);
 
   const send = async () => {
     const text = input.trim();
@@ -147,11 +156,10 @@ export default function ChatPage() {
       console.log('[Chat] response received in', elapsed, 'ms');
     } catch (err) {
       console.error('[Chat] fetch error:', err);
-      setMessages(m => [...m, { role: 'assistant', text: 'Network error — is the backend running?' }]);
+      setMessages(m => [...m, { role: 'assistant', text: t('chat.error.network') }]);
     } finally {
       setLoading(false);
       setStreaming(false);
-      inputRef.current?.focus();
     }
   };
 
@@ -164,24 +172,25 @@ export default function ChatPage() {
   return (
     <div class="chat-container">
       <div class="chat-header">
-        <h2>HelpingPeopleNow</h2>
+        <h2>{t('app.title')}</h2>
         <div class="header-right">
           {session?.user?.role === 'worker' && (
-            <button class="btn-nav" onClick={() => route('/worker', true)}>Worker Profile</button>
+            <button class="btn-nav" onClick={() => route('/worker', true)}>{t('nav.worker.profile')}</button>
           )}
           {session?.user?.role === 'client' && (
-            <button class="btn-nav" onClick={() => route('/client', true)}>Client Portal</button>
+            <button class="btn-nav" onClick={() => route('/client', true)}>{t('nav.client.portal')}</button>
           )}
-          <button class="btn-admin" onClick={() => route('/admin')}>Admin</button>
+          <LangToggle />
+          <button class="btn-admin" onClick={() => route('/admin')}>{t('nav.admin')}</button>
           <span class="user-email">{session?.user?.email}</span>
-          <button class="btn-logout" onClick={handleLogout}>Logout</button>
+          <button class="btn-logout" onClick={handleLogout}>{t('auth.logout')}</button>
         </div>
       </div>
       <div class="message-list" ref={listRef}>
         {messages.map((m, i) => (
           <div key={i} class={`msg msg-${m.role}`}>{m.text}</div>
         ))}
-        {(loading || streaming) && <div class="msg msg-assistant thinking">Thinking...</div>}
+        {(loading || streaming) && <div class="msg msg-assistant thinking">{t('chat.thinking')}</div>}
       </div>
 
       {/* Input area: chat input OR profile button after role detection */}
@@ -192,8 +201,8 @@ export default function ChatPage() {
             onClick={() => route(detectedRole === 'worker' ? '/worker' : '/client', true)}
           >
             {detectedRole === 'worker'
-              ? 'Complete your Worker Profile →'
-              : 'Post Your First Request →'}
+              ? t('chat.complete.profile')
+              : t('chat.post.request')}
           </button>
         ) : (
           <>
@@ -201,7 +210,7 @@ export default function ChatPage() {
               value={input}
               onInput={(e: any) => setInput(e.target.value)}
               onKeyDown={(e: any) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
-              placeholder="Ask anything..."
+              placeholder={t('chat.placeholder')}
               disabled={loading || streaming}
               ref={inputRef}
             />

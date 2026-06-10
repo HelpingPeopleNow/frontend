@@ -1,9 +1,11 @@
 import { h } from 'preact';
 import { route } from 'preact-router';
 import { useAuth } from './AuthProvider';
+import { useLanguage, LangToggle } from './i18n';
 
 export default function ClientPage() {
   const { session, logout } = useAuth();
+  const { t } = useLanguage();
 
   const handleLogout = async () => {
     await logout();
@@ -13,23 +15,24 @@ export default function ClientPage() {
   return (
     <div class="role-page">
       <div class="role-header">
-        <h2>Client Portal</h2>
+        <h2>{t('client.title')}</h2>
         <div class="header-right">
+          <LangToggle />
           <span class="user-email">{session?.user?.email}</span>
-          <button class="btn-chat" onClick={() => route('/', true)}>Chat</button>
-          <button class="btn-logout" onClick={handleLogout}>Logout</button>
+          <button class="btn-chat" onClick={() => route('/', true)}>{t('nav.chat')}</button>
+          <button class="btn-logout" onClick={handleLogout}>{t('auth.logout')}</button>
         </div>
       </div>
       <div class="role-content">
-        <h3>Find the Right Worker</h3>
-        <p>Post a job, browse professionals, and get your home services done.</p>
+        <h3>{t('client.find')}</h3>
+        <p>{t('client.desc')}</p>
         <div class="placeholder-card">
-          <h4>Post a Job</h4>
-          <p>Describe what you need done — plumber, electrician, cleaner, handyman, etc.</p>
+          <h4>{t('client.post')}</h4>
+          <p>{t('client.post.desc')}</p>
         </div>
         <div class="placeholder-card">
-          <h4>Your Requests</h4>
-          <p>Track your open requests and see responses from available workers.</p>
+          <h4>{t('client.requests')}</h4>
+          <p>{t('client.requests.desc')}</p>
         </div>
       </div>
       <style>{`

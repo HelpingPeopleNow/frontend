@@ -2,6 +2,7 @@ import { h } from 'preact';
 import { route } from 'preact-router';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { useAuth } from './AuthProvider';
+import { useLanguage, LangToggle } from './i18n';
 
 const PROFESSIONS = ['plumber', 'electrician', 'cleaner', 'handyman', 'painter', 'carpenter', 'gardener', 'hvac', 'mover', 'other'];
 
@@ -38,6 +39,7 @@ interface ChatMsg {
 
 export default function WorkerPage() {
   const { session, logout } = useAuth();
+  const { t } = useLanguage();
   const [profile, setProfile] = useState<WorkerProfile>({
     user_id: '', profession: '', business_name: '', bio: '', phone: '',
     city: '', service_radius_km: 25, address: '', hourly_rate: 0, minimum_charge: 0,
@@ -121,10 +123,24 @@ export default function WorkerPage() {
     })();
   }, []);
 
+  // Focus chat input after page loads
+  useEffect(() => {
+    if (!loading) {
+      chatInputRef.current?.focus();
+    }
+  }, [loading]);
+
   // Scroll chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMsgs]);
+
+  // Focus chat input after sending completes (state has settled)
+  useEffect(() => {
+    if (!chatSending && !loading) {
+      chatInputRef.current?.focus();
+    }
+  }, [chatSending, loading]);
 
   const updateField = (field: string, value: any) => {
     setProfile(p => ({ ...p, [field]: value }));
@@ -171,6 +187,28 @@ export default function WorkerPage() {
       city: 'city', address: 'address', hourly_rate: 'hourly_rate', minimum_charge: 'minimum_charge',
       years_experience: 'years_experience', website: 'website',
     };
+    for (const [key, target] of Object.entries(fieldMap)) {
+      if (fields[key] !== undefined && fields[key] !== null && fields[key] !== '') {
+        updated[target] = fields[key] as any;
+      }
+    }
+
+    // Convert individual social fields from LLM into social_links array
+    const socialPlatforms: Record<string, string> = {
+      instagram: 'Instagram', facebook: 'Facebook', twitter: 'Twitter',
+      linkedin: 'LinkedIn', tiktok: 'TikTok', youtube: 'YouTube',
+    };
+    const existingLinks = [...(profile.social_links || [])];
+    const knownPlatforms = existingLinks.map(s => s.platform.toLowerCase());
+    for (const [key, label] of Object.entries(socialPlatforms)) {
+      if (fields[key] !== undefined && fields[key] !== null && fields[key] !== '') {
+        if (!knownPlatforms.includes(key)) {
+          existingLinks.push({ platform: label, url: fields[key] });
+          knownPlatforms.push(key);
+        }
+      }
+    }
+    updated.social_links = existingLinks;
     for (const [key, target] of Object.entries(fieldMap)) {
       if (fields[key] !== undefined && fields[key] !== null && fields[key] !== '') {
         updated[target] = fields[key] as any;
@@ -244,7 +282,7 @@ export default function WorkerPage() {
         }
       }
 
-      setChatMsgs([...newMsgs, { role: 'assistant', content: data.answer || '(empty response)' }]);
+      setChatMsgs([...newMsgs, { role: 'assistant', content: data.answer || t('worker.chat.empty') }]);
       // Save conversation ID for continued chat
       if (data.conversation_id) {
         setChatConvId(data.conversation_id);
@@ -252,10 +290,9 @@ export default function WorkerPage() {
       }
     } catch (e: any) {
       console.error('[worker-chat] network error', e);
-      setChatMsgs([...newMsgs, { role: 'assistant', content: 'Network error — please try again.' }]);
+      setChatMsgs([...newMsgs, { role: 'assistant', content: t('worker.chat.error') }]);
     } finally {
       setChatSending(false);
-      chatInputRef.current?.focus();
     }
   };
 
@@ -289,7 +326,7 @@ export default function WorkerPage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (e: any) {
-      setError(e.message || 'Failed to save profile');
+      setError(e.message || t('worker.save.error'));
       console.error('[worker] save failed', e);
     } finally {
       setSaving(false);
@@ -305,7 +342,7 @@ export default function WorkerPage() {
     return (
       <div class="role-page">
         <div class="role-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p style={{ color: '#888' }}>Loading profile…</p>
+          <p style={{ color: '#888' }}>{t('worker.loading')}</p>
         </div>
       </div>
     );
@@ -314,36 +351,37 @@ export default function WorkerPage() {
   return (
     <div class="role-page">
       <div class="role-header">
-        <h2>Worker Profile</h2>
+        <h2>{t('worker.title')}</h2>
         <div class="header-right">
+          <LangToggle />
           <span class="user-email">{session?.user?.email}</span>
-          <button class="btn-chat" onClick={() => route('/', true)}>Chat</button>
-          <button class="btn-logout" onClick={handleLogout}>Logout</button>
+          <button class="btn-chat" onClick={() => route('/', true)}>{t('nav.chat')}</button>
+          <button class="btn-logout" onClick={handleLogout}>{t('auth.logout')}</button>
         </div>
       </div>
 
       <div class="role-content">
         {error && <div class="msg msg-error">{error}</div>}
-        {saved && <div class="msg msg-success">Profile saved successfully!</div>}
+        {saved && <div class="msg msg-success">{t('worker.saved')}</div>}
 
         <div class="two-col">
           {/* --- Left: Chat Panel --- */}
           <div class="col-chat">
-            <h3 class="section-title">Build Your Profile via Chat</h3>
+            <h3 class="section-title">{t('worker.chat.title')}</h3>
             <div class="chat-box">
               {chatMsgs.length === 0 && (
                 <div class="chat-welcome">
-                  <p>Start a conversation to build your profile naturally. Or fill the form directly on the right.</p>
-                  <p style={{ color: '#888', fontSize: '0.85rem' }}>Example: <em>"I'm a plumber in Madrid with 8 years experience"</em></p>
+                  <p>{t('worker.chat.welcome')}</p>
+                  <p style={{ color: '#888', fontSize: '0.85rem' }}>{t('worker.chat.example')} <em>{t('worker.chat.example.text')}</em></p>
                 </div>
               )}
               {chatMsgs.map((m, i) => (
-                <div class={`chat-bubble ${m.role === 'user' ? 'chat-user' : 'chat-assistant'}`}>
-                  <div class="chat-role-label">{m.role === 'user' ? 'You' : 'Assistant'}</div>
+                <div key={i} class={`chat-bubble ${m.role === 'user' ? 'chat-user' : 'chat-assistant'}`}>
+                  <div class="chat-role-label">{m.role === 'user' ? t('worker.chat.you') : t('worker.chat.assistant')}</div>
                   <div class="chat-content">{m.content}</div>
                 </div>
               ))}
-              {chatSending && <div class="chat-bubble chat-assistant"><div class="chat-role-label">Assistant</div><div class="chat-content"><em>typing…</em></div></div>}
+              {chatSending && <div class="chat-bubble chat-assistant"><div class="chat-role-label">{t('worker.chat.assistant')}</div><div class="chat-content"><em>{t('worker.chat.typing')}</em></div></div>}
               <div ref={chatEndRef} />
             </div>
             <div class="chat-input-row">
@@ -352,12 +390,12 @@ export default function WorkerPage() {
                 value={chatInput}
                 onInput={e => setChatInput((e.target as HTMLInputElement).value)}
                 onKeyDown={handleChatKeyDown}
-                placeholder={chatMsgs.length === 0 ? "I'm a plumber in Madrid…" : 'Type your answer…'}
+                placeholder={chatMsgs.length === 0 ? t('worker.chat.placeholder.start') : t('worker.chat.placeholder.answer')}
                 disabled={chatSending}
                 ref={chatInputRef}
               />
               <button class="btn-send" onClick={sendChatMessage} disabled={chatSending || !chatInput.trim()}>
-                {chatSending ? '…' : 'Send'}
+                {chatSending ? '…' : t('worker.chat.send')}
               </button>
             </div>
           </div>
@@ -366,85 +404,85 @@ export default function WorkerPage() {
           <div class="col-form">
             {/* Core Identity */}
             <div class="section">
-              <h3 class="section-title">Core Identity</h3>
+              <h3 class="section-title">{t('worker.form.core')}</h3>
 
               <label class="field">
-                <span>Profession</span>
+                <span>{t('worker.form.profession')}</span>
                 <select value={profile.profession} onChange={e => updateField('profession', (e.target as HTMLSelectElement).value)}>
-                  <option value="">Select your profession</option>
+                  <option value="">{t('worker.form.profession.placeholder')}</option>
                   {PROFESSIONS.map(p => <option value={p}>{p}</option>)}
                 </select>
               </label>
 
               <label class="field">
-                <span>Business Name</span>
+                <span>{t('worker.form.business')}</span>
                 <input type="text" value={profile.business_name} onChange={e => updateField('business_name', (e.target as HTMLInputElement).value)} placeholder="Alvaro's Repairs SL" />
               </label>
 
               <label class="field">
-                <span>Bio</span>
+                <span>{t('worker.form.bio')}</span>
                 <textarea rows={3} value={profile.bio} onChange={e => updateField('bio', (e.target as HTMLTextAreaElement).value)} placeholder="10 years fixing leaks in Madrid" />
               </label>
 
               <label class="field">
-                <span>Phone</span>
+                <span>{t('worker.form.phone')}</span>
                 <input type="tel" value={profile.phone} onChange={e => updateField('phone', (e.target as HTMLInputElement).value)} placeholder="+34 612 345 678" />
               </label>
             </div>
 
             {/* Location & Service Area */}
             <div class="section">
-              <h3 class="section-title">Location & Service Area</h3>
+              <h3 class="section-title">{t('worker.form.location')}</h3>
 
               <label class="field">
-                <span>City</span>
+                <span>{t('worker.form.city')}</span>
                 <input type="text" value={profile.city} onChange={e => updateField('city', (e.target as HTMLInputElement).value)} placeholder="Madrid" />
               </label>
 
               <label class="field">
-                <span>Service Radius (km)</span>
+                <span>{t('worker.form.radius')}</span>
                 <input type="number" min={0} max={200} value={profile.service_radius_km} onChange={e => updateField('service_radius_km', parseInt((e.target as HTMLInputElement).value) || 0)} />
               </label>
 
               <label class="field">
-                <span>Address</span>
+                <span>{t('worker.form.address')}</span>
                 <input type="text" value={profile.address} onChange={e => updateField('address', (e.target as HTMLInputElement).value)} placeholder="Calle Mayor 10, 28013" />
               </label>
             </div>
 
             {/* Pricing */}
             <div class="section">
-              <h3 class="section-title">Pricing</h3>
+              <h3 class="section-title">{t('worker.form.pricing')}</h3>
 
               <label class="field">
-                <span>Hourly Rate (€)</span>
+                <span>{t('worker.form.hourly')}</span>
                 <input type="number" min={0} step={0.5} value={profile.hourly_rate || ''} onChange={e => updateField('hourly_rate', parseFloat((e.target as HTMLInputElement).value) || 0)} placeholder="35.00" />
               </label>
 
               <label class="field">
-                <span>Minimum Charge (€)</span>
+                <span>{t('worker.form.minimum')}</span>
                 <input type="number" min={0} step={0.5} value={profile.minimum_charge || ''} onChange={e => updateField('minimum_charge', parseFloat((e.target as HTMLInputElement).value) || 0)} placeholder="50.00" />
               </label>
 
               <label class="field field-row">
-                <span>Free Estimate</span>
+                <span>{t('worker.form.free.estimate')}</span>
                 <input type="checkbox" checked={profile.free_estimate} onChange={e => updateField('free_estimate', (e.target as HTMLInputElement).checked)} />
               </label>
             </div>
 
             {/* Credentials */}
             <div class="section">
-              <h3 class="section-title">Credentials</h3>
+              <h3 class="section-title">{t('worker.form.credentials')}</h3>
 
               <label class="field">
-                <span>Years of Experience</span>
+                <span>{t('worker.form.experience')}</span>
                 <input type="number" min={0} max={70} value={profile.years_experience} onChange={e => updateField('years_experience', parseInt((e.target as HTMLInputElement).value) || 0)} />
               </label>
 
               <div class="field">
-                <span>Certifications</span>
+                <span>{t('worker.form.certifications')}</span>
                 <div class="tag-input-row">
-                  <input type="text" value={certInput} onChange={e => setCertInput((e.target as HTMLInputElement).value)} placeholder="Gas Cert" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCert())} />
+                  <input type="text" value={certInput} onChange={e => setCertInput((e.target as HTMLInputElement).value)} placeholder={t('worker.form.certifications')} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCert())} />
                   <button class="btn-sm" onClick={addCert}>+</button>
                 </div>
                 <div class="tags">
@@ -455,14 +493,14 @@ export default function WorkerPage() {
               </div>
 
               <label class="field field-row">
-                <span>Has Insurance</span>
+                <span>{t('worker.form.insurance')}</span>
                 <input type="checkbox" checked={profile.has_insurance} onChange={e => updateField('has_insurance', (e.target as HTMLInputElement).checked)} />
               </label>
 
               <div class="field">
-                <span>Languages</span>
+                <span>{t('worker.form.languages')}</span>
                 <div class="tag-input-row">
-                  <input type="text" value={langInput} onChange={e => setLangInput((e.target as HTMLInputElement).value)} placeholder="Spanish" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addLang())} />
+                  <input type="text" value={langInput} onChange={e => setLangInput((e.target as HTMLInputElement).value)} placeholder={t('worker.form.languages')} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addLang())} />
                   <button class="btn-sm" onClick={addLang}>+</button>
                 </div>
                 <div class="tags">
@@ -473,22 +511,22 @@ export default function WorkerPage() {
               </div>
 
               <label class="field field-row">
-                <span>Emergency Service</span>
+                <span>{t('worker.form.emergency')}</span>
                 <input type="checkbox" checked={profile.emergency_service} onChange={e => updateField('emergency_service', (e.target as HTMLInputElement).checked)} />
               </label>
             </div>
 
             {/* Online Presence */}
             <div class="section">
-              <h3 class="section-title">Online Presence</h3>
+              <h3 class="section-title">{t('worker.form.online')}</h3>
 
               <label class="field">
-                <span>Website</span>
+                <span>{t('worker.form.website')}</span>
                 <input type="url" value={profile.website} onChange={e => updateField('website', (e.target as HTMLInputElement).value)} placeholder="https://mysite.com" />
               </label>
 
               <div class="field">
-                <span>Social Networks</span>
+                <span>{t('worker.form.social')}</span>
                 <div class="tag-input-row">
                   <input class="inp-social-plat" type="text" value={socialPlat} onChange={e => setSocialPlat((e.target as HTMLInputElement).value)} placeholder="Instagram" />
                   <input class="inp-social-url" type="text" value={socialUrl} onChange={e => setSocialUrl((e.target as HTMLInputElement).value)} placeholder="https://instagram.com/..." />
@@ -505,7 +543,7 @@ export default function WorkerPage() {
             {/* Save */}
             <div class="save-area">
               <button class="btn-save" onClick={handleSave} disabled={saving}>
-                {saving ? 'Saving…' : 'Save Profile'}
+                {saving ? t('worker.form.saving') : t('worker.form.save')}
               </button>
             </div>
           </div>

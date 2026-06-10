@@ -1,6 +1,7 @@
 import { h } from 'preact';
 import { useState } from 'preact/hooks';
 import { useAuth } from './AuthProvider';
+import { useLanguage } from './i18n';
 
 export default function LoginPage({ onNavigate }: { onNavigate: (path: string) => void }) {
   const [email, setEmail] = useState('');
@@ -8,11 +9,12 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { sendMagicLink } = useAuth();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
     setError('');
-    if (!email) { setError('Email is required'); return; }
+    if (!email) { setError(t('auth.email.required')); return; }
     setSubmitting(true);
     console.log('[Auth] sending magic link to:', email);
     const result = await sendMagicLink(email);
@@ -30,17 +32,17 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
     return (
       <div class="auth-page">
         <div class="auth-form" style={{ textAlign: 'center' }}>
-          <h2>Check your email ✉️</h2>
+          <h2>{t('auth.magic.sent')}</h2>
           <p style={{ color: '#aaa', lineHeight: 1.6 }}>
-            We sent a magic link to <strong style={{ color: '#00d4ff' }}>{email}</strong>.<br />
-            Click the link in the email to sign in.
+            {t('auth.magic.desc')} <strong style={{ color: '#00d4ff' }}>{email}</strong>.<br />
+            {t('auth.magic.click')}
           </p>
           <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '1rem' }}>
-            Link expires in 5 minutes.
+            {t('auth.magic.expires')}
           </p>
           <button onClick={() => { setSent(false); setEmail(''); }}
             style={{ marginTop: '1rem', padding: '0.5rem 1rem', background: 'transparent', color: '#4a6cf7', border: '1px solid #4a6cf7', borderRadius: '4px', cursor: 'pointer' }}>
-            Send again
+            {t('auth.send.again')}
           </button>
         </div>
         <style>{`
@@ -55,15 +57,15 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
   return (
     <div class="auth-page">
       <form onSubmit={handleSubmit} class="auth-form">
-        <h2>Sign In</h2>
+        <h2>{t('auth.signin')}</h2>
         <p style={{ color: '#888', fontSize: '0.85rem', textAlign: 'center', margin: 0 }}>
-          Enter your email and we'll send you a magic link.
+          {t('auth.signin.desc')}
         </p>
         {error && <p class="error">{error}</p>}
-        <input type="email" placeholder="Email" value={email} onInput={(e: any) => setEmail(e.target.value)} required />
-        <button type="submit" disabled={submitting}>{submitting ? 'Sending...' : 'Send Magic Link'}</button>
+        <input type="email" placeholder={t('auth.email')} value={email} onInput={(e: any) => setEmail(e.target.value)} required />
+        <button type="submit" disabled={submitting}>{submitting ? t('auth.sending') : t('auth.send.magic')}</button>
         <p class="auth-link">
-          Don't have an account? <a href="/signup" onClick={(e) => { e.preventDefault(); onNavigate('/signup'); }}>Sign up</a>
+          {t('auth.no.account')} <a href="/signup" onClick={(e) => { e.preventDefault(); onNavigate('/signup'); }}>{t('auth.signup.link')}</a>
         </p>
       </form>
       <style>{`

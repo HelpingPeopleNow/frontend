@@ -1,28 +1,32 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
+import { useLanguage, LangToggle } from './i18n';
 
 const API = '/api';
 
 interface SystemPrompts {
   helper_prompt: string;
+  worker_profile_prompt: string;
   llm_provider: string;
   [key: string]: string;
 }
 
 interface PromptMeta {
   key: string;
-  label: string;
-  desc: string;
+  labelKey: string;
+  descKey: string;
 }
 
 const PROVIDERS = [
-  { value: '', label: 'Default (env: USE_OLLAMA)' },
-  { value: 'opencode', label: 'OpenCode (external)' },
-  { value: 'ollama', label: 'Ollama (local)' },
+  { value: '', labelKey: 'admin.provider.default' },
+  { value: 'opencode', labelKey: 'OpenCode (external)' },
+  { value: 'ollama', labelKey: 'Ollama (local)' },
+  { value: 'mistral', labelKey: 'Mistral (cloud)' },
 ];
 
 export default function AdminPage() {
+  const { t, lang } = useLanguage();
   const [prompts, setPrompts] = useState<SystemPrompts | null>(null);
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [provider, setProvider] = useState('');
@@ -39,12 +43,15 @@ export default function AdminPage() {
       .then((data: SystemPrompts) => {
         console.log('[Admin] Prompts loaded:', data);
         setPrompts(data);
-        setEditing({ helper_prompt: data.helper_prompt || '' });
+        setEditing({ 
+          helper_prompt: data.helper_prompt || '',
+          worker_profile_prompt: data.worker_profile_prompt || '',
+        });
         setProvider(data.llm_provider ?? '');
       })
       .catch((err: Error) => {
         console.error('[Admin] Failed to load prompts:', err.message);
-        setMessage('Failed to load prompts');
+        setMessage(t('admin.load.error'));
       });
   }, []);
 
@@ -63,7 +70,6 @@ export default function AdminPage() {
       if (res.ok) {
         console.log(`[Admin] ${col} saved OK (${elapsed}ms)`);
         setMessage(`✅ ${labelFor(col)} updated`);
-        // Reflect saved value
         if (data.llm_provider !== undefined) setProvider(data.llm_provider);
       } else {
         console.error(`[Admin] ${col} save failed (${elapsed}ms): ${data.error || 'unknown'}`);
@@ -88,7 +94,8 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage(`✅ LLM Provider changed to ${PROVIDERS.find(p => p.value === provider)?.label || provider || 'default'}`);
+        const label = PROVIDERS.find(p => p.value === provider);
+        setMessage(`✅ LLM Provider changed to ${label?.labelKey || provider || 'default'}`);
         if (data.llm_provider !== undefined) setProvider(data.llm_provider);
       } else {
         setMessage(`❌ ${data.error || 'update failed'}`);
@@ -103,11 +110,12 @@ export default function AdminPage() {
 
   const labelFor = (col: string) => {
     const meta = promptMeta.find(m => m.key === col);
-    return meta ? meta.label : col;
+    return meta ? t(meta.labelKey) : col;
   };
 
   const promptMeta: PromptMeta[] = [
-    { key: 'helper_prompt', label: 'Helper Prompt', desc: 'System prompt for the helper service' },
+    { key: 'helper_prompt', labelKey: 'admin.prompt.helper', descKey: 'admin.helper.desc' },
+    { key: 'worker_profile_prompt', labelKey: 'admin.prompt.worker', descKey: 'admin.worker.desc' },
   ];
 
   return (
@@ -119,17 +127,20 @@ export default function AdminPage() {
           <button onClick={() => route('/', true)} style={{
             background: 'none', border: '1px solid #0f3460', color: '#00d4ff', cursor: 'pointer',
             padding: '0.35rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem',
-          }}>← Back</button>
+          }}>{t('nav.back')}</button>
           <div>
-            <h2 style={{ fontSize: '1.8rem', color: '#fff', margin: 0 }}>🛠 System Admin</h2>
-            <p style={{ margin: '0.25rem 0 0', color: '#888' }}>Edit prompts and LLM provider.</p>
+            <h2 style={{ fontSize: '1.8rem', color: '#fff', margin: 0 }}>{t('admin.title')}</h2>
+            <p style={{ margin: '0.25rem 0 0', color: '#888' }}>{t('admin.subtitle')}</p>
           </div>
         </div>
-        <a href="/adminer" target="_blank" rel="noopener noreferrer" style={{
-          padding: '0.5rem 1.25rem', background: '#0f3460', color: '#00d4ff',
-          textDecoration: 'none', borderRadius: '6px', fontSize: '0.85rem',
-          border: '1px solid #00d4ff',
-        }}>🗄 Adminer (DB)</a>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <LangToggle />
+          <a href="/adminer" target="_blank" rel="noopener noreferrer" style={{
+            padding: '0.5rem 1.25rem', background: '#0f3460', color: '#00d4ff',
+            textDecoration: 'none', borderRadius: '6px', fontSize: '0.85rem',
+            border: '1px solid #00d4ff',
+          }}>{t('admin.db')}</a>
+        </div>
       </div>
 
       {message && (
@@ -138,15 +149,15 @@ export default function AdminPage() {
         </div>
       )}
 
-      {prompts === null ? <p>Loading...</p> : (
+      {prompts === null ? <p>{t('admin.loading')}</p> : (
         <div style={{ maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
           {/* --- LLM Provider Selector --- */}
           <div style={{ background: '#16213e', borderRadius: '10px', padding: '1.5rem', border: '1px solid #0f3460' }}>
             <div style={{ marginBottom: '0.75rem' }}>
-              <strong style={{ color: '#00d4ff' }}>LLM Provider</strong>
+              <strong style={{ color: '#00d4ff' }}>{t('admin.provider')}</strong>
               <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', color: '#666' }}>
-                Choose which backend the assistant uses. Default = env var USE_OLLAMA.
+                {t('admin.provider.desc')}
               </span>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
@@ -160,7 +171,7 @@ export default function AdminPage() {
                 }}
               >
                 {PROVIDERS.map(p => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
+                  <option key={p.value} value={p.value}>{p.labelKey.startsWith('admin.') ? t(p.labelKey) : p.labelKey}</option>
                 ))}
               </select>
               <button onClick={handleProviderSave} disabled={saving === 'provider'}
@@ -170,17 +181,17 @@ export default function AdminPage() {
                   color: '#1a1a2e', cursor: 'pointer', fontWeight: 600,
                   whiteSpace: 'nowrap',
                 }}>
-                {saving === 'provider' ? 'Saving...' : 'Save'}
+                {saving === 'provider' ? t('admin.saving') : t('admin.save')}
               </button>
             </div>
           </div>
 
           {/* --- Textarea prompt editors --- */}
-          {promptMeta.map(({ key, label, desc }) => (
+          {promptMeta.map(({ key, labelKey, descKey }) => (
             <div key={key} style={{ background: '#16213e', borderRadius: '10px', padding: '1.5rem', border: '1px solid #0f3460' }}>
               <div style={{ marginBottom: '0.5rem' }}>
-                <strong style={{ color: '#00d4ff' }}>{label}</strong>
-                <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', color: '#666' }}>{desc}</span>
+                <strong style={{ color: '#00d4ff' }}>{t(labelKey)}</strong>
+                <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', color: '#666' }}>{t(descKey)}</span>
               </div>
               <textarea
                 value={editing[key] || ''}
@@ -191,7 +202,7 @@ export default function AdminPage() {
               <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
                 <button onClick={() => handleSave(key)} disabled={saving === key}
                   style={{ padding: '0.5rem 1.5rem', border: 'none', borderRadius: '6px', background: saving === key ? '#555' : '#00d4ff', color: '#1a1a2e', cursor: 'pointer' }}>
-                  {saving === key ? 'Saving...' : `Save ${label}`}
+                  {saving === key ? t('admin.saving') : `${t('admin.save')} ${t(labelKey)}`}
                 </button>
               </div>
             </div>

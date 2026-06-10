@@ -2,6 +2,7 @@ import { h } from 'preact';
 import { Router, Route, route } from 'preact-router';
 import { useEffect } from 'preact/hooks';
 import { AuthProvider, useAuth } from './AuthProvider';
+import { useLanguage, LangToggle } from './i18n';
 import ChatPage from './ChatPage';
 import AdminPage from './AdminPage';
 import LoginPage from './LoginPage';
@@ -24,6 +25,7 @@ function ProtectedRoute({ component: Component, ...props }: any) {
 
 function AppRouter() {
   const { loading } = useAuth();
+  const { t } = useLanguage();
 
   const handleRoute = (e: any) => {
     const path = e?.url || '/';
@@ -31,7 +33,7 @@ function AppRouter() {
   };
 
   if (loading) {
-    return <div class="loading-auth">Loading...</div>;
+    return <div class="loading-auth">{t('auth.checking')}</div>;
   }
 
   return (
@@ -44,6 +46,10 @@ function AppRouter() {
         <Route path="/client" component={() => <ProtectedRoute component={ClientPage} />} />
         <Route path="/" component={() => <ProtectedRoute component={ChatPage} />} />
       </Router>
+      {/* Floating language toggle */}
+      <div style={{ position: 'fixed', bottom: '1rem', right: '1rem', zIndex: 9999 }}>
+        <LangToggle />
+      </div>
       <style>{`
         .loading-auth { display: flex; justify-content: center; align-items: center; min-height: 80vh; color: #888; font-size: 1.2rem; }
       `}</style>
