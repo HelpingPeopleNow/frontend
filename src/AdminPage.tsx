@@ -46,6 +46,7 @@ export default function AdminPage() {
         setEditing({ 
           helper_prompt: data.helper_prompt || '',
           worker_profile_prompt: data.worker_profile_prompt || '',
+          client_profile_prompt: data.client_profile_prompt || '',
         });
         setProvider(data.llm_provider ?? '');
       })
@@ -116,6 +117,7 @@ export default function AdminPage() {
   const promptMeta: PromptMeta[] = [
     { key: 'helper_prompt', labelKey: 'admin.prompt.helper', descKey: 'admin.helper.desc' },
     { key: 'worker_profile_prompt', labelKey: 'admin.prompt.worker', descKey: 'admin.worker.desc' },
+    { key: 'client_profile_prompt', labelKey: 'admin.prompt.client', descKey: 'admin.client.desc' },
   ];
 
   return (
