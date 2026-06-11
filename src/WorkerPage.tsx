@@ -373,28 +373,28 @@ export default function WorkerPage() {
 
   if (loading) {
     return (
-      <div class="role-page">
-        <div class="role-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p style={{ color: '#888' }}>{t('worker.loading')}</p>
+      <div class="page">
+        <div class="page-content loading">
+          <p>{t('worker.loading')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div class="role-page">
-      <div class="role-header">
+    <div class="page">
+      <div class="page-header">
         <h2>{t('worker.title')}</h2>
         <div class="header-right">
           <LangToggle />
           <span class="user-email">{session?.user?.email}</span>
-          <button class="btn-chat" onClick={() => route('/', true)}>{t('nav.chat')}</button>
-          <button class="btn-reset" onClick={handleResetRole}>{t('worker.reset.role')}</button>
-          <button class="btn-logout" onClick={handleLogout}>{t('auth.logout')}</button>
+          <button class="btn btn-ghost btn-sm" onClick={() => route('/', true)}>{t('nav.chat')}</button>
+          <button class="btn btn-danger btn-sm" onClick={handleResetRole}>{t('worker.reset.role')}</button>
+          <button class="btn btn-danger btn-sm" onClick={handleLogout}>{t('auth.logout')}</button>
         </div>
       </div>
 
-      <div class="role-content">
+      <div class="page-content">
         {error && <div class="msg msg-error">{error}</div>}
         {saved && <div class="msg msg-success">{t('worker.saved')}</div>}
 
@@ -406,7 +406,7 @@ export default function WorkerPage() {
               {chatMsgs.length === 0 && (
                 <div class="chat-welcome">
                   <p>{t('worker.chat.welcome')}</p>
-                  <p style={{ color: '#888', fontSize: '0.85rem' }}>{t('worker.chat.example')} <em>{t('worker.chat.example.text')}</em></p>
+                  <p>{t('worker.chat.example')} <em>{t('worker.chat.example.text')}</em></p>
                 </div>
               )}
               {chatMsgs.map((m, i) => (
@@ -420,6 +420,7 @@ export default function WorkerPage() {
             </div>
             <div class="chat-input-row">
               <input
+                class="input"
                 type="text"
                 value={chatInput}
                 onInput={e => setChatInput((e.target as HTMLInputElement).value)}
@@ -442,7 +443,7 @@ export default function WorkerPage() {
 
               <label class="field">
                 <span>{t('worker.form.profession')}</span>
-                <select value={profile.profession} onChange={e => updateField('profession', (e.target as HTMLSelectElement).value)}>
+                <select class="select" value={profile.profession} onChange={e => updateField('profession', (e.target as HTMLSelectElement).value)}>
                   <option value="">{t('worker.form.profession.placeholder')}</option>
                   {PROFESSIONS.map(p => <option value={p}>{p}</option>)}
                 </select>
@@ -450,17 +451,17 @@ export default function WorkerPage() {
 
               <label class="field">
                 <span>{t('worker.form.business')}</span>
-                <input type="text" value={profile.business_name} onChange={e => updateField('business_name', (e.target as HTMLInputElement).value)} placeholder="Alvaro's Repairs SL" />
+                <input class="input" type="text" value={profile.business_name} onChange={e => updateField('business_name', (e.target as HTMLInputElement).value)} placeholder="Alvaro's Repairs SL" />
               </label>
 
               <label class="field">
                 <span>{t('worker.form.bio')}</span>
-                <textarea rows={3} value={profile.bio} onChange={e => updateField('bio', (e.target as HTMLTextAreaElement).value)} placeholder="10 years fixing leaks in Madrid" />
+                <textarea class="textarea" rows={3} value={profile.bio} onChange={e => updateField('bio', (e.target as HTMLTextAreaElement).value)} placeholder="10 years fixing leaks in Madrid" />
               </label>
 
               <label class="field">
                 <span>{t('worker.form.phone')}</span>
-                <input type="tel" value={profile.phone} onChange={e => updateField('phone', (e.target as HTMLInputElement).value)} placeholder="+34 612 345 678" />
+                <input class="input" type="tel" value={profile.phone} onChange={e => updateField('phone', (e.target as HTMLInputElement).value)} placeholder="+34 612 345 678" />
               </label>
             </div>
 
@@ -470,17 +471,17 @@ export default function WorkerPage() {
 
               <label class="field">
                 <span>{t('worker.form.city')}</span>
-                <input type="text" value={profile.city} onChange={e => updateField('city', (e.target as HTMLInputElement).value)} placeholder="Madrid" />
+                <input class="input" type="text" value={profile.city} onChange={e => updateField('city', (e.target as HTMLInputElement).value)} placeholder="Madrid" />
               </label>
 
               <label class="field">
                 <span>{t('worker.form.radius')}</span>
-                <input type="number" min={0} max={200} value={profile.service_radius_km} onChange={e => updateField('service_radius_km', parseInt((e.target as HTMLInputElement).value) || 0)} />
+                <input class="input" type="number" min={0} max={200} value={profile.service_radius_km} onChange={e => updateField('service_radius_km', parseInt((e.target as HTMLInputElement).value) || 0)} />
               </label>
 
               <label class="field">
                 <span>{t('worker.form.address')}</span>
-                <input type="text" value={profile.address} onChange={e => updateField('address', (e.target as HTMLInputElement).value)} placeholder="Calle Mayor 10, 28013" />
+                <input class="input" type="text" value={profile.address} onChange={e => updateField('address', (e.target as HTMLInputElement).value)} placeholder="Calle Mayor 10, 28013" />
               </label>
             </div>
 
@@ -490,12 +491,12 @@ export default function WorkerPage() {
 
               <label class="field">
                 <span>{t('worker.form.hourly')}</span>
-                <input type="number" min={0} step={0.5} value={profile.hourly_rate || ''} onChange={e => updateField('hourly_rate', parseFloat((e.target as HTMLInputElement).value) || 0)} placeholder="35.00" />
+                <input class="input" type="number" min={0} step={0.5} value={profile.hourly_rate || ''} onChange={e => updateField('hourly_rate', parseFloat((e.target as HTMLInputElement).value) || 0)} placeholder="35.00" />
               </label>
 
               <label class="field">
                 <span>{t('worker.form.minimum')}</span>
-                <input type="number" min={0} step={0.5} value={profile.minimum_charge || ''} onChange={e => updateField('minimum_charge', parseFloat((e.target as HTMLInputElement).value) || 0)} placeholder="50.00" />
+                <input class="input" type="number" min={0} step={0.5} value={profile.minimum_charge || ''} onChange={e => updateField('minimum_charge', parseFloat((e.target as HTMLInputElement).value) || 0)} placeholder="50.00" />
               </label>
 
               <label class="field field-row">
@@ -510,14 +511,14 @@ export default function WorkerPage() {
 
               <label class="field">
                 <span>{t('worker.form.experience')}</span>
-                <input type="number" min={0} max={70} value={profile.years_experience} onChange={e => updateField('years_experience', parseInt((e.target as HTMLInputElement).value) || 0)} />
+                <input class="input" type="number" min={0} max={70} value={profile.years_experience} onChange={e => updateField('years_experience', parseInt((e.target as HTMLInputElement).value) || 0)} />
               </label>
 
               <div class="field">
                 <span>{t('worker.form.certifications')}</span>
                 <div class="tag-input-row">
-                  <input type="text" value={certInput} onChange={e => setCertInput((e.target as HTMLInputElement).value)} placeholder={t('worker.form.certifications')} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCert())} />
-                  <button class="btn-sm" onClick={addCert}>+</button>
+                  <input class="input" type="text" value={certInput} onChange={e => setCertInput((e.target as HTMLInputElement).value)} placeholder={t('worker.form.certifications')} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCert())} />
+                  <button class="btn btn-sm" onClick={addCert}>+</button>
                 </div>
                 <div class="tags">
                   {profile.certifications.map((c, i) => (
@@ -534,8 +535,8 @@ export default function WorkerPage() {
               <div class="field">
                 <span>{t('worker.form.languages')}</span>
                 <div class="tag-input-row">
-                  <input type="text" value={langInput} onChange={e => setLangInput((e.target as HTMLInputElement).value)} placeholder={t('worker.form.languages')} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addLang())} />
-                  <button class="btn-sm" onClick={addLang}>+</button>
+                  <input class="input" type="text" value={langInput} onChange={e => setLangInput((e.target as HTMLInputElement).value)} placeholder={t('worker.form.languages')} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addLang())} />
+                  <button class="btn btn-sm" onClick={addLang}>+</button>
                 </div>
                 <div class="tags">
                   {profile.languages.map((l, i) => (
@@ -556,15 +557,15 @@ export default function WorkerPage() {
 
               <label class="field">
                 <span>{t('worker.form.website')}</span>
-                <input type="url" value={profile.website} onChange={e => updateField('website', (e.target as HTMLInputElement).value)} placeholder="https://mysite.com" />
+                <input class="input" type="url" value={profile.website} onChange={e => updateField('website', (e.target as HTMLInputElement).value)} placeholder="https://mysite.com" />
               </label>
 
               <div class="field">
                 <span>{t('worker.form.social')}</span>
                 <div class="tag-input-row">
-                  <input class="inp-social-plat" type="text" value={socialPlat} onChange={e => setSocialPlat((e.target as HTMLInputElement).value)} placeholder="Instagram" />
-                  <input class="inp-social-url" type="text" value={socialUrl} onChange={e => setSocialUrl((e.target as HTMLInputElement).value)} placeholder="https://instagram.com/..." />
-                  <button class="btn-sm" onClick={addSocial}>+</button>
+                  <input class="input inp-social-plat" type="text" value={socialPlat} onChange={e => setSocialPlat((e.target as HTMLInputElement).value)} placeholder="Instagram" />
+                  <input class="input inp-social-url" type="text" value={socialUrl} onChange={e => setSocialUrl((e.target as HTMLInputElement).value)} placeholder="https://instagram.com/..." />
+                  <button class="btn btn-sm" onClick={addSocial}>+</button>
                 </div>
                 <div class="tags">
                   {profile.social_links.map((s, i) => (
@@ -583,76 +584,6 @@ export default function WorkerPage() {
           </div>
         </div>
       </div>
-
-      <style>{`
-        .role-page { display: flex; flex-direction: column; height: 100vh; max-width: 1200px; margin: 0 auto; }
-        .role-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #1a1a2e; border-bottom: 1px solid #333; }
-        .role-header h2 { margin: 0; font-size: 1.2rem; color: #4a6cf7; }
-        .role-content { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; }
-        .header-right { display: flex; align-items: center; gap: 0.5rem; }
-        .user-email { color: #888; font-size: 0.85rem; }
-        .btn-chat, .btn-logout, .btn-reset { padding: 0.35rem 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-        .btn-chat { background: #4a6cf7; color: white; }
-        .btn-logout { background: #444; color: #ccc; }
-        .btn-reset { background: #6b1a1a; color: #f88; }
-
-        .two-col { display: flex; gap: 1rem; flex: 1; min-height: 0; }
-
-        /* --- Chat Column --- */
-        .col-chat { flex: 0 0 380px; display: flex; flex-direction: column; border-right: 1px solid #333; padding-right: 1rem; }
-        .chat-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem; min-height: 200px; }
-        .chat-welcome { color: #888; font-size: 0.9rem; text-align: center; padding: 2rem 0.5rem; }
-        .chat-bubble { padding: 0.5rem 0.7rem; border-radius: 6px; max-width: 100%; }
-        .chat-user { background: #1e3a5f; align-self: flex-end; }
-        .chat-assistant { background: #2a2a3e; align-self: flex-start; }
-        .chat-role-label { font-size: 0.7rem; color: #888; margin-bottom: 0.2rem; text-transform: uppercase; }
-        .chat-content { font-size: 0.9rem; color: #e0e0ff; white-space: pre-wrap; word-break: break-word; }
-        .chat-input-row { display: flex; gap: 0.35rem; }
-        .chat-input-row input { flex: 1; background: #1a1a2e; border: 1px solid #444; border-radius: 4px; color: #e0e0ff; padding: 0.5rem 0.6rem; font-size: 0.9rem; }
-        .chat-input-row input:focus { outline: none; border-color: #4a6cf7; }
-        .chat-input-row input:disabled { opacity: 0.5; }
-        .btn-send { padding: 0.5rem 0.8rem; background: #4a6cf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; white-space: nowrap; }
-        .btn-send:hover { background: #5a7cf8; }
-        .btn-send:disabled { background: #333; color: #666; cursor: not-allowed; }
-
-        /* --- Form Column --- */
-        .col-form { flex: 1; overflow-y: auto; padding-left: 0.5rem; }
-
-        .section { margin-bottom: 1.5rem; }
-        .section-title { color: #e0e0ff; font-size: 1rem; border-bottom: 1px solid #333; padding-bottom: 0.5rem; margin-bottom: 1rem; }
-
-        .field { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.75rem; }
-        .field span { color: #aaa; font-size: 0.85rem; }
-        .field input, .field select, .field textarea {
-          background: #1a1a2e; border: 1px solid #444; border-radius: 4px; color: #e0e0ff; padding: 0.5rem 0.6rem; font-size: 0.9rem;
-        }
-        .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: #4a6cf7; }
-        .field textarea { resize: vertical; }
-
-        .field-row { flex-direction: row; align-items: center; justify-content: space-between; }
-        .field-row input[type=checkbox] { width: 1.1rem; height: 1.1rem; accent-color: #4a6cf7; }
-
-        .tag-input-row { display: flex; gap: 0.35rem; }
-        .tag-input-row input { flex: 1; }
-        .inp-social-plat { flex: 0 0 120px; }
-        .inp-social-url { flex: 1; }
-
-        .btn-sm { padding: 0.35rem 0.6rem; background: #4a6cf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; white-space: nowrap; }
-        .btn-sm:hover { background: #5a7cf8; }
-
-        .tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.35rem; }
-        .tag { display: inline-flex; align-items: center; gap: 0.25rem; background: #2a2a4e; color: #c0c0ff; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; }
-        .tag-remove { background: none; border: none; color: #f66; cursor: pointer; font-size: 1rem; padding: 0; line-height: 1; }
-
-        .save-area { margin: 1.5rem 0; }
-        .btn-save { width: 100%; padding: 0.75rem; background: #4a6cf7; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; }
-        .btn-save:hover { background: #5a7cf8; }
-        .btn-save:disabled { background: #333; color: #666; cursor: not-allowed; }
-
-        .msg { padding: 0.6rem 0.8rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem; }
-        .msg-error { background: #3a1a1a; color: #f88; border: 1px solid #522; }
-        .msg-success { background: #1a3a1a; color: #8f8; border: 1px solid #252; }
-      `}</style>
     </div>
   );
 }

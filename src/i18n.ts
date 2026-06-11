@@ -352,17 +352,7 @@ export function LangToggle({ style }: { style?: h.JSX.CSSProperties }) {
   const { lang, setLang } = useLanguage();
   return h('button', {
     onClick: () => setLang(lang === 'en' ? 'es' : 'en'),
-    style: {
-      padding: '0.35rem 0.75rem',
-      border: '1px solid #0f3460',
-      borderRadius: '6px',
-      background: lang === 'es' ? '#4a6cf7' : 'transparent',
-      color: lang === 'es' ? 'white' : '#00d4ff',
-      cursor: 'pointer',
-      fontSize: '0.85rem',
-      fontWeight: 600,
-      minWidth: '44px',
-      ...style,
-    },
+    className: `btn-lang${lang === 'es' ? ' active' : ''}`,
+    style: style || undefined,
   }, lang === 'en' ? 'ES' : 'EN');
 }

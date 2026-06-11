@@ -247,37 +247,35 @@ export default function ClientPage() {
 
   // ── Render ──────────────────────────────────────────────────────────────
   if (!profileLoaded) {
-    return <div class="role-page"><div class="role-content"><p>{t('client.loading')}</p></div></div>;
+    return <div class="page"><div class="loading"><p>{t('client.loading')}</p></div></div>;
   }
 
   return (
-    <div class="role-page">
+    <div class="page">
       {/* Header */}
-      <div class="role-header">
+      <div class="page-header">
         <h2>{t('client.title')}</h2>
         <div class="header-right">
           <LangToggle />
           <span class="user-email">{/* user email shown only if available */}</span>
-          <button class="btn-chat" onClick={() => setShowHistory(!showHistory)}>
+          <button class="btn btn-ghost btn-sm" onClick={() => setShowHistory(!showHistory)}>
             {showHistory ? '✕' : '☰'}
           </button>
-          <button class="btn-logout" onClick={handleLogout}>{t('auth.logout')}</button>
-          <button class="btn-reset" onClick={handleResetRole}>{t('client.reset.role')}</button>
+          <button class="btn btn-danger btn-sm" onClick={handleLogout}>{t('auth.logout')}</button>
+          <button class="btn btn-danger btn-sm" onClick={handleResetRole}>{t('client.reset.role')}</button>
         </div>
       </div>
 
-      <div class="role-content">
+      <div class="page-content">
         {/* Conversation history sidebar */}
         {showHistory && (
-          <div style={{ marginBottom: '0.5rem', padding: '0.5rem', background: '#16213e', borderRadius: '6px', maxHeight: '200px', overflowY: 'auto' }}>
-            <strong style={{ color: '#00d4ff', fontSize: '0.85rem' }}>Previous conversations</strong>
-            {conversations.length === 0 && <p style={{ color: '#888', fontSize: '0.8rem' }}>No previous conversations</p>}
+          <div class="history-sidebar">
+            <div class="history-sidebar-header">Previous conversations</div>
+            {conversations.length === 0 && <p>No previous conversations</p>}
             {conversations.map(c => (
-              <div key={c.id} onClick={() => loadConversation(c.id)} style={{ padding: '0.3rem 0.5rem', cursor: 'pointer', color: '#ccc', fontSize: '0.85rem', borderBottom: '1px solid #333' }}>
-                {c.title || c.id.slice(0, 8)}
-                <span style={{ color: '#666', fontSize: '0.75rem', marginLeft: '0.5rem' }}>
-                  {new Date(c.updated_at).toLocaleDateString()}
-                </span>
+              <div key={c.id} class="history-item" onClick={() => loadConversation(c.id)}>
+                <span>{c.title || c.id.slice(0, 8)}</span>
+                <span class="history-item-date">{new Date(c.updated_at).toLocaleDateString()}</span>
               </div>
             ))}
           </div>
@@ -286,9 +284,9 @@ export default function ClientPage() {
         <div class="two-col">
           {/* Chat Column */}
           <div class="col-chat">
-            <h3 style={{ margin: '0 0 0.5rem', color: '#e0e0ff', fontSize: '1rem' }}>{t('client.chat.title')}</h3>
-            <p style={{ margin: '0 0 0.5rem', color: '#888', fontSize: '0.85rem' }}>{t('client.chat.welcome')}</p>
-            <p style={{ margin: '0 0 0.5rem', color: '#555', fontSize: '0.8rem' }}>
+            <h3>{t('client.chat.title')}</h3>
+            <p>{t('client.chat.welcome')}</p>
+            <p>
               {t('client.chat.example')} <em>{t('client.chat.example.text')}</em>
             </p>
 
@@ -313,6 +311,7 @@ export default function ClientPage() {
             <div class="chat-input-row">
               <input
                 ref={inputRef}
+                class="input"
                 type="text"
                 value={chatInput}
                 onKeyDown={handleChatKeyDown}
@@ -337,12 +336,12 @@ export default function ClientPage() {
 
               <label class="field">
                 <span>{t('client.form.full_name')}</span>
-                <input type="text" value={profile.full_name} onInput={e => updateField('full_name', (e.target as HTMLInputElement).value)} placeholder="John Doe" />
+                <input class="input" type="text" value={profile.full_name} onInput={e => updateField('full_name', (e.target as HTMLInputElement).value)} placeholder="John Doe" />
               </label>
 
               <label class="field">
                 <span>{t('client.form.phone')}</span>
-                <input type="tel" value={profile.phone} onInput={e => updateField('phone', (e.target as HTMLInputElement).value)} placeholder="+34 600 000 000" />
+                <input class="input" type="tel" value={profile.phone} onInput={e => updateField('phone', (e.target as HTMLInputElement).value)} placeholder="+34 600 000 000" />
               </label>
             </div>
 
@@ -352,12 +351,12 @@ export default function ClientPage() {
 
               <label class="field">
                 <span>{t('client.form.city')}</span>
-                <input type="text" value={profile.city} onInput={e => updateField('city', (e.target as HTMLInputElement).value)} placeholder="Madrid" />
+                <input class="input" type="text" value={profile.city} onInput={e => updateField('city', (e.target as HTMLInputElement).value)} placeholder="Madrid" />
               </label>
 
               <label class="field">
                 <span>{t('client.form.address')}</span>
-                <input type="text" value={profile.address} onInput={e => updateField('address', (e.target as HTMLInputElement).value)} placeholder="Calle Mayor 1 (optional)" />
+                <input class="input" type="text" value={profile.address} onInput={e => updateField('address', (e.target as HTMLInputElement).value)} placeholder="Calle Mayor 1 (optional)" />
               </label>
             </div>
 
@@ -366,8 +365,8 @@ export default function ClientPage() {
               <h3 class="section-title">{t('client.form.bio')}</h3>
 
               <label class="field">
-                <span>{t('client.form.bio')} <span style={{ color: '#666' }}>({t('client.form.optional')})</span></span>
-                <textarea rows={3} value={profile.bio} onInput={e => updateField('bio', (e.target as HTMLInputElement).value)} placeholder={t('client.form.bio.placeholder')} />
+                <span>{t('client.form.bio')} <span>({t('client.form.optional')})</span></span>
+                <textarea class="textarea" rows={3} value={profile.bio} onInput={e => updateField('bio', (e.target as HTMLInputElement).value)} placeholder={t('client.form.bio.placeholder')} />
               </label>
             </div>
 
@@ -380,59 +379,6 @@ export default function ClientPage() {
           </div>
         </div>
       </div>
-
-      <style>{`
-        .role-page { display: flex; flex-direction: column; height: 100vh; max-width: 1200px; margin: 0 auto; }
-        .role-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #1a1a2e; border-bottom: 1px solid #333; }
-        .role-header h2 { margin: 0; font-size: 1.2rem; color: #4a6cf7; }
-        .role-content { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; }
-        .header-right { display: flex; align-items: center; gap: 0.5rem; }
-        .user-email { color: #888; font-size: 0.85rem; }
-        .btn-chat, .btn-logout, .btn-reset { padding: 0.35rem 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-        .btn-chat { background: #4a6cf7; color: white; }
-        .btn-logout { background: #444; color: #ccc; }
-        .btn-reset { background: #6b1a1a; color: #f88; }
-
-        .two-col { display: flex; gap: 1rem; flex: 1; min-height: 0; }
-
-        .col-chat { flex: 0 0 380px; display: flex; flex-direction: column; border-right: 1px solid #333; padding-right: 1rem; }
-        .chat-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem; min-height: 200px; }
-        .chat-welcome { color: #888; font-size: 0.9rem; text-align: center; padding: 2rem 0.5rem; }
-        .chat-bubble { padding: 0.5rem 0.7rem; border-radius: 6px; max-width: 100%; }
-        .chat-user { background: #1e3a5f; align-self: flex-end; }
-        .chat-assistant { background: #2a2a3e; align-self: flex-start; }
-        .chat-role-label { font-size: 0.7rem; color: #888; margin-bottom: 0.2rem; text-transform: uppercase; }
-        .chat-content { font-size: 0.9rem; color: #e0e0ff; white-space: pre-wrap; word-break: break-word; }
-        .chat-input-row { display: flex; gap: 0.35rem; }
-        .chat-input-row input { flex: 1; background: #1a1a2e; border: 1px solid #444; border-radius: 4px; color: #e0e0ff; padding: 0.5rem 0.6rem; font-size: 0.9rem; }
-        .chat-input-row input:focus { outline: none; border-color: #4a6cf7; }
-        .chat-input-row input:disabled { opacity: 0.5; }
-        .btn-send { padding: 0.5rem 0.8rem; background: #4a6cf7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; white-space: nowrap; }
-        .btn-send:hover { background: #5a7cf8; }
-        .btn-send:disabled { background: #333; color: #666; cursor: not-allowed; }
-
-        .col-form { flex: 1; overflow-y: auto; padding-left: 0.5rem; }
-
-        .section { margin-bottom: 1.5rem; }
-        .section-title { color: #e0e0ff; font-size: 1rem; border-bottom: 1px solid #333; padding-bottom: 0.5rem; margin-bottom: 1rem; }
-
-        .field { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.75rem; }
-        .field span { color: #aaa; font-size: 0.85rem; }
-        .field input, .field select, .field textarea {
-          background: #1a1a2e; border: 1px solid #444; border-radius: 4px; color: #e0e0ff; padding: 0.5rem 0.6rem; font-size: 0.9rem;
-        }
-        .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: #4a6cf7; }
-        .field textarea { resize: vertical; }
-
-        .save-area { margin: 1.5rem 0; }
-        .btn-save { width: 100%; padding: 0.75rem; background: #4a6cf7; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; }
-        .btn-save:hover { background: #5a7cf8; }
-        .btn-save:disabled { background: #333; color: #666; cursor: not-allowed; }
-
-        .msg { padding: 0.6rem 0.8rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem; }
-        .msg-error { background: #3a1a1a; color: #f88; border: 1px solid #522; }
-        .msg-success { background: #1a3a1a; color: #8f8; border: 1px solid #252; }
-      `}</style>
     </div>
   );
 }

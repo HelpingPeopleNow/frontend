@@ -121,89 +121,66 @@ export default function AdminPage() {
   ];
 
   return (
-    <div style={{
-      minHeight: '100vh', fontFamily: 'system-ui, sans-serif', background: '#1a1a2e', color: '#e0e0e0', padding: '2rem',
-    } as h.JSX.CSSProperties}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>
-          <button onClick={() => route('/', true)} style={{
-            background: 'none', border: '1px solid #0f3460', color: '#00d4ff', cursor: 'pointer',
-            padding: '0.35rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem',
-          }}>{t('nav.back')}</button>
+    <div class="admin-page">
+      <div class="admin-header">
+        <div class="admin-header-left">
+          <button class="btn btn-ghost" onClick={() => route('/', true)}>{t('nav.back')}</button>
           <div>
-            <h2 style={{ fontSize: '1.8rem', color: '#fff', margin: 0 }}>{t('admin.title')}</h2>
-            <p style={{ margin: '0.25rem 0 0', color: '#888' }}>{t('admin.subtitle')}</p>
+            <h2>{t('admin.title')}</h2>
+            <p>{t('admin.subtitle')}</p>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div class="admin-header-right">
           <LangToggle />
-          <a href="/adminer" target="_blank" rel="noopener noreferrer" style={{
-            padding: '0.5rem 1.25rem', background: '#0f3460', color: '#00d4ff',
-            textDecoration: 'none', borderRadius: '6px', fontSize: '0.85rem',
-            border: '1px solid #00d4ff',
-          }}>{t('admin.db')}</a>
+          <a href="/adminer" target="_blank" rel="noopener noreferrer" class="btn btn-ghost">{t('admin.db')}</a>
         </div>
       </div>
 
       {message && (
-        <div style={{ marginBottom: '1rem', padding: '0.5rem 1rem', background: '#16213e', borderRadius: '6px' }}>
-          {message}
+        <div class="card" style={{ marginBottom: '1rem' }}>
+          <p style={{ fontSize: '0.875rem' }}>{message}</p>
         </div>
       )}
 
-      {prompts === null ? <p>{t('admin.loading')}</p> : (
-        <div style={{ maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
-          {/* --- LLM Provider Selector --- */}
-          <div style={{ background: '#16213e', borderRadius: '10px', padding: '1.5rem', border: '1px solid #0f3460' }}>
-            <div style={{ marginBottom: '0.75rem' }}>
-              <strong style={{ color: '#00d4ff' }}>{t('admin.provider')}</strong>
-              <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', color: '#666' }}>
-                {t('admin.provider.desc')}
-              </span>
+      {prompts === null ? <p class="loading">{t('admin.loading')}</p> : (
+        <div class="admin-panels">
+          {/* LLM Provider Selector */}
+          <div class="admin-panel">
+            <div class="admin-panel-label">
+              <strong>{t('admin.provider')}</strong>
+              <span>{t('admin.provider.desc')}</span>
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <div class="admin-panel-row">
               <select
+                class="select"
                 value={provider}
                 onChange={(e) => setProvider(e.currentTarget.value)}
-                style={{
-                  flex: 1, padding: '0.6rem 0.75rem', fontFamily: 'monospace',
-                  background: '#1a1a2e', color: '#e0e0e0', border: '1px solid #0f3460',
-                  borderRadius: '6px', fontSize: '1rem',
-                }}
               >
                 {PROVIDERS.map(p => (
                   <option key={p.value} value={p.value}>{p.labelKey.startsWith('admin.') ? t(p.labelKey) : p.labelKey}</option>
                 ))}
               </select>
-              <button onClick={handleProviderSave} disabled={saving === 'provider'}
-                style={{
-                  padding: '0.6rem 1.5rem', border: 'none', borderRadius: '6px',
-                  background: saving === 'provider' ? '#555' : '#00d4ff',
-                  color: '#1a1a2e', cursor: 'pointer', fontWeight: 600,
-                  whiteSpace: 'nowrap',
-                }}>
+              <button class="btn btn-primary" onClick={handleProviderSave} disabled={saving === 'provider'}>
                 {saving === 'provider' ? t('admin.saving') : t('admin.save')}
               </button>
             </div>
           </div>
 
-          {/* --- Textarea prompt editors --- */}
+          {/* Textarea prompt editors */}
           {promptMeta.map(({ key, labelKey, descKey }) => (
-            <div key={key} style={{ background: '#16213e', borderRadius: '10px', padding: '1.5rem', border: '1px solid #0f3460' }}>
-              <div style={{ marginBottom: '0.5rem' }}>
-                <strong style={{ color: '#00d4ff' }}>{t(labelKey)}</strong>
-                <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', color: '#666' }}>{t(descKey)}</span>
+            <div key={key} class="admin-panel">
+              <div class="admin-panel-label">
+                <strong>{t(labelKey)}</strong>
+                <span>{t(descKey)}</span>
               </div>
               <textarea
+                class="admin-textarea"
                 value={editing[key] || ''}
                 onChange={(e) => setEditing({ ...editing, [key]: e.currentTarget.value })}
                 rows={5}
-                style={{ width: '100%', padding: '0.75rem', fontFamily: 'monospace', background: '#1a1a2e', color: '#e0e0e0', border: '1px solid #0f3460', borderRadius: '6px' }}
               />
-              <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
-                <button onClick={() => handleSave(key)} disabled={saving === key}
-                  style={{ padding: '0.5rem 1.5rem', border: 'none', borderRadius: '6px', background: saving === key ? '#555' : '#00d4ff', color: '#1a1a2e', cursor: 'pointer' }}>
+              <div class="admin-panel-footer">
+                <button class="btn btn-primary" onClick={() => handleSave(key)} disabled={saving === key}>
                   {saving === key ? t('admin.saving') : `${t('admin.save')} ${t(labelKey)}`}
                 </button>
               </div>

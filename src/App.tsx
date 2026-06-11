@@ -33,7 +33,7 @@ function AppRouter() {
   };
 
   if (loading) {
-    return <div class="loading-auth">{t('auth.checking')}</div>;
+    return <div class="loading">{t('auth.checking')}</div>;
   }
 
   return (
@@ -50,9 +50,6 @@ function AppRouter() {
       <div style={{ position: 'fixed', bottom: '1rem', right: '1rem', zIndex: 9999 }}>
         <LangToggle />
       </div>
-      <style>{`
-        .loading-auth { display: flex; justify-content: center; align-items: center; min-height: 80vh; color: #888; font-size: 1.2rem; }
-      `}</style>
     </div>
   );
 }

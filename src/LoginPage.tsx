@@ -31,25 +31,19 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
   if (sent) {
     return (
       <div class="auth-page">
-        <div class="auth-form" style={{ textAlign: 'center' }}>
+        <div class="auth-form auth-sent">
           <h2>{t('auth.magic.sent')}</h2>
-          <p style={{ color: '#aaa', lineHeight: 1.6 }}>
-            {t('auth.magic.desc')} <strong style={{ color: '#00d4ff' }}>{email}</strong>.<br />
+          <p>
+            {t('auth.magic.desc')} <strong>{email}</strong>.<br />
             {t('auth.magic.click')}
           </p>
-          <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '1rem' }}>
+          <p style={{ fontSize: '0.85rem', color: '#5a5a68', marginTop: '0.5rem' }}>
             {t('auth.magic.expires')}
           </p>
-          <button onClick={() => { setSent(false); setEmail(''); }}
-            style={{ marginTop: '1rem', padding: '0.5rem 1rem', background: 'transparent', color: '#4a6cf7', border: '1px solid #4a6cf7', borderRadius: '4px', cursor: 'pointer' }}>
+          <button class="btn btn-ghost" onClick={() => { setSent(false); setEmail(''); }}>
             {t('auth.send.again')}
           </button>
         </div>
-        <style>{`
-          .auth-page { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
-          .auth-form { background: #1a1a2e; padding: 2rem; border-radius: 8px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 1rem; }
-          .auth-form h2 { margin: 0; text-align: center; color: #e0e0ff; }
-        `}</style>
       </div>
     );
   }
@@ -58,27 +52,14 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
     <div class="auth-page">
       <form onSubmit={handleSubmit} class="auth-form">
         <h2>{t('auth.signin')}</h2>
-        <p style={{ color: '#888', fontSize: '0.85rem', textAlign: 'center', margin: 0 }}>
-          {t('auth.signin.desc')}
-        </p>
+        <p>{t('auth.signin.desc')}</p>
         {error && <p class="error">{error}</p>}
-        <input type="email" placeholder={t('auth.email')} value={email} onInput={(e: any) => setEmail(e.target.value)} required />
-        <button type="submit" disabled={submitting}>{submitting ? t('auth.sending') : t('auth.send.magic')}</button>
+        <input class="input" type="email" placeholder={t('auth.email')} value={email} onInput={(e: any) => setEmail(e.target.value)} required />
+        <button class="btn btn-primary" type="submit" disabled={submitting}>{submitting ? t('auth.sending') : t('auth.send.magic')}</button>
         <p class="auth-link">
           {t('auth.no.account')} <a href="/signup" onClick={(e) => { e.preventDefault(); onNavigate('/signup'); }}>{t('auth.signup.link')}</a>
         </p>
       </form>
-      <style>{`
-        .auth-page { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
-        .auth-form { background: #1a1a2e; padding: 2rem; border-radius: 8px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 1rem; }
-        .auth-form h2 { margin: 0; text-align: center; color: #e0e0ff; }
-        .auth-form input { padding: 0.75rem; border: 1px solid #333; border-radius: 4px; background: #16213e; color: #e0e0ff; font-size: 1rem; }
-        .auth-form button { padding: 0.75rem; background: #4a6cf7; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; }
-        .auth-form button:disabled { opacity: 0.6; }
-        .auth-form .error { color: #ff6b6b; font-size: 0.9rem; text-align: center; margin: 0; }
-        .auth-link { text-align: center; font-size: 0.9rem; color: #888; }
-        .auth-link a { color: #4a6cf7; text-decoration: none; }
-      `}</style>
     </div>
   );
 }

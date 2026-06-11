@@ -206,17 +206,11 @@ export default function ChatPage() {
   if (promptsCheck === 'missing') {
     return (
       <div class="chat-container">
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          height: '100vh', textAlign: 'center', padding: '2rem',
-        }}>
-          <div style={{
-            background: '#2d1b1b', border: '1px solid #ff4444', borderRadius: '12px',
-            padding: '2rem', maxWidth: '500px', color: '#ff6666',
-          }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
-            <h2 style={{ margin: '0 0 0.75rem', color: '#ff8888' }}>System Prompts Missing</h2>
-            <p style={{ margin: 0, lineHeight: 1.6, color: '#ff9999' }}>{t('chat.prompts.missing')}</p>
+        <div class="prompts-missing">
+          <div class="prompts-missing-inner">
+            <div class="icon">⚠️</div>
+            <h2>System Prompts Missing</h2>
+            <p>{t('chat.prompts.missing')}</p>
           </div>
         </div>
       </div>
@@ -226,18 +220,18 @@ export default function ChatPage() {
   return (
     <div class="chat-container">
       <div class="chat-header">
-        <h2>{t('app.title')}</h2>
+        <h2 class="logo">{t('app.title')}</h2>
         <div class="header-right">
           {session?.user?.role === 'worker' && (
-            <button class="btn-nav" onClick={() => route('/worker', true)}>{t('nav.worker.profile')}</button>
+            <button class="btn btn-ghost btn-sm" onClick={() => route('/worker', true)}>{t('nav.worker.profile')}</button>
           )}
           {session?.user?.role === 'client' && (
-            <button class="btn-nav" onClick={() => route('/client', true)}>{t('nav.client.portal')}</button>
+            <button class="btn btn-ghost btn-sm" onClick={() => route('/client', true)}>{t('nav.client.portal')}</button>
           )}
           <LangToggle />
-          <button class="btn-admin" onClick={() => route('/admin')}>{t('nav.admin')}</button>
+          <button class="btn btn-primary btn-sm" onClick={() => route('/admin')}>{t('nav.admin')}</button>
           <span class="user-email">{session?.user?.email}</span>
-          <button class="btn-logout" onClick={handleLogout}>{t('auth.logout')}</button>
+          <button class="btn btn-danger btn-sm" onClick={handleLogout}>{t('auth.logout')}</button>
         </div>
       </div>
       <div class="message-list" ref={listRef}>
@@ -248,7 +242,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input area: chat input OR profile button after role detection */}
-      <div class="input-area">
+      <div class="chat-input-area">
         {detectedRole ? (
           <button
             class="btn-profile"
@@ -261,6 +255,7 @@ export default function ChatPage() {
         ) : (
           <>
             <input
+              class="input"
               value={input}
               onInput={(e: any) => setInput(e.target.value)}
               onKeyDown={(e: any) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
@@ -268,35 +263,10 @@ export default function ChatPage() {
               disabled={loading || streaming}
               ref={inputRef}
             />
-            <button onClick={send} disabled={loading || streaming || !input.trim()}>Send</button>
+            <button class="btn btn-primary" onClick={send} disabled={loading || streaming || !input.trim()}>Send</button>
           </>
         )}
       </div>
-
-      <style>{`
-        .chat-container { display: flex; flex-direction: column; height: 100vh; max-width: 800px; margin: 0 auto; }
-        .chat-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #1a1a2e; border-bottom: 1px solid #333; }
-        .chat-header h2 { margin: 0; font-size: 1.2rem; color: #e0e0ff; }
-        .header-right { display: flex; align-items: center; gap: 0.5rem; }
-        .user-email { color: #888; font-size: 0.85rem; }
-        .btn-admin, .btn-logout { padding: 0.35rem 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-        .btn-admin { background: #4a6cf7; color: white; }
-        .btn-logout { background: #444; color: #ccc; }
-        .btn-nav { padding: 0.35rem 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; background: #27ae60; color: white; }
-        .message-list { flex: 1; overflow-y: auto; padding: 1rem; }
-        .msg { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 0.5rem; white-space: pre-wrap; }
-        .msg-user { background: #4a6cf7; color: white; align-self: flex-end; margin-left: 3rem; }
-        .msg-assistant { background: #1a1a2e; color: #e0e0ff; border: 1px solid #333; margin-right: 3rem; }
-        .thinking { opacity: 0.6; }
-        .input-area { display: flex; padding: 1rem; gap: 0.5rem; border-top: 1px solid #333; }
-        .input-area input { flex: 1; padding: 0.75rem; border: 1px solid #333; border-radius: 4px; background: #16213e; color: #e0e0ff; font-size: 1rem; }
-        .input-area input:disabled { opacity: 0.5; }
-        .input-area button { padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-        .input-area button:disabled { opacity: 0.5; }
-        .btn-profile { flex: 1; padding: 1rem; background: linear-gradient(135deg, #4a6cf7, #6c63ff); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: 600; letter-spacing: 0.5px; transition: transform 0.15s, box-shadow 0.15s; }
-        .btn-profile:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(74, 108, 247, 0.4); }
-        .btn-profile:active { transform: translateY(0); }
-      `}</style>
     </div>
   );
 }
