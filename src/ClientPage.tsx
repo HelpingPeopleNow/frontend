@@ -256,6 +256,7 @@ export default function ClientPage() {
         <div class="header-right">
           <LangToggle />
           <span class="user-email">{/* user email shown only if available */}</span>
+          <button class="btn btn-ghost btn-sm" onClick={() => route('/', true)}>{t('nav.back')}</button>
           <button class="btn btn-danger btn-sm" onClick={handleLogout}>{t('auth.logout')}</button>
           <button class="btn btn-danger btn-sm" onClick={handleResetRole}>{t('client.reset.role')}</button>
         </div>
