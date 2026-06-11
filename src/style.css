@@ -559,43 +559,8 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Chat Page (main)
+   Chat Page (main) — uses shared .page / .page-header / .page-content
    ═══════════════════════════════════════════════════════════ */
-
-.chat-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.chat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: var(--header-h);
-  padding: 0 var(--space-lg);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.chat-header .logo {
-  font-weight: 700;
-  font-size: var(--text-base);
-  color: var(--primary);
-  letter-spacing: -0.02em;
-}
-
-.message-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--space-lg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
 
 .msg-user {
   background: var(--primary-subtle);
@@ -844,15 +809,6 @@ body {
     padding: 0 var(--space-md);
   }
   .page-content {
-    padding: var(--space-md);
-  }
-  .chat-container {
-    max-width: 100%;
-  }
-  .chat-header {
-    padding: 0 var(--space-md);
-  }
-  .message-list {
     padding: var(--space-md);
   }
   .chat-input-area {

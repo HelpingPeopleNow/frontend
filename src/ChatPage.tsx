@@ -205,8 +205,14 @@ export default function ChatPage() {
 
   if (promptsCheck === 'missing') {
     return (
-      <div class="chat-container">
-        <div class="prompts-missing">
+      <div class="page">
+        <div class="page-header">
+          <h2>{t('app.title')}</h2>
+          <div class="header-right">
+            <LangToggle />
+          </div>
+        </div>
+        <div class="page-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div class="prompts-missing-inner">
             <div class="icon">⚠️</div>
             <h2>System Prompts Missing</h2>
@@ -218,9 +224,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div class="chat-container">
-      <div class="chat-header">
-        <h2 class="logo">{t('app.title')}</h2>
+    <div class="page">
+      <div class="page-header">
+        <h2>{t('app.title')}</h2>
         <div class="header-right">
           {session?.user?.role === 'worker' && (
             <button class="btn btn-ghost btn-sm" onClick={() => route('/worker', true)}>{t('nav.worker.profile')}</button>
@@ -234,14 +240,14 @@ export default function ChatPage() {
           <button class="btn btn-danger btn-sm" onClick={handleLogout}>{t('auth.logout')}</button>
         </div>
       </div>
-      <div class="message-list" ref={listRef}>
+
+      <div class="page-content" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }} ref={listRef}>
         {messages.map((m, i) => (
           <div key={i} class={`msg msg-${m.role}`}>{m.text}</div>
         ))}
         {(loading || streaming) && <div class="msg msg-assistant thinking">{t('chat.thinking')}</div>}
       </div>
 
-      {/* Input area: chat input OR profile button after role detection */}
       <div class="chat-input-area">
         {detectedRole ? (
           <button

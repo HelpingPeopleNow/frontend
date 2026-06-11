@@ -46,10 +46,6 @@ function AppRouter() {
         <Route path="/client" component={() => <ProtectedRoute component={ClientPage} />} />
         <Route path="/" component={() => <ProtectedRoute component={ChatPage} />} />
       </Router>
-      {/* Floating language toggle */}
-      <div style={{ position: 'fixed', bottom: '1rem', right: '1rem', zIndex: 9999 }}>
-        <LangToggle />
-      </div>
     </div>
   );
 }
