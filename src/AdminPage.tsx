@@ -8,6 +8,7 @@ const API = '/api';
 interface SystemPrompts {
   helper_prompt: string;
   worker_profile_prompt: string;
+  client_profile_prompt: string;
   llm_provider: string;
   [key: string]: string;
 }
@@ -121,73 +122,76 @@ export default function AdminPage() {
   ];
 
   return (
-    <div class="admin-page">
-      <div class="admin-header">
-        <div class="admin-header-left">
-          <button class="btn btn-ghost" onClick={() => route('/', true)}>{t('nav.back')}</button>
+    <div class="page">
+      <div class="page-header">
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '16px' }}>
+          <button class="btn btn-ghost btn-sm" onClick={() => route('/', true)}>{t('nav.back')}</button>
           <div>
             <h2>{t('admin.title')}</h2>
-            <p>{t('admin.subtitle')}</p>
+            <p style={{ margin: '2px 0 0', fontSize: '0.813rem', color: 'var(--text-muted)' }}>{t('admin.subtitle')}</p>
           </div>
         </div>
-        <div class="admin-header-right">
+        <div class="header-right">
           <LangToggle />
-          <a href="/adminer" target="_blank" rel="noopener noreferrer" class="btn btn-ghost">{t('admin.db')}</a>
+          <a href="/adminer" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">{t('admin.db')}</a>
         </div>
       </div>
 
-      {message && (
-        <div class="card" style={{ marginBottom: '1rem' }}>
-          <p style={{ fontSize: '0.875rem' }}>{message}</p>
-        </div>
-      )}
-
-      {prompts === null ? <p class="loading">{t('admin.loading')}</p> : (
-        <div class="admin-panels">
-          {/* LLM Provider Selector */}
-          <div class="admin-panel">
-            <div class="admin-panel-label">
-              <strong>{t('admin.provider')}</strong>
-              <span>{t('admin.provider.desc')}</span>
-            </div>
-            <div class="admin-panel-row">
-              <select
-                class="select"
-                value={provider}
-                onChange={(e) => setProvider(e.currentTarget.value)}
-              >
-                {PROVIDERS.map(p => (
-                  <option key={p.value} value={p.value}>{p.labelKey.startsWith('admin.') ? t(p.labelKey) : p.labelKey}</option>
-                ))}
-              </select>
-              <button class="btn btn-primary" onClick={handleProviderSave} disabled={saving === 'provider'}>
-                {saving === 'provider' ? t('admin.saving') : t('admin.save')}
-              </button>
-            </div>
+      <div class="page-content">
+        {message && (
+          <div class="card" style={{ marginBottom: '16px' }}>
+            <p style={{ fontSize: '0.875rem' }}>{message}</p>
           </div>
+        )}
 
-          {/* Textarea prompt editors */}
-          {promptMeta.map(({ key, labelKey, descKey }) => (
-            <div key={key} class="admin-panel">
-              <div class="admin-panel-label">
-                <strong>{t(labelKey)}</strong>
-                <span>{t(descKey)}</span>
+        {prompts === null ? <div class="loading"><p>{t('admin.loading')}</p></div> : (
+          <div style={{ maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* LLM Provider Selector */}
+            <div class="card">
+              <div style={{ marginBottom: '8px' }}>
+                <strong style={{ fontSize: '0.813rem', fontWeight: 600, color: 'var(--primary)' }}>{t('admin.provider')}</strong>
+                <span style={{ marginLeft: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('admin.provider.desc')}</span>
               </div>
-              <textarea
-                class="admin-textarea"
-                value={editing[key] || ''}
-                onChange={(e) => setEditing({ ...editing, [key]: e.currentTarget.value })}
-                rows={5}
-              />
-              <div class="admin-panel-footer">
-                <button class="btn btn-primary" onClick={() => handleSave(key)} disabled={saving === key}>
-                  {saving === key ? t('admin.saving') : `${t('admin.save')} ${t(labelKey)}`}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <select
+                  class="select"
+                  value={provider}
+                  onChange={(e) => setProvider(e.currentTarget.value)}
+                >
+                  {PROVIDERS.map(p => (
+                    <option key={p.value} value={p.value}>{p.labelKey.startsWith('admin.') ? t(p.labelKey) : p.labelKey}</option>
+                  ))}
+                </select>
+                <button class="btn btn-primary" onClick={handleProviderSave} disabled={saving === 'provider'}>
+                  {saving === 'provider' ? t('admin.saving') : t('admin.save')}
                 </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+
+            {/* Textarea prompt editors */}
+            {promptMeta.map(({ key, labelKey, descKey }) => (
+              <div key={key} class="card">
+                <div style={{ marginBottom: '8px' }}>
+                  <strong style={{ fontSize: '0.813rem', fontWeight: 600, color: 'var(--primary)' }}>{t(labelKey)}</strong>
+                  <span style={{ marginLeft: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t(descKey)}</span>
+                </div>
+                <textarea
+                  class="textarea"
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}
+                  value={editing[key] || ''}
+                  onChange={(e) => setEditing({ ...editing, [key]: e.currentTarget.value })}
+                  rows={5}
+                />
+                <div style={{ textAlign: 'right', marginTop: '8px' }}>
+                  <button class="btn btn-primary" onClick={() => handleSave(key)} disabled={saving === key}>
+                    {saving === key ? t('admin.saving') : `${t('admin.save')} ${t(labelKey)}`}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
