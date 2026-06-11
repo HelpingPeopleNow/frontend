@@ -855,52 +855,56 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   History Sidebar (client page)
+   Conversation List (inline in chat column)
    ═══════════════════════════════════════════════════════════ */
 
-.history-sidebar {
+.conv-list {
   margin-bottom: var(--space-sm);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  max-height: 220px;
-  overflow-y: auto;
 }
 
-.history-sidebar-header {
-  padding: var(--space-sm) var(--space-md);
+.conv-list-header {
   font-size: var(--text-xs);
   font-weight: 600;
   color: var(--primary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
 }
 
-.history-item {
-  padding: 0.35rem 0.75rem;
-  cursor: pointer;
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border);
+.conv-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: background 0.12s;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  transition: background 0.12s, color 0.12s;
+  border-bottom: 1px solid var(--border);
 }
 
-.history-item:hover {
+.conv-item:hover {
   background: var(--surface-raised);
   color: var(--text);
 }
 
-.history-item:last-child {
+.conv-item:last-child {
   border-bottom: none;
 }
 
-.history-item-date {
+.conv-item-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.conv-item-date {
   color: var(--text-muted);
   font-size: var(--text-xs);
+  flex-shrink: 0;
+  margin-left: var(--space-sm);
 }
 
 /* ═══════════════════════════════════════════════════════════

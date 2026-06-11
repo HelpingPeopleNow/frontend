@@ -58,7 +58,6 @@ export default function ClientPage() {
   const [chatSending, setChatSending] = useState(false);
   const [conversationID, setConversationID] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ConversationListItem[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
 
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -226,7 +225,6 @@ export default function ClientPage() {
     } catch (err) {
       console.error('[Client] Failed to load conversation:', err);
     }
-    setShowHistory(false);
   };
 
   // ── Reset role ─────────────────────────────────────────────────────────
@@ -258,29 +256,12 @@ export default function ClientPage() {
         <div class="header-right">
           <LangToggle />
           <span class="user-email">{/* user email shown only if available */}</span>
-          <button class="btn btn-ghost btn-sm" onClick={() => setShowHistory(!showHistory)}>
-            {showHistory ? '✕' : '☰'}
-          </button>
           <button class="btn btn-danger btn-sm" onClick={handleLogout}>{t('auth.logout')}</button>
           <button class="btn btn-danger btn-sm" onClick={handleResetRole}>{t('client.reset.role')}</button>
         </div>
       </div>
 
       <div class="page-content">
-        {/* Conversation history sidebar */}
-        {showHistory && (
-          <div class="history-sidebar">
-            <div class="history-sidebar-header">Previous conversations</div>
-            {conversations.length === 0 && <p>No previous conversations</p>}
-            {conversations.map(c => (
-              <div key={c.id} class="history-item" onClick={() => loadConversation(c.id)}>
-                <span>{c.title || c.id.slice(0, 8)}</span>
-                <span class="history-item-date">{new Date(c.updated_at).toLocaleDateString()}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
         <div class="two-col">
           {/* Chat Column */}
           <div class="col-chat">
@@ -289,6 +270,19 @@ export default function ClientPage() {
             <p>
               {t('client.chat.example')} <em>{t('client.chat.example.text')}</em>
             </p>
+
+            {/* Previous conversations — always visible */}
+            {conversations.length > 0 && (
+              <div class="conv-list">
+                <div class="conv-list-header">{t('client.prev')}</div>
+                {conversations.map(c => (
+                  <div key={c.id} class="conv-item" onClick={() => loadConversation(c.id)}>
+                    <span class="conv-item-title">{c.title || c.id.slice(0, 8)}</span>
+                    <span class="conv-item-date">{new Date(c.updated_at).toLocaleDateString()}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div class="chat-box" ref={chatBoxRef}>
               {chatMessages.length === 0 && (
