@@ -28,15 +28,6 @@ interface ClientChatResponse {
   conversation_id?: string;
 }
 
-interface ConversationListItem {
-  id: string;
-  type: string;
-  title: string;
-  metadata?: { type?: string; completed?: boolean };
-  created_at: string;
-  updated_at: string;
-}
-
 export default function ClientPage() {
   const { t } = useLanguage();
 
@@ -57,7 +48,6 @@ export default function ClientPage() {
   const [chatInput, setChatInput] = useState('');
   const [chatSending, setChatSending] = useState(false);
   const [conversationID, setConversationID] = useState<string | null>(null);
-  const [conversations, setConversations] = useState<ConversationListItem[]>([]);
 
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -94,20 +84,32 @@ export default function ClientPage() {
     }
   }, [chatSending]);
 
-  // ── Load conversations on mount (for history) ─────────────────────────
-  const loadConversations = async () => {
+  // ── Load latest client conversation on mount ──────────────────────────
+  const loadLatestConversation = async () => {
     try {
-      const r = await fetch(`${API}/v1/conversations?type=client&limit=20`);
+      const r = await fetch(`${API}/v1/conversations?type=client&limit=1`);
       if (!r.ok) return;
       const data = await r.json();
-      setConversations(data.conversations || []);
+      const convs = data.conversations || [];
+      if (convs.length === 0) return;
+      const latest = convs[0];
+      setConversationID(latest.id);
+      const r2 = await fetch(`${API}/v1/conversations/${latest.id}`);
+      if (!r2.ok) return;
+      const data2 = await r2.json();
+      if (data2.messages && Array.isArray(data2.messages)) {
+        setChatMessages(data2.messages.map((m: any) => ({
+          role: m.role,
+          content: m.content,
+        })));
+      }
     } catch (err) {
-      console.error('[Client] Failed to load conversations:', err);
+      console.error('[Client] Failed to load latest conversation:', err);
     }
   };
 
   useEffect(() => {
-    loadConversations();
+    loadLatestConversation();
   }, []);
 
   // ── Form helpers ───────────────────────────────────────────────────────
@@ -196,8 +198,6 @@ export default function ClientPage() {
       setChatMessages(prev => [...prev, { role: 'assistant', content: t('client.chat.error') }]);
     } finally {
       setChatSending(false);
-      // Reload conversations list to pick up new conv IDs
-      loadConversations();
     }
   };
 
@@ -208,24 +208,6 @@ export default function ClientPage() {
     }
   };
 
-  // ── Load a previous conversation into the chat ─────────────────────────
-  const loadConversation = async (convId: string) => {
-    try {
-      const r = await fetch(`${API}/v1/conversations/${convId}`);
-      if (!r.ok) return;
-      const data = await r.json();
-      if (data.messages && Array.isArray(data.messages)) {
-        setChatMessages(data.messages.map((m: any) => ({
-          role: m.role,
-          content: m.content,
-        })));
-        // Filter out system/field messages to show only user+assistant
-        setConversationID(convId);
-      }
-    } catch (err) {
-      console.error('[Client] Failed to load conversation:', err);
-    }
-  };
 
   // ── Reset role ─────────────────────────────────────────────────────────
   const handleResetRole = async () => {
@@ -271,19 +253,6 @@ export default function ClientPage() {
             <p>
               {t('client.chat.example')} <em>{t('client.chat.example.text')}</em>
             </p>
-
-            {/* Previous conversations — always visible */}
-            {conversations.length > 0 && (
-              <div class="conv-list">
-                <div class="conv-list-header">{t('client.prev')}</div>
-                {conversations.map(c => (
-                  <div key={c.id} class="conv-item" onClick={() => loadConversation(c.id)}>
-                    <span class="conv-item-title">{c.title || c.id.slice(0, 8)}</span>
-                    <span class="conv-item-date">{new Date(c.updated_at).toLocaleDateString()}</span>
-                  </div>
-                ))}
-              </div>
-            )}
 
             <div class="chat-box" ref={chatBoxRef}>
               {chatMessages.length === 0 && (
