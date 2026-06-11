@@ -348,6 +348,7 @@ export default function WorkerPage() {
   };
 
   const handleLogout = async () => {
+    if (!confirm(t('auth.logout.confirm'))) return;
     await logout();
     route('/login', true);
   };

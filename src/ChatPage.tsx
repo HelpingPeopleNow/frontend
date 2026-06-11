@@ -198,6 +198,7 @@ export default function ChatPage() {
   };
 
   const handleLogout = async () => {
+    if (!confirm(t('auth.logout.confirm'))) return;
     console.log('[Auth] logout');
     await logout();
     route('/login', true);
@@ -242,9 +243,28 @@ export default function ChatPage() {
       </div>
 
       <div class="page-content" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }} ref={listRef}>
-        {messages.map((m, i) => (
-          <div key={i} class={`msg msg-${m.role}`}>{m.text}</div>
-        ))}
+        {messages.length === 0 && !initialLoading ? (
+          <div style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            textAlign: 'center', padding: 'var(--space-xl)',
+            minHeight: '300px',
+          }}>
+            <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, marginBottom: 'var(--space-sm)', color: 'var(--text)' }}>
+              {t('chat.welcome.title')}
+            </h3>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', maxWidth: '440px', lineHeight: 1.6, margin: 0 }}>
+              {t('chat.welcome.desc1')}
+            </p>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', maxWidth: '440px', lineHeight: 1.6, margin: 'var(--space-xs) 0 0' }}>
+              {t('chat.welcome.desc2')}
+            </p>
+          </div>
+        ) : (
+          messages.map((m, i) => (
+            <div key={i} class={`msg msg-${m.role}`}>{m.text}</div>
+          ))
+        )}
         {(loading || streaming) && <div class="msg msg-assistant thinking">{t('chat.thinking')}</div>}
       </div>
 

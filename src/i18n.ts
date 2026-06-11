@@ -26,6 +26,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'auth.send.magic': 'Send Magic Link',
     'auth.sending': 'Sending...',
     'auth.logout': 'Logout',
+    'auth.logout.confirm': 'Are you sure you want to log out?',
     'auth.email': 'Email',
     'auth.name': 'Name',
     'auth.email.required': 'Email is required',
@@ -72,6 +73,9 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.post.request': 'Post Your First Request →',
     'chat.no.messages': 'No messages yet.',
     'chat.prompts.missing': 'Cannot continue — system prompts are not configured. Please ask an admin to set them up.',
+    'chat.welcome.title': 'Welcome! How can we help you?',
+    'chat.welcome.desc1': 'Tell us what you need — home repairs, cleaning, plumbing, electrical work, or anything else.',
+    'chat.welcome.desc2': 'We\'ll match you with the right professionals in your area.',
 
     // Worker Page
     'worker.title': 'Worker Profile',
@@ -176,6 +180,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'auth.send.magic': 'Enviar Enlace Mágico',
     'auth.sending': 'Enviando...',
     'auth.logout': 'Cerrar Sesión',
+    'auth.logout.confirm': '¿Estás seguro de que quieres cerrar sesión?',
     'auth.email': 'Email',
     'auth.name': 'Nombre',
     'auth.email.required': 'El email es obligatorio',
@@ -222,6 +227,9 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.post.request': 'Publica tu Primera Solicitud →',
     'chat.no.messages': 'Aún no hay mensajes.',
     'chat.prompts.missing': 'No se puede continuar — los prompts del sistema no están configurados. Pídele a un administrador que los configure.',
+    'chat.welcome.title': '¡Bienvenido! ¿Cómo podemos ayudarte?',
+    'chat.welcome.desc1': 'Cuéntanos qué necesitas — reparaciones, limpieza, fontanería, electricidad o cualquier otra cosa.',
+    'chat.welcome.desc2': 'Te conectaremos con los profesionales adecuados en tu zona.',
 
     // Worker Page
     'worker.title': 'Perfil de Trabajador',

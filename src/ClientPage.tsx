@@ -219,6 +219,7 @@ export default function ClientPage() {
 
   // ── Logout ─────────────────────────────────────────────────────────────
   const handleLogout = async () => {
+    if (!confirm(t('auth.logout.confirm'))) return;
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch { /* ignore */ }
