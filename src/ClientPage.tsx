@@ -31,6 +31,32 @@ interface ClientChatResponse {
   conversation_id?: string;
 }
 
+interface WorkerCard {
+  id: number;
+  profession: string;
+  business_name: string;
+  bio: string;
+  city: string;
+  hourly_rate: number;
+  free_estimate: boolean;
+  years_experience: number;
+  certifications: string[];
+  has_insurance: boolean;
+  emergency_service: boolean;
+}
+
+interface FindChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  workers?: WorkerCard[];
+}
+
+interface FindChatResponse {
+  answer: string;
+  workers?: WorkerCard[];
+  conversation_id?: string;
+}
+
 export default function ClientPage() {
   const { t } = useLanguage();
 
@@ -50,6 +76,14 @@ export default function ClientPage() {
   const [chatInput, setChatInput] = useState('');
   const [chatSending, setChatSending] = useState(false);
   const [conversationID, setConversationID] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = useState<'profile' | 'find'>('profile');
+
+  // Find a Trader chat state
+  const [findMessages, setFindMessages] = useState<FindChatMessage[]>([]);
+  const [findInput, setFindInput] = useState('');
+  const [findSending, setFindSending] = useState(false);
+  const [findConvId, setFindConvId] = useState<string | null>(null);
 
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -80,10 +114,13 @@ export default function ClientPage() {
   }, []);
 
   useEffect(() => {
-    if (!chatSending && inputRef.current) {
+    if (!chatSending && inputRef.current && activeTab === 'profile') {
       inputRef.current.focus();
     }
-  }, [chatSending]);
+    if (!findSending && inputRef.current && activeTab === 'find') {
+      inputRef.current.focus();
+    }
+  }, [chatSending, findSending, activeTab]);
 
   const loadLatestConversation = async () => {
     try {
@@ -110,6 +147,7 @@ export default function ClientPage() {
 
   useEffect(() => {
     loadLatestConversation();
+    loadLatestFindConversation();
   }, []);
 
   const applyDetectedFields = (rawFields: Partial<ClientProfile> | string) => {
@@ -198,6 +236,80 @@ export default function ClientPage() {
     }
   };
 
+  const handleFindChatKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendFindMessage();
+    }
+  };
+
+  const loadLatestFindConversation = async () => {
+    try {
+      const r = await fetch(`${API}/v1/conversations?type=client-find&limit=1`);
+      if (!r.ok) return;
+      const data = await r.json();
+      const convs = data.conversations || [];
+      if (convs.length === 0) return;
+      const latest = convs[0];
+      setFindConvId(latest.id);
+      const r2 = await fetch(`${API}/v1/conversations/${latest.id}`);
+      if (!r2.ok) return;
+      const data2 = await r2.json();
+      if (data2.messages && Array.isArray(data2.messages)) {
+        setFindMessages(data2.messages.map((m: any) => ({
+          role: m.role,
+          content: m.content,
+        })));
+      }
+    } catch (err) {
+      console.error('[Client] Failed to load latest find conversation:', err);
+    }
+  };
+
+  const sendFindMessage = async () => {
+    const msgText = findInput.trim();
+    if (!msgText || findSending) return;
+
+    setFindSending(true);
+    setFindInput('');
+
+    const userMsg: FindChatMessage = { role: 'user', content: msgText };
+    setFindMessages(prev => [...prev, userMsg]);
+
+    try {
+      const res = await fetch(`${API}/v1/client/find-chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: msgText,
+          history: findMessages.map(({ role, content }) => ({ role, content })),
+          conversation_id: findConvId,
+        }),
+      });
+
+      if (!res.ok) {
+        setFindMessages(prev => [...prev, { role: 'assistant', content: t('client.find.error') }]);
+        return;
+      }
+
+      const data: FindChatResponse = await res.json();
+      const reply = data.answer || t('client.find.empty');
+      setFindMessages(prev => [...prev, {
+        role: 'assistant',
+        content: reply,
+        workers: data.workers,
+      }]);
+
+      if (data.conversation_id) {
+        setFindConvId(data.conversation_id);
+      }
+    } catch {
+      setFindMessages(prev => [...prev, { role: 'assistant', content: t('client.find.error') }]);
+    } finally {
+      setFindSending(false);
+    }
+  };
+
   const handleResetProfile = async () => {
     if (!confirm(t('client.card.reset.confirm'))) return;
     try {
@@ -249,6 +361,16 @@ export default function ClientPage() {
         </div>
       </div>
 
+      <div class="tab-bar">
+        <button class={`tab-btn${activeTab === 'profile' ? ' active' : ''}`} onClick={() => setActiveTab('profile')}>
+          {t('client.tab.profile')}
+        </button>
+        <button class={`tab-btn${activeTab === 'find' ? ' active' : ''}`} onClick={() => setActiveTab('find')}>
+          {t('client.tab.find')}
+        </button>
+      </div>
+
+      {activeTab === 'profile' && (
       <div class="page-content">
         <div class="two-col">
           {/* Chat Column */}
@@ -349,6 +471,74 @@ export default function ClientPage() {
           </div>
         </div>
       </div>
+      )}
+
+      {activeTab === 'find' && (
+      <div class="page-content">
+        <div class="col-chat">
+          <h3>{t('client.find.title')}</h3>
+          <p>{t('client.find.welcome')}</p>
+
+          <div class="chat-box" ref={chatBoxRef}>
+            {findMessages.length === 0 && (
+              <div class="chat-welcome">{t('client.find.welcome')}</div>
+            )}
+            {findMessages.map((m, i) => (
+              <div key={i} class={`chat-bubble ${m.role === 'user' ? 'chat-user' : 'chat-assistant'}`}>
+                <div class="chat-role-label">{m.role === 'user' ? t('client.find.you') : t('client.find.assistant')}</div>
+                <div class="chat-content">{m.content}</div>
+                {m.workers && m.workers.length > 0 && (
+                  <div class="worker-card-grid">
+                    {m.workers.map(w => (
+                      <div key={w.id} class="worker-card">
+                        <div class="worker-card-header">
+                          <span class="worker-card-name">{w.business_name || w.profession}</span>
+                          <span class="worker-card-rate">€{w.hourly_rate}/hr</span>
+                        </div>
+                        <div class="worker-card-meta">
+                          {w.profession} · {w.city} · {w.years_experience} years exp.
+                        </div>
+                        {w.bio && <div class="worker-card-bio">{w.bio}</div>}
+                        <div class="worker-card-badges">
+                          {w.has_insurance && <span class="worker-badge worker-badge-insured">{t('client.find.badge.insured')}</span>}
+                          {w.emergency_service && <span class="worker-badge worker-badge-emergency">{t('client.find.badge.emergency')}</span>}
+                          {w.free_estimate && <span class="worker-badge worker-badge-estimate">{t('client.find.badge.free_estimate')}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {m.workers && m.workers.length === 0 && (
+                  <div class="worker-card-empty">{t('client.find.no_results')}</div>
+                )}
+              </div>
+            ))}
+            {findSending && (
+              <div class="chat-bubble chat-assistant">
+                <div class="chat-role-label">{t('client.find.assistant')}</div>
+                <div class="chat-content">{t('client.find.typing')}</div>
+              </div>
+            )}
+          </div>
+
+          <div class="chat-input-row">
+            <input
+              ref={inputRef}
+              class="input"
+              type="text"
+              value={findInput}
+              onKeyDown={handleFindChatKeyDown}
+              onInput={(e) => setFindInput(e.currentTarget.value)}
+              placeholder={findMessages.length === 0 ? t('client.find.placeholder') : t('client.find.placeholder.followup')}
+              disabled={findSending}
+            />
+            <button class="btn-send" onClick={sendFindMessage} disabled={findSending || !findInput.trim()}>
+              {findSending ? '…' : t('client.find.send')}
+            </button>
+          </div>
+        </div>
+      </div>
+      )}
     </div>
   );
 }

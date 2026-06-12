@@ -160,6 +160,25 @@ const translations: Record<Lang, Record<string, string>> = {
     'client.requests.desc': 'Track your open requests and see responses from available workers.',
     'client.reset.role': '✕ Stop being a client',
 
+    // Client Find a Trader
+    'client.tab.profile': 'My Profile',
+    'client.tab.find': 'Find a Trader',
+    'client.find.title': 'Find a Trader',
+    'client.find.welcome': 'Tell us what you need and we\'ll find the right professional for you.',
+    'client.find.placeholder': 'I need an electrician in Madrid…',
+    'client.find.placeholder.followup': 'Any other requirements?',
+    'client.find.you': 'You',
+    'client.find.assistant': 'Assistant',
+    'client.find.typing': 'typing…',
+    'client.find.send': 'Send',
+    'client.find.error': 'Network error — please try again.',
+    'client.find.empty': '(empty response)',
+    'client.find.no_results': 'No workers found matching your criteria.',
+    'client.find.results_found': '{count} workers found',
+    'client.find.badge.insured': 'Insured',
+    'client.find.badge.emergency': 'Emergency',
+    'client.find.badge.free_estimate': 'Free Estimate',
+
     // General
     'lang.switch': 'Language',
   },
@@ -316,6 +335,25 @@ const translations: Record<Lang, Record<string, string>> = {
     'client.requests': 'Tus Solicitudes',
     'client.requests.desc': 'Sigue tus solicitudes abiertas y ve las respuestas de los trabajadores disponibles.',
     'client.reset.role': '✕ Dejar de ser cliente',
+
+    // Client Find a Trader
+    'client.tab.profile': 'Mi Perfil',
+    'client.tab.find': 'Buscar Profesional',
+    'client.find.title': 'Buscar Profesional',
+    'client.find.welcome': 'Cuéntanos qué necesitas y encontraremos al profesional adecuado.',
+    'client.find.placeholder': 'Necesito un electricista en Madrid…',
+    'client.find.placeholder.followup': '¿Algún otro requisito?',
+    'client.find.you': 'Tú',
+    'client.find.assistant': 'Asistente',
+    'client.find.typing': 'escribiendo…',
+    'client.find.send': 'Enviar',
+    'client.find.error': 'Error de red — inténtalo de nuevo.',
+    'client.find.empty': '(respuesta vacía)',
+    'client.find.no_results': 'No se encontraron profesionales.',
+    'client.find.results_found': '{count} profesionales encontrados',
+    'client.find.badge.insured': 'Asegurado',
+    'client.find.badge.emergency': 'Emergencias',
+    'client.find.badge.free_estimate': 'Presupuesto Gratis',
 
     // General
     'lang.switch': 'Idioma',
