@@ -4,8 +4,6 @@ import { useState, useEffect, useRef } from 'preact/hooks';
 import { useAuth } from './AuthProvider';
 import { useLanguage, LangToggle } from './i18n';
 
-const PROFESSIONS = ['plumber', 'electrician', 'cleaner', 'handyman', 'painter', 'carpenter', 'gardener', 'hvac', 'mover', 'other'];
-
 interface SocialLink {
   platform: string;
   url: string;
@@ -47,9 +45,6 @@ export default function WorkerPage() {
     languages: [], emergency_service: false, website: '', social_links: [],
   });
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState('');
 
   // Chat state
   const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
@@ -59,16 +54,10 @@ export default function WorkerPage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
 
-  // Input helpers
-  const [certInput, setCertInput] = useState('');
-  const [langInput, setLangInput] = useState('');
-  const [socialPlat, setSocialPlat] = useState('');
-  const [socialUrl, setSocialUrl] = useState('');
-
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/v1/worker/profile');
+        const res = await fetch('/api/v1/worker/profile', { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           if (data && data.user_id) {
@@ -79,11 +68,9 @@ export default function WorkerPage() {
               social_links: data.social_links || [],
             }));
           }
-        } else {
-          console.warn('[worker] profile restore failed', res.status);
         }
       } catch (e) {
-        // Profile might not exist yet — fine
+        // Profile might not exist yet
       }
 
       // Load last worker conversation for chat panel
@@ -94,7 +81,6 @@ export default function WorkerPage() {
           if (convData.conversations && convData.conversations.length > 0) {
             const conv = convData.conversations[0];
             const updated = new Date(conv.updated_at).getTime();
-            // Only resume if from last 24h
             if (Date.now() - updated < 24 * 60 * 60 * 1000) {
               const detailRes = await fetch(`/api/v1/conversations/${conv.id}`, { credentials: 'include' });
               if (detailRes.ok) {
@@ -106,29 +92,10 @@ export default function WorkerPage() {
                   }));
                   setChatMsgs(loaded);
                   setChatConvId(detail.id);
-
-                  // Merge extracted fields from metadata into form
-                  const extractedFields = detail.metadata?.extracted_fields || detail.metadata?.detected_fields;
-                  if (extractedFields) {
-                    try {
-                      const fields = typeof extractedFields === 'string'
-                        ? JSON.parse(extractedFields)
-                        : extractedFields;
-                      mergeDetectedFields(fields);
-                      console.log('[worker] loaded extracted fields from conversation metadata');
-                    } catch (parseErr) {
-                      console.warn('[worker] failed to parse conversation metadata fields', parseErr);
-                    }
-                  }
-                  console.log('[worker] resumed previous conversation', detail.id, loaded.length, 'messages');
                 }
-              } else {
-                console.warn('[worker] conversation detail restore failed', detailRes.status);
               }
             }
           }
-        } else {
-          console.warn('[worker] conversation list restore failed', convRes.status);
         }
       } catch (convErr) {
         console.log('[worker] could not load previous conversation', convErr);
@@ -137,113 +104,98 @@ export default function WorkerPage() {
     })();
   }, []);
 
-  // Focus chat input after page loads
   useEffect(() => {
     if (!loading) {
       chatInputRef.current?.focus();
     }
   }, [loading]);
 
-  // Scroll chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMsgs]);
 
-  // Focus chat input after sending completes (state has settled)
   useEffect(() => {
     if (!chatSending && !loading) {
       chatInputRef.current?.focus();
     }
   }, [chatSending, loading]);
 
-  const updateField = (field: string, value: any) => {
-    setProfile(p => ({ ...p, [field]: value }));
-  };
+  const applyDetectedFields = (rawFields: Record<string, any> | string) => {
+    try {
+      const fields: Record<string, any> = typeof rawFields === 'string'
+        ? JSON.parse(rawFields)
+        : rawFields;
 
-  const addCert = () => {
-    const v = certInput.trim();
-    if (v && !profile.certifications.includes(v)) {
-      updateField('certifications', [...profile.certifications, v]);
-    }
-    setCertInput('');
-  };
-  const removeCert = (idx: number) => {
-    updateField('certifications', profile.certifications.filter((_, i) => i !== idx));
-  };
-  const addLang = () => {
-    const v = langInput.trim();
-    if (v && !profile.languages.includes(v)) {
-      updateField('languages', [...profile.languages, v]);
-    }
-    setLangInput('');
-  };
-  const removeLang = (idx: number) => {
-    updateField('languages', profile.languages.filter((_, i) => i !== idx));
-  };
-  const addSocial = () => {
-    const p = socialPlat.trim();
-    const u = socialUrl.trim();
-    if (p && u) {
-      updateField('social_links', [...profile.social_links, { platform: p, url: u }]);
-    }
-    setSocialPlat('');
-    setSocialUrl('');
-  };
-  const removeSocial = (idx: number) => {
-    updateField('social_links', profile.social_links.filter((_, i) => i !== idx));
-  };
+      const fieldMap: Record<string, keyof WorkerProfile> = {
+        profession: 'profession', business_name: 'business_name', bio: 'bio', phone: 'phone',
+        city: 'city', address: 'address', hourly_rate: 'hourly_rate', minimum_charge: 'minimum_charge',
+        years_experience: 'years_experience', website: 'website',
+      };
 
-  // Merge detected fields from chat into the form
-  const mergeDetectedFields = (fields: Record<string, any>) => {
-    const updated: Partial<WorkerProfile> = {};
-    const fieldMap: Record<string, keyof WorkerProfile> = {
-      profession: 'profession', business_name: 'business_name', bio: 'bio', phone: 'phone',
-      city: 'city', address: 'address', hourly_rate: 'hourly_rate', minimum_charge: 'minimum_charge',
-      years_experience: 'years_experience', website: 'website',
-    };
-    for (const [key, target] of Object.entries(fieldMap)) {
-      if (fields[key] !== undefined && fields[key] !== null && fields[key] !== '') {
-        updated[target] = fields[key] as any;
-      }
-    }
-
-    // Convert individual social fields from LLM into social_links array
-    const socialPlatforms: Record<string, string> = {
-      instagram: 'Instagram', facebook: 'Facebook', twitter: 'Twitter',
-      linkedin: 'LinkedIn', tiktok: 'TikTok', youtube: 'YouTube',
-    };
-    const existingLinks = [...(profile.social_links || [])];
-    const knownPlatforms = existingLinks.map(s => s.platform.toLowerCase());
-    for (const [key, label] of Object.entries(socialPlatforms)) {
-      if (fields[key] !== undefined && fields[key] !== null && fields[key] !== '') {
-        if (!knownPlatforms.includes(key)) {
-          existingLinks.push({ platform: label, url: fields[key] });
-          knownPlatforms.push(key);
+      setProfile(prev => {
+        const updated = { ...prev };
+        for (const [key, target] of Object.entries(fieldMap)) {
+          if (fields[key] !== undefined && fields[key] !== null) {
+            (updated as any)[target] = fields[key];
+          }
         }
-      }
-    }
-    updated.social_links = existingLinks;
-    for (const [key, target] of Object.entries(fieldMap)) {
-      if (fields[key] !== undefined && fields[key] !== null && fields[key] !== '') {
-        updated[target] = fields[key] as any;
-      }
-    }
-    // Boolean fields
-    if (fields.free_estimate !== undefined) updated.free_estimate = Boolean(fields.free_estimate);
-    if (fields.has_insurance !== undefined) updated.has_insurance = Boolean(fields.has_insurance);
-    if (fields.emergency_service !== undefined) updated.emergency_service = Boolean(fields.emergency_service);
-    // Number fields
-    if (fields.service_radius_km !== undefined && fields.service_radius_km !== '') updated.service_radius_km = Number(fields.service_radius_km) || 0;
-    if (fields.hourly_rate !== undefined && fields.hourly_rate !== '') updated.hourly_rate = Number(fields.hourly_rate) || 0;
-    if (fields.minimum_charge !== undefined && fields.minimum_charge !== '') updated.minimum_charge = Number(fields.minimum_charge) || 0;
-    if (fields.years_experience !== undefined && fields.years_experience !== '') updated.years_experience = Number(fields.years_experience) || 0;
-    // Array fields
-    if (Array.isArray(fields.languages)) updated.languages = fields.languages;
-    if (Array.isArray(fields.certifications)) updated.certifications = fields.certifications;
+        // Social links — merge from individual social fields + social_links array
+        const existingLinks = [...(prev.social_links || [])];
+        const knownPlatforms = existingLinks.map(s => s.platform.toLowerCase());
+        const socialPlatforms: Record<string, string> = {
+          instagram: 'Instagram', facebook: 'Facebook', twitter: 'Twitter',
+          linkedin: 'LinkedIn', tiktok: 'TikTok', youtube: 'YouTube',
+        };
+        for (const [key, label] of Object.entries(socialPlatforms)) {
+          if (fields[key] !== undefined && fields[key] !== null && fields[key] !== '') {
+            if (!knownPlatforms.includes(key)) {
+              existingLinks.push({ platform: label, url: fields[key] });
+              knownPlatforms.push(key);
+            }
+          }
+        }
+        if (fields.social_links && Array.isArray(fields.social_links)) {
+          for (const item of fields.social_links) {
+            if (item.platform && item.url) {
+              if (!knownPlatforms.includes(item.platform.toLowerCase())) {
+                existingLinks.push({ platform: item.platform, url: item.url });
+                knownPlatforms.push(item.platform.toLowerCase());
+              }
+            }
+          }
+        }
+        updated.social_links = existingLinks;
+        // Boolean fields
+        if (fields.free_estimate !== undefined) updated.free_estimate = Boolean(fields.free_estimate);
+        if (fields.has_insurance !== undefined) updated.has_insurance = Boolean(fields.has_insurance);
+        if (fields.emergency_service !== undefined) updated.emergency_service = Boolean(fields.emergency_service);
+        // Number fields
+        if (fields.service_radius_km !== undefined) updated.service_radius_km = Number(fields.service_radius_km) || 0;
+        if (fields.hourly_rate !== undefined) updated.hourly_rate = Number(fields.hourly_rate) || 0;
+        if (fields.minimum_charge !== undefined) updated.minimum_charge = Number(fields.minimum_charge) || 0;
+        if (fields.years_experience !== undefined) updated.years_experience = Number(fields.years_experience) || 0;
+        // Array fields
+        if (Array.isArray(fields.languages)) updated.languages = fields.languages;
+        if (Array.isArray(fields.certifications)) updated.certifications = fields.certifications;
+        return updated;
+      });
 
-    if (Object.keys(updated).length > 0) {
-      console.log('[worker-chat] merging fields into form:', updated);
-      setProfile(p => ({ ...p, ...updated }));
+      // Re-fetch from backend to confirm save
+      fetch('/api/v1/worker/profile', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data && data.user_id) {
+            setProfile(p => ({
+              ...p, ...data,
+              certifications: data.certifications || [],
+              languages: data.languages || [],
+              social_links: data.social_links || [],
+            }));
+          }
+        })
+        .catch(() => {});
+    } catch (parseErr) {
+      console.warn('[worker-chat] failed to parse detected_fields', parseErr);
     }
   };
 
@@ -257,10 +209,8 @@ export default function WorkerPage() {
     setChatMsgs(newMsgs);
 
     try {
-      // Build history from chat messages (excluding the last user message which is the current question)
       const history = chatMsgs.map(m => ({ role: m.role, content: m.content }));
 
-      console.log('[worker-chat] sending to /api/v1/worker/chat', 'msg_len', msg.length, 'history_len', history.length);
       const res = await fetch('/api/v1/worker/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -274,36 +224,21 @@ export default function WorkerPage() {
 
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({ error: 'unknown error' }));
-        console.error('[worker-chat] request failed', res.status, errBody);
         setChatMsgs([...newMsgs, { role: 'assistant', content: `Error: ${errBody.error || res.status}` }]);
         setChatSending(false);
         return;
       }
 
       const data = await res.json();
-      console.log('[worker-chat] response received', 'answer_len', data.answer?.length, 'has_fields', !!data.detected_fields);
-
-      // Merge detected fields into the form
       if (data.detected_fields) {
-        try {
-          const fields = typeof data.detected_fields === 'string'
-            ? JSON.parse(data.detected_fields)
-            : data.detected_fields;
-          console.log('[worker-chat] detected_fields:', fields);
-          mergeDetectedFields(fields);
-        } catch (parseErr) {
-          console.warn('[worker-chat] failed to parse detected_fields', parseErr);
-        }
+        applyDetectedFields(data.detected_fields);
       }
 
       setChatMsgs([...newMsgs, { role: 'assistant', content: data.answer || t('worker.chat.empty') }]);
-      // Save conversation ID for continued chat
       if (data.conversation_id) {
         setChatConvId(data.conversation_id);
-        console.log('[worker-chat] conversation_id:', data.conversation_id);
       }
     } catch (e: any) {
-      console.error('[worker-chat] network error', e);
       setChatMsgs([...newMsgs, { role: 'assistant', content: t('worker.chat.error') }]);
     } finally {
       setChatSending(false);
@@ -314,36 +249,18 @@ export default function WorkerPage() {
     if (e.key === 'Enter') sendChatMessage();
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-    setSaved(false);
-    setError('');
+  const handleResetProfile = async () => {
+    if (!confirm(t('worker.card.reset.confirm'))) return;
     try {
-      console.log('[worker] saving profile', profile.profession, profile.city);
-      const res = await fetch('/api/v1/worker/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profile),
+      await fetch('/api/v1/worker/profile', { method: 'DELETE', credentials: 'include' });
+      setProfile({
+        user_id: '', profession: '', business_name: '', bio: '', phone: '',
+        city: '', service_radius_km: 25, address: '', hourly_rate: 0, minimum_charge: 0,
+        free_estimate: true, years_experience: 0, certifications: [], has_insurance: false,
+        languages: [], emergency_service: false, website: '', social_links: [],
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'unknown error' }));
-        throw new Error(err.error || 'save failed');
-      }
-      const updated = await res.json();
-      console.log('[worker] profile saved', updated);
-      setProfile(p => ({
-        ...p, ...updated,
-        certifications: updated.certifications || [],
-        languages: updated.languages || [],
-        social_links: updated.social_links || [],
-      }));
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch (e: any) {
-      setError(e.message || t('worker.save.error'));
-      console.error('[worker] save failed', e);
-    } finally {
-      setSaving(false);
+    } catch (e) {
+      console.error('[worker] failed to reset profile', e);
     }
   };
 
@@ -361,15 +278,19 @@ export default function WorkerPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: '' }),
       });
-      if (!res.ok) {
-        console.error('[Worker] failed to reset role', res.status);
-        return;
-      }
+      if (!res.ok) return;
       await refreshSession();
       route('/', true);
     } catch (e) {
       console.error('[Worker] failed to reset role', e);
     }
+  };
+
+  const fmt = (v: string | number | boolean | undefined | null, suffix?: string) => {
+    if (v === undefined || v === null || v === '') return <span class="profile-empty">—</span>;
+    if (typeof v === 'boolean') return <span class={v ? 'profile-bool-yes' : 'profile-bool-no'}>{v ? '✓' : '✗'}</span>;
+    if (typeof v === 'number' && v === 0) return <span class="profile-empty">—</span>;
+    return <>{suffix ? `${v}${suffix}` : v}</>;
   };
 
   if (loading) {
@@ -396,9 +317,6 @@ export default function WorkerPage() {
       </div>
 
       <div class="page-content">
-        {error && <div class="msg msg-error">{error}</div>}
-        {saved && <div class="msg msg-success">{t('worker.saved')}</div>}
-
         <div class="two-col">
           {/* --- Left: Chat Panel --- */}
           <div class="col-chat">
@@ -436,152 +354,116 @@ export default function WorkerPage() {
             </div>
           </div>
 
-          {/* --- Right: Form --- */}
+          {/* --- Right: Read-only Profile Card --- */}
           <div class="col-form">
-            {/* Core Identity */}
-            <div class="section">
-              <h3 class="section-title">{t('worker.form.core')}</h3>
-
-              <label class="field">
-                <span>{t('worker.form.profession')}</span>
-                <select class="select" value={profile.profession} onChange={e => updateField('profession', (e.target as HTMLSelectElement).value)}>
-                  <option value="">{t('worker.form.profession.placeholder')}</option>
-                  {PROFESSIONS.map(p => <option value={p}>{p}</option>)}
-                </select>
-              </label>
-
-              <label class="field">
-                <span>{t('worker.form.business')}</span>
-                <input class="input" type="text" value={profile.business_name} onChange={e => updateField('business_name', (e.target as HTMLInputElement).value)} placeholder="Alvaro's Repairs SL" />
-              </label>
-
-              <label class="field">
-                <span>{t('worker.form.bio')}</span>
-                <textarea class="textarea" rows={3} value={profile.bio} onChange={e => updateField('bio', (e.target as HTMLTextAreaElement).value)} placeholder="10 years fixing leaks in Madrid" />
-              </label>
-
-              <label class="field">
-                <span>{t('worker.form.phone')}</span>
-                <input class="input" type="tel" value={profile.phone} onChange={e => updateField('phone', (e.target as HTMLInputElement).value)} placeholder="+34 612 345 678" />
-              </label>
-            </div>
-
-            {/* Location & Service Area */}
-            <div class="section">
-              <h3 class="section-title">{t('worker.form.location')}</h3>
-
-              <label class="field">
-                <span>{t('worker.form.city')}</span>
-                <input class="input" type="text" value={profile.city} onChange={e => updateField('city', (e.target as HTMLInputElement).value)} placeholder="Madrid" />
-              </label>
-
-              <label class="field">
-                <span>{t('worker.form.radius')}</span>
-                <input class="input" type="number" min={0} max={200} value={profile.service_radius_km} onChange={e => updateField('service_radius_km', parseInt((e.target as HTMLInputElement).value) || 0)} />
-              </label>
-
-              <label class="field">
-                <span>{t('worker.form.address')}</span>
-                <input class="input" type="text" value={profile.address} onChange={e => updateField('address', (e.target as HTMLInputElement).value)} placeholder="Calle Mayor 10, 28013" />
-              </label>
-            </div>
-
-            {/* Pricing */}
-            <div class="section">
-              <h3 class="section-title">{t('worker.form.pricing')}</h3>
-
-              <label class="field">
-                <span>{t('worker.form.hourly')}</span>
-                <input class="input" type="number" min={0} step={0.5} value={profile.hourly_rate || ''} onChange={e => updateField('hourly_rate', parseFloat((e.target as HTMLInputElement).value) || 0)} placeholder="35.00" />
-              </label>
-
-              <label class="field">
-                <span>{t('worker.form.minimum')}</span>
-                <input class="input" type="number" min={0} step={0.5} value={profile.minimum_charge || ''} onChange={e => updateField('minimum_charge', parseFloat((e.target as HTMLInputElement).value) || 0)} placeholder="50.00" />
-              </label>
-
-              <label class="field field-row">
-                <span>{t('worker.form.free.estimate')}</span>
-                <input type="checkbox" checked={profile.free_estimate} onChange={e => updateField('free_estimate', (e.target as HTMLInputElement).checked)} />
-              </label>
-            </div>
-
-            {/* Credentials */}
-            <div class="section">
-              <h3 class="section-title">{t('worker.form.credentials')}</h3>
-
-              <label class="field">
-                <span>{t('worker.form.experience')}</span>
-                <input class="input" type="number" min={0} max={70} value={profile.years_experience} onChange={e => updateField('years_experience', parseInt((e.target as HTMLInputElement).value) || 0)} />
-              </label>
-
-              <div class="field">
-                <span>{t('worker.form.certifications')}</span>
-                <div class="tag-input-row">
-                  <input class="input" type="text" value={certInput} onChange={e => setCertInput((e.target as HTMLInputElement).value)} placeholder={t('worker.form.certifications')} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCert())} />
-                  <button class="btn btn-sm" onClick={addCert}>+</button>
+            <div class="profile-card">
+              {/* Core Identity */}
+              <div class="section">
+                <h3 class="section-title">{t('worker.card.core')}</h3>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.profession')}</span>
+                  <span class="profile-value">{fmt(profile.profession)}</span>
                 </div>
-                <div class="tags">
-                  {profile.certifications.map((c, i) => (
-                    <span class="tag">{c} <button class="tag-remove" onClick={() => removeCert(i)}>×</button></span>
-                  ))}
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.business_name')}</span>
+                  <span class="profile-value">{fmt(profile.business_name)}</span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.bio')}</span>
+                  <span class="profile-value">{fmt(profile.bio)}</span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.phone')}</span>
+                  <span class="profile-value">{fmt(profile.phone)}</span>
                 </div>
               </div>
 
-              <label class="field field-row">
-                <span>{t('worker.form.insurance')}</span>
-                <input type="checkbox" checked={profile.has_insurance} onChange={e => updateField('has_insurance', (e.target as HTMLInputElement).checked)} />
-              </label>
-
-              <div class="field">
-                <span>{t('worker.form.languages')}</span>
-                <div class="tag-input-row">
-                  <input class="input" type="text" value={langInput} onChange={e => setLangInput((e.target as HTMLInputElement).value)} placeholder={t('worker.form.languages')} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addLang())} />
-                  <button class="btn btn-sm" onClick={addLang}>+</button>
+              {/* Location & Area */}
+              <div class="section">
+                <h3 class="section-title">{t('worker.card.location')}</h3>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.city')}</span>
+                  <span class="profile-value">{fmt(profile.city)}</span>
                 </div>
-                <div class="tags">
-                  {profile.languages.map((l, i) => (
-                    <span class="tag">{l} <button class="tag-remove" onClick={() => removeLang(i)}>×</button></span>
-                  ))}
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.radius')}</span>
+                  <span class="profile-value">{fmt(profile.service_radius_km, ' km')}</span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.address')}</span>
+                  <span class="profile-value">{fmt(profile.address)}</span>
                 </div>
               </div>
 
-              <label class="field field-row">
-                <span>{t('worker.form.emergency')}</span>
-                <input type="checkbox" checked={profile.emergency_service} onChange={e => updateField('emergency_service', (e.target as HTMLInputElement).checked)} />
-              </label>
-            </div>
-
-            {/* Online Presence */}
-            <div class="section">
-              <h3 class="section-title">{t('worker.form.online')}</h3>
-
-              <label class="field">
-                <span>{t('worker.form.website')}</span>
-                <input class="input" type="url" value={profile.website} onChange={e => updateField('website', (e.target as HTMLInputElement).value)} placeholder="https://mysite.com" />
-              </label>
-
-              <div class="field">
-                <span>{t('worker.form.social')}</span>
-                <div class="tag-input-row">
-                  <input class="input inp-social-plat" type="text" value={socialPlat} onChange={e => setSocialPlat((e.target as HTMLInputElement).value)} placeholder="Instagram" />
-                  <input class="input inp-social-url" type="text" value={socialUrl} onChange={e => setSocialUrl((e.target as HTMLInputElement).value)} placeholder="https://instagram.com/..." />
-                  <button class="btn btn-sm" onClick={addSocial}>+</button>
+              {/* Pricing */}
+              <div class="section">
+                <h3 class="section-title">{t('worker.card.pricing')}</h3>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.hourly')}</span>
+                  <span class="profile-value">{fmt(profile.hourly_rate, '€')}</span>
                 </div>
-                <div class="tags">
-                  {profile.social_links.map((s, i) => (
-                    <span class="tag">{s.platform}: {s.url} <button class="tag-remove" onClick={() => removeSocial(i)}>×</button></span>
-                  ))}
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.minimum')}</span>
+                  <span class="profile-value">{fmt(profile.minimum_charge, '€')}</span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.free_estimate')}</span>
+                  <span class="profile-value">{fmt(profile.free_estimate)}</span>
+                </div>
+              </div>
+
+              {/* Credentials */}
+              <div class="section">
+                <h3 class="section-title">{t('worker.card.credentials')}</h3>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.experience')}</span>
+                  <span class="profile-value">{fmt(profile.years_experience, ' years')}</span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.certifications')}</span>
+                  <span class="profile-value">
+                    {profile.certifications.length > 0
+                      ? <span class="profile-tags">{profile.certifications.map(c => <span class="profile-tag">{c}</span>)}</span>
+                      : <span class="profile-empty">—</span>}
+                  </span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.insurance')}</span>
+                  <span class="profile-value">{fmt(profile.has_insurance)}</span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.languages')}</span>
+                  <span class="profile-value">
+                    {profile.languages.length > 0
+                      ? <span class="profile-tags">{profile.languages.map(l => <span class="profile-tag">{l}</span>)}</span>
+                      : <span class="profile-empty">—</span>}
+                  </span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.emergency')}</span>
+                  <span class="profile-value">{fmt(profile.emergency_service)}</span>
+                </div>
+              </div>
+
+              {/* Online Presence */}
+              <div class="section">
+                <h3 class="section-title">{t('worker.card.online')}</h3>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.website')}</span>
+                  <span class="profile-value">{fmt(profile.website)}</span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('worker.card.social')}</span>
+                  <span class="profile-value">
+                    {profile.social_links.length > 0
+                      ? <span class="profile-tags">{profile.social_links.map(s => <span class="profile-tag">{s.platform}: {s.url}</span>)}</span>
+                      : <span class="profile-empty">—</span>}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Save */}
-            <div class="save-area">
-              <button class="btn-save" onClick={handleSave} disabled={saving}>
-                {saving ? t('worker.form.saving') : t('worker.form.save')}
-              </button>
-            </div>
+            <button class="btn btn-ghost btn-sm card-reset" onClick={handleResetProfile}>{t('worker.card.reset')}</button>
           </div>
         </div>
       </div>

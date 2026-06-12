@@ -13,6 +13,9 @@ interface ClientProfile {
   city: string;
   address: string;
   bio: string;
+  preferred_contact: string;
+  property_type: string;
+  notes: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -31,19 +34,18 @@ interface ClientChatResponse {
 export default function ClientPage() {
   const { t } = useLanguage();
 
-  // ── Profile state ──────────────────────────────────────────────────────
   const [profile, setProfile] = useState<ClientProfile>({
     full_name: '',
     phone: '',
     city: '',
     address: '',
     bio: '',
+    preferred_contact: '',
+    property_type: '',
+    notes: '',
   });
   const [profileLoaded, setProfileLoaded] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // ── Chat state ─────────────────────────────────────────────────────────
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [chatSending, setChatSending] = useState(false);
@@ -52,23 +54,23 @@ export default function ClientPage() {
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // ── Load profile on mount ──────────────────────────────────────────────
   useEffect(() => {
-    fetch(`${API}/v1/client/profile`)
+    fetch(`${API}/v1/client/profile`, { credentials: 'include' })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
       .then((data: ClientProfile) => {
-        if (data.full_name || data.phone || data.city || data.address || data.bio) {
-          setProfile({
-            full_name: data.full_name || '',
-            phone: data.phone || '',
-            city: data.city || '',
-            address: data.address || '',
-            bio: data.bio || '',
-          });
-        }
+        setProfile({
+          full_name: data.full_name || '',
+          phone: data.phone || '',
+          city: data.city || '',
+          address: data.address || '',
+          bio: data.bio || '',
+          preferred_contact: data.preferred_contact || '',
+          property_type: data.property_type || '',
+          notes: data.notes || '',
+        });
         setProfileLoaded(true);
       })
       .catch(err => {
@@ -77,14 +79,12 @@ export default function ClientPage() {
       });
   }, []);
 
-  // ── Auto-focus after send ─────────────────────────────────────────────
   useEffect(() => {
     if (!chatSending && inputRef.current) {
       inputRef.current.focus();
     }
   }, [chatSending]);
 
-  // ── Load latest client conversation on mount ──────────────────────────
   const loadLatestConversation = async () => {
     try {
       const r = await fetch(`${API}/v1/conversations?type=client&limit=1`);
@@ -112,49 +112,41 @@ export default function ClientPage() {
     loadLatestConversation();
   }, []);
 
-  // ── Form helpers ───────────────────────────────────────────────────────
-  const updateField = (field: keyof ClientProfile, value: string) => {
-    setProfile(prev => ({ ...prev, [field]: value }));
-  };
-
-  // ── Merge detected fields from chat into the form ─────────────────────
-  const mergeDetectedFields = (fields: Partial<ClientProfile>) => {
-    setProfile(prev => {
-      const merged = { ...prev };
-      for (const [key, value] of Object.entries(fields)) {
-        if (value !== undefined && value !== null) {
-          (merged as any)[key] = typeof value === 'string' ? value : String(value);
-        }
-      }
-      return merged;
-    });
-  };
-
-  // ── Save profile ──────────────────────────────────────────────────────
-  const handleSave = async () => {
-    setSaving(true);
-    setMsg(null);
+  const applyDetectedFields = (rawFields: Partial<ClientProfile> | string) => {
     try {
-      const res = await fetch(`${API}/v1/client/profile`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profile),
+      const fields = typeof rawFields === 'string' ? JSON.parse(rawFields) : rawFields;
+      setProfile(prev => {
+        const merged = { ...prev };
+        for (const [key, value] of Object.entries(fields)) {
+          if (value !== undefined && value !== null && key in merged) {
+            (merged as any)[key] = value;
+          }
+        }
+        return merged;
       });
-      if (res.ok) {
-        setMsg({ type: 'success', text: t('client.saved') });
-        setTimeout(() => setMsg(null), 3000);
-      } else {
-        const data = await res.json();
-        setMsg({ type: 'error', text: data.error || t('client.save.error') });
-      }
-    } catch {
-      setMsg({ type: 'error', text: t('client.save.error') });
-    } finally {
-      setSaving(false);
+      // Re-fetch from backend to confirm save
+      fetch(`${API}/v1/client/profile`, { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data && data.user_id) {
+            setProfile(p => ({
+              full_name: data.full_name || '',
+              phone: data.phone || '',
+              city: data.city || '',
+              address: data.address || '',
+              bio: data.bio || '',
+              preferred_contact: data.preferred_contact || '',
+              property_type: data.property_type || '',
+              notes: data.notes || '',
+            }));
+          }
+        })
+        .catch(() => {});
+    } catch (parseErr) {
+      console.warn('[Client] failed to parse detected_fields', parseErr);
     }
   };
 
-  // ── Chat ──────────────────────────────────────────────────────────────
   const sendMessage = async () => {
     const msgText = chatInput.trim();
     if (!msgText || chatSending) return;
@@ -185,12 +177,10 @@ export default function ClientPage() {
       const reply = data.answer || t('client.chat.empty');
       setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
 
-      // Merge detected fields into the form
       if (data.detected_fields) {
-        mergeDetectedFields(data.detected_fields);
+        applyDetectedFields(data.detected_fields);
       }
 
-      // Track conversation ID (returned on first message)
       if (data.conversation_id) {
         setConversationID(data.conversation_id);
       }
@@ -208,8 +198,19 @@ export default function ClientPage() {
     }
   };
 
+  const handleResetProfile = async () => {
+    if (!confirm(t('client.card.reset.confirm'))) return;
+    try {
+      await fetch(`${API}/v1/client/profile`, { method: 'DELETE', credentials: 'include' });
+      setProfile({
+        full_name: '', phone: '', city: '', address: '', bio: '',
+        preferred_contact: '', property_type: '', notes: '',
+      });
+    } catch (e) {
+      console.error('[Client] failed to reset profile', e);
+    }
+  };
 
-  // ── Reset role ─────────────────────────────────────────────────────────
   const handleResetRole = async () => {
     try {
       await fetch(`${API}/v1/user/reset-role`, { method: 'POST' });
@@ -217,7 +218,6 @@ export default function ClientPage() {
     route('/', true);
   };
 
-  // ── Logout ─────────────────────────────────────────────────────────────
   const handleLogout = async () => {
     if (!confirm(t('auth.logout.confirm'))) return;
     try {
@@ -226,19 +226,23 @@ export default function ClientPage() {
     route('/login', true);
   };
 
-  // ── Render ──────────────────────────────────────────────────────────────
+  const fmt = (v: string | number | boolean | undefined | null) => {
+    if (v === undefined || v === null || v === '') return <span class="profile-empty">—</span>;
+    if (typeof v === 'boolean') return <span class={v ? 'profile-bool-yes' : 'profile-bool-no'}>{v ? '✓' : '✗'}</span>;
+    return <>{v}</>;
+  };
+
   if (!profileLoaded) {
     return <div class="page"><div class="loading"><p>{t('client.loading')}</p></div></div>;
   }
 
   return (
     <div class="page">
-      {/* Header */}
       <div class="page-header">
         <h2>{t('client.title')}</h2>
         <div class="header-right">
           <LangToggle />
-          <span class="user-email">{/* user email shown only if available */}</span>
+          <span class="user-email"></span>
           <button class="btn btn-ghost btn-sm" onClick={() => route('/', true)}>{t('nav.back')}</button>
           <button class="btn btn-danger btn-sm" onClick={handleLogout}>{t('auth.logout')}</button>
           <button class="btn btn-danger btn-sm" onClick={handleResetRole}>{t('client.reset.role')}</button>
@@ -290,57 +294,58 @@ export default function ClientPage() {
             </div>
           </div>
 
-          {/* Form Column */}
+          {/* Read-only Profile Card */}
           <div class="col-form">
-            {/* Status message */}
-            {msg && <div class={`msg ${msg.type === 'success' ? 'msg-success' : 'msg-error'}`}>{msg.text}</div>}
+            <div class="profile-card">
+              {/* Personal Information */}
+              <div class="section">
+                <h3 class="section-title">{t('client.card.personal')}</h3>
+                <div class="profile-field">
+                  <span class="profile-label">{t('client.card.full_name')}</span>
+                  <span class="profile-value">{fmt(profile.full_name)}</span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('client.card.phone')}</span>
+                  <span class="profile-value">{fmt(profile.phone)}</span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('client.card.preferred_contact')}</span>
+                  <span class="profile-value">{fmt(profile.preferred_contact)}</span>
+                </div>
+              </div>
 
-            {/* Personal Information */}
-            <div class="section">
-              <h3 class="section-title">{t('client.form.personal')}</h3>
+              {/* Location */}
+              <div class="section">
+                <h3 class="section-title">{t('client.card.location')}</h3>
+                <div class="profile-field">
+                  <span class="profile-label">{t('client.card.city')}</span>
+                  <span class="profile-value">{fmt(profile.city)}</span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('client.card.address')}</span>
+                  <span class="profile-value">{fmt(profile.address)}</span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('client.card.property_type')}</span>
+                  <span class="profile-value">{fmt(profile.property_type)}</span>
+                </div>
+              </div>
 
-              <label class="field">
-                <span>{t('client.form.full_name')}</span>
-                <input class="input" type="text" value={profile.full_name} onInput={e => updateField('full_name', (e.target as HTMLInputElement).value)} placeholder="John Doe" />
-              </label>
-
-              <label class="field">
-                <span>{t('client.form.phone')}</span>
-                <input class="input" type="tel" value={profile.phone} onInput={e => updateField('phone', (e.target as HTMLInputElement).value)} placeholder="+34 600 000 000" />
-              </label>
+              {/* About */}
+              <div class="section">
+                <h3 class="section-title">{t('client.card.about')}</h3>
+                <div class="profile-field">
+                  <span class="profile-label">{t('client.card.bio')}</span>
+                  <span class="profile-value">{fmt(profile.bio)}</span>
+                </div>
+                <div class="profile-field">
+                  <span class="profile-label">{t('client.card.notes')}</span>
+                  <span class="profile-value">{fmt(profile.notes)}</span>
+                </div>
+              </div>
             </div>
 
-            {/* Location */}
-            <div class="section">
-              <h3 class="section-title">{t('client.form.location')}</h3>
-
-              <label class="field">
-                <span>{t('client.form.city')}</span>
-                <input class="input" type="text" value={profile.city} onInput={e => updateField('city', (e.target as HTMLInputElement).value)} placeholder="Madrid" />
-              </label>
-
-              <label class="field">
-                <span>{t('client.form.address')}</span>
-                <input class="input" type="text" value={profile.address} onInput={e => updateField('address', (e.target as HTMLInputElement).value)} placeholder="Calle Mayor 1 (optional)" />
-              </label>
-            </div>
-
-            {/* Bio */}
-            <div class="section">
-              <h3 class="section-title">{t('client.form.bio')}</h3>
-
-              <label class="field">
-                <span>{t('client.form.bio')} <span>({t('client.form.optional')})</span></span>
-                <textarea class="textarea" rows={3} value={profile.bio} onInput={e => updateField('bio', (e.target as HTMLInputElement).value)} placeholder={t('client.form.bio.placeholder')} />
-              </label>
-            </div>
-
-            {/* Save */}
-            <div class="save-area">
-              <button class="btn-save" onClick={handleSave} disabled={saving}>
-                {saving ? t('client.saving') : t('client.save')}
-              </button>
-            </div>
+            <button class="btn btn-ghost btn-sm card-reset" onClick={handleResetProfile}>{t('client.card.reset')}</button>
           </div>
         </div>
       </div>
