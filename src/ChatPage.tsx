@@ -2,7 +2,8 @@ import { h } from 'preact';
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useAuth } from './AuthProvider';
-import { useLanguage, LangToggle } from './i18n';
+import { useLanguage } from './i18n';
+import AppShell from './AppShell';
 
 const API = '/api';
 
@@ -12,7 +13,7 @@ interface ChatMsg {
 }
 
 export default function ChatPage() {
-  const { session, logout } = useAuth();
+  const { session } = useAuth();
   const { t } = useLanguage();
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
@@ -35,15 +36,12 @@ export default function ChatPage() {
           if (data.helper_prompt && data.worker_profile_prompt) {
             setPromptsCheck('ok');
           } else {
-            console.warn('[Chat] system prompts missing or empty');
             setPromptsCheck('missing');
           }
         } else {
-          console.warn('[Chat] failed to fetch system prompts:', res.status);
           setPromptsCheck('missing');
         }
-      } catch (e) {
-        console.warn('[Chat] system prompts check failed:', e);
+      } catch {
         setPromptsCheck('missing');
       }
     })();
@@ -58,7 +56,6 @@ export default function ChatPage() {
           const data = await res.json();
           if (data.conversations && data.conversations.length > 0) {
             const conv = data.conversations[0];
-            // Only resume if it's from the last 24 hours
             const updated = new Date(conv.updated_at).getTime();
             if (Date.now() - updated < 24 * 60 * 60 * 1000) {
               const detailRes = await fetch(`/api/v1/conversations/${conv.id}`, { credentials: 'include' });
@@ -76,30 +73,23 @@ export default function ChatPage() {
                   if ((role === 'worker' || role === 'client') && role === sessionRole) {
                     setDetectedRole(role);
                   }
-                  console.log('[Chat] resumed conversation', detail.id, loaded.length, 'messages');
                 }
-              } else {
-                console.warn('[Chat] conversation detail restore failed', detailRes.status);
               }
             }
           }
-        } else {
-          console.warn('[Chat] conversation list restore failed', res.status);
         }
-      } catch (e) {
-        console.log('[Chat] could not load previous conversation', e);
+      } catch {
+        // No previous conversation
       } finally {
         setInitialLoading(false);
       }
     })();
   }, []);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
-  // Focus input after sending completes (state has settled)
   useEffect(() => {
     if (!loading && !streaming && !initialLoading) {
       inputRef.current?.focus();
@@ -116,10 +106,7 @@ export default function ChatPage() {
     setLoading(true);
     const startTime = performance.now();
 
-    console.log('[Chat] send:', text.substring(0, 80));
-
     try {
-      // Build history from all previous messages (excluding the one we're about to send which is already in updatedMessages)
       const history = updatedMessages.slice(0, -1).map(m => ({
         role: m.role,
         content: m.text,
@@ -135,8 +122,6 @@ export default function ChatPage() {
         }),
       });
       if (!res.ok) {
-        const errText = await res.text().catch(() => 'Unknown error');
-        console.error('[Chat] API error:', res.status, errText.substring(0, 100));
         setMessages(m => [...m, { role: 'assistant', text: `Error ${res.status}` }]);
         return;
       }
@@ -176,20 +161,14 @@ export default function ChatPage() {
         const data = await res.json();
         responseText = data.answer || data.response || data.text || JSON.stringify(data);
         setMessages(m => [...m, { role: 'assistant', text: responseText }]);
-        // Save conversation ID for continued chat
         if (data.conversation_id) {
           setConversationId(data.conversation_id);
-          console.log('[Chat] conversation_id:', data.conversation_id);
         }
-        // Role detected — show profile button immediately
         if (data.detected_role === 'worker' || data.detected_role === 'client') {
           setDetectedRole(data.detected_role);
         }
       }
-      const elapsed = Math.round(performance.now() - startTime);
-      console.log('[Chat] response received in', elapsed, 'ms');
-    } catch (err) {
-      console.error('[Chat] fetch error:', err);
+    } catch {
       setMessages(m => [...m, { role: 'assistant', text: t('chat.error.network') }]);
     } finally {
       setLoading(false);
@@ -197,102 +176,86 @@ export default function ChatPage() {
     }
   };
 
-  const handleLogout = async () => {
-    if (!confirm(t('auth.logout.confirm'))) return;
-    console.log('[Auth] logout');
-    await logout();
-    route('/login', true);
-  };
-
   if (promptsCheck === 'missing') {
     return (
-      <div class="page">
-        <div class="page-header">
-          <h2>{t('app.title')}</h2>
-          <div class="header-right">
-            <LangToggle />
-          </div>
-        </div>
-        <div class="page-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div class="prompts-missing-inner">
-            <div class="icon">⚠️</div>
+      <AppShell currentPath="/" title={t('app.title')}>
+        <div class="prompts-missing">
+          <div class="prompts-missing-card">
+            <div class="prompts-missing-icon">⚠️</div>
             <h2>System Prompts Missing</h2>
             <p>{t('chat.prompts.missing')}</p>
           </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
   return (
-    <div class="page">
-      <div class="page-header">
-        <h2>{t('app.title')}</h2>
-        <div class="header-right">
-          {session?.user?.role === 'worker' && (
-            <button class="btn btn-ghost btn-sm" onClick={() => route('/worker', true)}>{t('nav.worker.profile')}</button>
+    <AppShell currentPath="/" title={t('app.title')}>
+      <div class="chat-container">
+        <div class="chat-messages" ref={listRef}>
+          {messages.length === 0 && !initialLoading ? (
+            <div class="chat-welcome">
+              <div class="chat-welcome-icon">💬</div>
+              <h3>{t('chat.welcome.title')}</h3>
+              <p>{t('chat.welcome.desc1')}</p>
+              <p style={{ marginTop: 'var(--sp-2)', color: 'var(--text-muted)' }}>{t('chat.welcome.desc2')}</p>
+            </div>
+          ) : (
+            messages.map((m, i) => (
+              <div key={i} class={`chat-bubble ${m.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-assistant'}`}>
+                {m.role === 'assistant' && (
+                  <div class="chat-role-label">Assistant</div>
+                )}
+                <div class="chat-content">{m.text}</div>
+              </div>
+            ))
           )}
-          {session?.user?.role === 'client' && (
-            <button class="btn btn-ghost btn-sm" onClick={() => route('/client', true)}>{t('nav.client.portal')}</button>
+          {(loading || streaming) && (
+            <div class="chat-bubble chat-bubble-assistant">
+              <div class="chat-role-label">Assistant</div>
+              <div class="chat-typing">
+                <span class="chat-typing-dot" />
+                <span class="chat-typing-dot" />
+                <span class="chat-typing-dot" />
+              </div>
+            </div>
           )}
-          <LangToggle />
-          <button class="btn btn-primary btn-sm" onClick={() => route('/admin')}>{t('nav.admin')}</button>
-          <span class="user-email">{session?.user?.email}</span>
-          <button class="btn btn-danger btn-sm" onClick={handleLogout}>{t('auth.logout')}</button>
+        </div>
+
+        <div class="chat-input-bar">
+          {detectedRole ? (
+            <button
+              class="role-detected-cta"
+              onClick={() => route(detectedRole === 'worker' ? '/worker' : '/client', true)}
+            >
+              <span class="icon">{detectedRole === 'worker' ? '🔧' : '🏠'}</span>
+              {detectedRole === 'worker'
+                ? t('chat.complete.profile')
+                : t('chat.post.request')}
+            </button>
+          ) : (
+            <>
+              <input
+                class="input"
+                value={input}
+                onInput={(e: any) => setInput(e.target.value)}
+                onKeyDown={(e: any) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
+                placeholder={t('chat.placeholder')}
+                disabled={loading || streaming}
+                ref={inputRef}
+              />
+              <button
+                class="chat-send-btn"
+                onClick={send}
+                disabled={loading || streaming || !input.trim()}
+              >
+                {loading || streaming ? '...' : '↑'}
+              </button>
+            </>
+          )}
         </div>
       </div>
-
-      <div class="page-content" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }} ref={listRef}>
-        {messages.length === 0 && !initialLoading ? (
-          <div style={{
-            flex: 1, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            textAlign: 'center', padding: 'var(--space-xl)',
-            minHeight: '300px',
-          }}>
-            <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, marginBottom: 'var(--space-sm)', color: 'var(--text)' }}>
-              {t('chat.welcome.title')}
-            </h3>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', maxWidth: '440px', lineHeight: 1.6, margin: 0 }}>
-              {t('chat.welcome.desc1')}
-            </p>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', maxWidth: '440px', lineHeight: 1.6, margin: 'var(--space-xs) 0 0' }}>
-              {t('chat.welcome.desc2')}
-            </p>
-          </div>
-        ) : (
-          messages.map((m, i) => (
-            <div key={i} class={`msg msg-${m.role}`}>{m.text}</div>
-          ))
-        )}
-        {(loading || streaming) && <div class="msg msg-assistant thinking">{t('chat.thinking')}</div>}
-      </div>
-
-      <div class="chat-input-area">
-        {detectedRole ? (
-          <button
-            class="btn-profile"
-            onClick={() => route(detectedRole === 'worker' ? '/worker' : '/client', true)}
-          >
-            {detectedRole === 'worker'
-              ? t('chat.complete.profile')
-              : t('chat.post.request')}
-          </button>
-        ) : (
-          <>
-            <input
-              class="input"
-              value={input}
-              onInput={(e: any) => setInput(e.target.value)}
-              onKeyDown={(e: any) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
-              placeholder={t('chat.placeholder')}
-              disabled={loading || streaming}
-              ref={inputRef}
-            />
-            <button class="btn btn-primary" onClick={send} disabled={loading || streaming || !input.trim()}>Send</button>
-          </>
-        )}
-      </div>
-    </div>
+    </AppShell>
   );
 }

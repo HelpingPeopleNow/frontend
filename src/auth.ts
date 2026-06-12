@@ -1,23 +1,32 @@
-/**
- * Auth helpers — magic link only.
- * Direct fetch against the Better Auth API.
- */
-
-const AUTH_BASE = '/api/auth';
+const API = '/api';
 
 export interface Session {
-  user: { id: string; email: string; name?: string; role?: string };
-  session: { id: string; token: string; expiresAt: Date };
+  user: {
+    id: string;
+    email: string;
+    name?: string;
+    role?: string;
+  };
+  token: string;
 }
 
 export async function getSession(): Promise<Session | null> {
   try {
-    const res = await fetch(`${AUTH_BASE}/get-session`, {
+    const res = await fetch(`${API}/auth/get-session`, {
       credentials: 'include',
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return data?.session ? data : null;
+    if (!data || !data.session || !data.user) return null;
+    return {
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        role: data.user.role,
+      },
+      token: data.session.token,
+    };
   } catch {
     return null;
   }
@@ -26,26 +35,37 @@ export async function getSession(): Promise<Session | null> {
 export async function sendMagicLink(
   email: string,
   name?: string
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch(`${AUTH_BASE}/sign-in/magic-link`, {
+    const res = await fetch(`${API}/auth/sign-in/magic-link`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name, callbackURL: '/' }),
       credentials: 'include',
+      body: JSON.stringify({
+        email,
+        name,
+        callbackURL: '/chat',
+      }),
     });
-    const data = await res.json();
-    if (!res.ok) return { ok: false, error: data?.error?.message || data?.message || 'Failed to send link' };
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      return {
+        ok: false,
+        error: data.message || data.error || `HTTP ${res.status}`,
+      };
+    }
     return { ok: true };
   } catch (e) {
-    return { ok: false, error: 'Network error — check your connection' };
+    return { ok: false, error: String(e) };
   }
 }
 
 export async function logout(): Promise<void> {
   try {
-    await fetch(`${AUTH_BASE}/sign-out`, {
+    await fetch(`${API}/auth/sign-out`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
       credentials: 'include',
     });
   } catch {

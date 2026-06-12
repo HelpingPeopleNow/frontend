@@ -50,8 +50,8 @@ const translations: Record<Lang, Record<string, string>> = {
     'admin.loading': 'Loading...',
     'admin.load.error': 'Failed to load prompts',
     'admin.provider': 'LLM Provider',
-    'admin.provider.desc': 'Choose which backend the assistant uses. Default = env var USE_OLLAMA.',
-    'admin.provider.default': 'Default (env: USE_OLLAMA)',
+    'admin.provider.desc': 'Choose which backend the assistant uses. Default = auto fallback chain (Mistral → OpenCode → Ollama).',
+    'admin.provider.default': 'Default (auto)',
     'admin.save': 'Save',
     'admin.saving': 'Saving...',
     'admin.helper.label': 'Helper Prompt',
@@ -64,6 +64,10 @@ const translations: Record<Lang, Record<string, string>> = {
     'admin.lang.es': 'ES',
     'admin.prompt.helper': 'Helper Prompt',
     'admin.prompt.worker': 'Worker Profile Prompt',
+    'admin.prompt.find_trader_search': 'Find Trader Search Prompt',
+    'admin.prompt.find_trader_presentation': 'Find Trader Presentation Prompt',
+    'admin.find_trader_search.desc': 'System prompt for finding traders (search phase)',
+    'admin.find_trader_presentation.desc': 'System prompt for presenting traders to clients',
 
     // Chat Page
     'chat.placeholder': 'Ask anything...',
@@ -226,8 +230,8 @@ const translations: Record<Lang, Record<string, string>> = {
     'admin.loading': 'Cargando...',
     'admin.load.error': 'Error al cargar los prompts',
     'admin.provider': 'Proveedor LLM',
-    'admin.provider.desc': 'Elige qué backend usa el asistente. Por defecto = variable USE_OLLAMA.',
-    'admin.provider.default': 'Por defecto (env: USE_OLLAMA)',
+    'admin.provider.desc': 'Elige qué backend usa el asistente. Por defecto = cadena de respaldo automática (Mistral → OpenCode → Ollama).',
+    'admin.provider.default': 'Por defecto (auto)',
     'admin.save': 'Guardar',
     'admin.saving': 'Guardando...',
     'admin.helper.label': 'Prompt de Asistente',
@@ -240,6 +244,10 @@ const translations: Record<Lang, Record<string, string>> = {
     'admin.lang.es': 'ES',
     'admin.prompt.helper': 'Prompt de Asistente',
     'admin.prompt.worker': 'Prompt de Perfil de Trabajador',
+    'admin.prompt.find_trader_search': 'Prompt de Búsqueda de Profesional',
+    'admin.prompt.find_trader_presentation': 'Prompt de Presentación de Profesional',
+    'admin.find_trader_search.desc': 'Prompt del sistema para buscar profesionales (fase de búsqueda)',
+    'admin.find_trader_presentation.desc': 'Prompt del sistema para presentar profesionales a clientes',
 
     // Chat Page
     'chat.placeholder': 'Pregunta lo que quieras...',

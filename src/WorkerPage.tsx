@@ -2,7 +2,8 @@ import { h } from 'preact';
 import { route } from 'preact-router';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { useAuth } from './AuthProvider';
-import { useLanguage, LangToggle } from './i18n';
+import { useLanguage } from './i18n';
+import AppShell from './AppShell';
 
 interface SocialLink {
   platform: string;
@@ -46,7 +47,6 @@ export default function WorkerPage() {
   });
   const [loading, setLoading] = useState(true);
 
-  // Chat state
   const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [chatSending, setChatSending] = useState(false);
@@ -69,11 +69,8 @@ export default function WorkerPage() {
             }));
           }
         }
-      } catch (e) {
-        // Profile might not exist yet
-      }
+      } catch {}
 
-      // Load last worker conversation for chat panel
       try {
         const convRes = await fetch('/api/v1/conversations?type=worker&limit=1', { credentials: 'include' });
         if (convRes.ok) {
@@ -97,34 +94,18 @@ export default function WorkerPage() {
             }
           }
         }
-      } catch (convErr) {
-        console.log('[worker] could not load previous conversation', convErr);
-      }
+      } catch {}
       setLoading(false);
     })();
   }, []);
 
-  useEffect(() => {
-    if (!loading) {
-      chatInputRef.current?.focus();
-    }
-  }, [loading]);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMsgs]);
-
-  useEffect(() => {
-    if (!chatSending && !loading) {
-      chatInputRef.current?.focus();
-    }
-  }, [chatSending, loading]);
+  useEffect(() => { if (!loading) chatInputRef.current?.focus(); }, [loading]);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMsgs]);
+  useEffect(() => { if (!chatSending && !loading) chatInputRef.current?.focus(); }, [chatSending, loading]);
 
   const applyDetectedFields = (rawFields: Record<string, any> | string) => {
     try {
-      const fields: Record<string, any> = typeof rawFields === 'string'
-        ? JSON.parse(rawFields)
-        : rawFields;
+      const fields: Record<string, any> = typeof rawFields === 'string' ? JSON.parse(rawFields) : rawFields;
 
       const fieldMap: Record<string, keyof WorkerProfile> = {
         profession: 'profession', business_name: 'business_name', bio: 'bio', phone: 'phone',
@@ -139,7 +120,6 @@ export default function WorkerPage() {
             (updated as any)[target] = fields[key];
           }
         }
-        // Social links — merge from individual social fields + social_links array
         const existingLinks = [...(prev.social_links || [])];
         const knownPlatforms = existingLinks.map(s => s.platform.toLowerCase());
         const socialPlatforms: Record<string, string> = {
@@ -165,22 +145,18 @@ export default function WorkerPage() {
           }
         }
         updated.social_links = existingLinks;
-        // Boolean fields
         if (fields.free_estimate !== undefined) updated.free_estimate = Boolean(fields.free_estimate);
         if (fields.has_insurance !== undefined) updated.has_insurance = Boolean(fields.has_insurance);
         if (fields.emergency_service !== undefined) updated.emergency_service = Boolean(fields.emergency_service);
-        // Number fields
         if (fields.service_radius_km !== undefined) updated.service_radius_km = Number(fields.service_radius_km) || 0;
         if (fields.hourly_rate !== undefined) updated.hourly_rate = Number(fields.hourly_rate) || 0;
         if (fields.minimum_charge !== undefined) updated.minimum_charge = Number(fields.minimum_charge) || 0;
         if (fields.years_experience !== undefined) updated.years_experience = Number(fields.years_experience) || 0;
-        // Array fields
         if (Array.isArray(fields.languages)) updated.languages = fields.languages;
         if (Array.isArray(fields.certifications)) updated.certifications = fields.certifications;
         return updated;
       });
 
-      // Re-fetch from backend to confirm save
       fetch('/api/v1/worker/profile', { credentials: 'include' })
         .then(r => r.ok ? r.json() : null)
         .then(data => {
@@ -194,9 +170,7 @@ export default function WorkerPage() {
           }
         })
         .catch(() => {});
-    } catch (parseErr) {
-      console.warn('[worker-chat] failed to parse detected_fields', parseErr);
-    }
+    } catch {}
   };
 
   const sendChatMessage = async () => {
@@ -204,22 +178,16 @@ export default function WorkerPage() {
     if (!msg || chatSending) return;
     setChatInput('');
     setChatSending(true);
-
     const newMsgs: ChatMsg[] = [...chatMsgs, { role: 'user', content: msg }];
     setChatMsgs(newMsgs);
 
     try {
       const history = chatMsgs.map(m => ({ role: m.role, content: m.content }));
-
       const res = await fetch('/api/v1/worker/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          message: msg,
-          history,
-          conversation_id: chatConvId || undefined,
-        }),
+        body: JSON.stringify({ message: msg, history, conversation_id: chatConvId || undefined }),
       });
 
       if (!res.ok) {
@@ -230,23 +198,14 @@ export default function WorkerPage() {
       }
 
       const data = await res.json();
-      if (data.detected_fields) {
-        applyDetectedFields(data.detected_fields);
-      }
-
+      if (data.detected_fields) applyDetectedFields(data.detected_fields);
       setChatMsgs([...newMsgs, { role: 'assistant', content: data.answer || t('worker.chat.empty') }]);
-      if (data.conversation_id) {
-        setChatConvId(data.conversation_id);
-      }
-    } catch (e: any) {
+      if (data.conversation_id) setChatConvId(data.conversation_id);
+    } catch {
       setChatMsgs([...newMsgs, { role: 'assistant', content: t('worker.chat.error') }]);
     } finally {
       setChatSending(false);
     }
-  };
-
-  const handleChatKeyDown = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') sendChatMessage();
   };
 
   const handleResetProfile = async () => {
@@ -259,31 +218,26 @@ export default function WorkerPage() {
         free_estimate: true, years_experience: 0, certifications: [], has_insurance: false,
         languages: [], emergency_service: false, website: '', social_links: [],
       });
-    } catch (e) {
-      console.error('[worker] failed to reset profile', e);
-    }
-  };
-
-  const handleLogout = async () => {
-    if (!confirm(t('auth.logout.confirm'))) return;
-    await logout();
-    route('/login', true);
+    } catch {}
   };
 
   const handleResetRole = async () => {
     try {
       const res = await fetch(`/api/auth/user/${session?.user?.id}/role`, {
-        method: 'PUT',
-        credentials: 'include',
+        method: 'PUT', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: '' }),
       });
       if (!res.ok) return;
       await refreshSession();
       route('/', true);
-    } catch (e) {
-      console.error('[Worker] failed to reset role', e);
-    }
+    } catch {}
+  };
+
+  const handleLogout = async () => {
+    if (!confirm(t('auth.logout.confirm'))) return;
+    await logout();
+    route('/login', true);
   };
 
   const fmt = (v: string | number | boolean | undefined | null, suffix?: string) => {
@@ -293,132 +247,121 @@ export default function WorkerPage() {
     return <>{suffix ? `${v}${suffix}` : v}</>;
   };
 
+  // Calculate profile completion
+  const fields = [profile.profession, profile.business_name, profile.bio, profile.phone, profile.city, profile.hourly_rate > 0 ? 'r' : ''];
+  const filled = fields.filter(f => f && f !== '').length;
+  const progress = Math.round((filled / fields.length) * 100);
+
   if (loading) {
     return (
-      <div class="page">
-        <div class="page-content loading">
-          <p>{t('worker.loading')}</p>
-        </div>
-      </div>
+      <AppShell currentPath="/worker" title={t('worker.title')}>
+        <div class="loading"><div class="spinner" /> {t('worker.loading')}</div>
+      </AppShell>
     );
   }
 
   return (
-    <div class="page">
-      <div class="page-header">
-        <h2>{t('worker.title')}</h2>
-        <div class="header-right">
-          <LangToggle />
-          <span class="user-email">{session?.user?.email}</span>
-          <button class="btn btn-ghost btn-sm" onClick={() => route('/', true)}>{t('nav.chat')}</button>
-          <button class="btn btn-danger btn-sm" onClick={handleResetRole}>{t('worker.reset.role')}</button>
-          <button class="btn btn-danger btn-sm" onClick={handleLogout}>{t('auth.logout')}</button>
-        </div>
-      </div>
-
-      <div class="page-content">
-        <div class="two-col">
-          {/* --- Left: Chat Panel --- */}
-          <div class="col-chat">
-            <h3 class="section-title">{t('worker.chat.title')}</h3>
-            <div class="chat-box">
+    <AppShell currentPath="/worker" title={t('worker.title')}>
+      <div class="two-col">
+        {/* Left: Chat Panel */}
+        <div class="two-col-chat">
+          <div class="section-title" style={{ marginBottom: 'var(--sp-3)' }}>{t('worker.chat.title')}</div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: 'var(--sp-4)', display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
               {chatMsgs.length === 0 && (
-                <div class="chat-welcome">
+                <div class="chat-welcome" style={{ padding: 'var(--sp-6)' }}>
                   <p>{t('worker.chat.welcome')}</p>
-                  <p>{t('worker.chat.example')} <em>{t('worker.chat.example.text')}</em></p>
+                  <p style={{ marginTop: 'var(--sp-2)', color: 'var(--text-muted)', fontSize: 'var(--text-xs)' }}>
+                    {t('worker.chat.example')} <em>{t('worker.chat.example.text')}</em>
+                  </p>
                 </div>
               )}
               {chatMsgs.map((m, i) => (
-                <div key={i} class={`chat-bubble ${m.role === 'user' ? 'chat-user' : 'chat-assistant'}`}>
-                  <div class="chat-role-label">{m.role === 'user' ? t('worker.chat.you') : t('worker.chat.assistant')}</div>
+                <div key={i} class={`chat-bubble ${m.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-assistant'}`}>
+                  {m.role === 'assistant' && <div class="chat-role-label">{t('worker.chat.assistant')}</div>}
                   <div class="chat-content">{m.content}</div>
                 </div>
               ))}
-              {chatSending && <div class="chat-bubble chat-assistant"><div class="chat-role-label">{t('worker.chat.assistant')}</div><div class="chat-content"><em>{t('worker.chat.typing')}</em></div></div>}
+              {chatSending && (
+                <div class="chat-bubble chat-bubble-assistant">
+                  <div class="chat-role-label">{t('worker.chat.assistant')}</div>
+                  <div class="chat-typing"><span class="chat-typing-dot" /><span class="chat-typing-dot" /><span class="chat-typing-dot" /></div>
+                </div>
+              )}
               <div ref={chatEndRef} />
             </div>
-            <div class="chat-input-row">
+            <div style={{ display: 'flex', gap: 'var(--sp-2)', padding: 'var(--sp-3)', borderTop: '1px solid var(--border)' }}>
               <input
                 class="input"
                 type="text"
                 value={chatInput}
                 onInput={e => setChatInput((e.target as HTMLInputElement).value)}
-                onKeyDown={handleChatKeyDown}
+                onKeyDown={e => { if (e.key === 'Enter') sendChatMessage(); }}
                 placeholder={chatMsgs.length === 0 ? t('worker.chat.placeholder.start') : t('worker.chat.placeholder.answer')}
                 disabled={chatSending}
                 ref={chatInputRef}
               />
-              <button class="btn-send" onClick={sendChatMessage} disabled={chatSending || !chatInput.trim()}>
-                {chatSending ? '…' : t('worker.chat.send')}
+              <button class="chat-send-btn" onClick={sendChatMessage} disabled={chatSending || !chatInput.trim()}>
+                {chatSending ? '...' : '↑'}
               </button>
             </div>
           </div>
+        </div>
 
-          {/* --- Right: Read-only Profile Card --- */}
-          <div class="col-form">
-            <div class="profile-card">
-              {/* Core Identity */}
-              <div class="section">
-                <h3 class="section-title">{t('worker.card.core')}</h3>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.profession')}</span>
-                  <span class="profile-value">{fmt(profile.profession)}</span>
-                </div>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.business_name')}</span>
-                  <span class="profile-value">{fmt(profile.business_name)}</span>
-                </div>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.bio')}</span>
-                  <span class="profile-value">{fmt(profile.bio)}</span>
-                </div>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.phone')}</span>
-                  <span class="profile-value">{fmt(profile.phone)}</span>
-                </div>
+        {/* Right: Profile Card */}
+        <div class="two-col-profile">
+          <div class="profile-progress" style={{ marginBottom: 'var(--sp-4)' }}>
+            <div class="profile-progress-bar">
+              <div class="profile-progress-fill" style={{ width: `${progress}%` }} />
+            </div>
+            <div class="profile-progress-text">{progress}%</div>
+          </div>
+
+          <div class="profile-card">
+            <div class="profile-section">
+              <div class="profile-section-header">
+                <span class="profile-section-icon">👤</span>
+                <span class="profile-section-title">{t('worker.card.core')}</span>
               </div>
-
-              {/* Location & Area */}
-              <div class="section">
-                <h3 class="section-title">{t('worker.card.location')}</h3>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.city')}</span>
-                  <span class="profile-value">{fmt(profile.city)}</span>
-                </div>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.radius')}</span>
-                  <span class="profile-value">{fmt(profile.service_radius_km, ' km')}</span>
-                </div>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.address')}</span>
-                  <span class="profile-value">{fmt(profile.address)}</span>
-                </div>
+              <div class="profile-fields">
+                <div class="profile-field"><span class="profile-label">{t('worker.card.profession')}</span><span class="profile-value">{fmt(profile.profession)}</span></div>
+                <div class="profile-field"><span class="profile-label">{t('worker.card.business_name')}</span><span class="profile-value">{fmt(profile.business_name)}</span></div>
+                <div class="profile-field"><span class="profile-label">{t('worker.card.bio')}</span><span class="profile-value">{fmt(profile.bio)}</span></div>
+                <div class="profile-field"><span class="profile-label">{t('worker.card.phone')}</span><span class="profile-value">{fmt(profile.phone)}</span></div>
               </div>
+            </div>
 
-              {/* Pricing */}
-              <div class="section">
-                <h3 class="section-title">{t('worker.card.pricing')}</h3>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.hourly')}</span>
-                  <span class="profile-value">{fmt(profile.hourly_rate, '€')}</span>
-                </div>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.minimum')}</span>
-                  <span class="profile-value">{fmt(profile.minimum_charge, '€')}</span>
-                </div>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.free_estimate')}</span>
-                  <span class="profile-value">{fmt(profile.free_estimate)}</span>
-                </div>
+            <div class="profile-section">
+              <div class="profile-section-header">
+                <span class="profile-section-icon">📍</span>
+                <span class="profile-section-title">{t('worker.card.location')}</span>
               </div>
+              <div class="profile-fields">
+                <div class="profile-field"><span class="profile-label">{t('worker.card.city')}</span><span class="profile-value">{fmt(profile.city)}</span></div>
+                <div class="profile-field"><span class="profile-label">{t('worker.card.radius')}</span><span class="profile-value">{fmt(profile.service_radius_km, ' km')}</span></div>
+                <div class="profile-field"><span class="profile-label">{t('worker.card.address')}</span><span class="profile-value">{fmt(profile.address)}</span></div>
+              </div>
+            </div>
 
-              {/* Credentials */}
-              <div class="section">
-                <h3 class="section-title">{t('worker.card.credentials')}</h3>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.experience')}</span>
-                  <span class="profile-value">{fmt(profile.years_experience, ' years')}</span>
-                </div>
+            <div class="profile-section">
+              <div class="profile-section-header">
+                <span class="profile-section-icon">💰</span>
+                <span class="profile-section-title">{t('worker.card.pricing')}</span>
+              </div>
+              <div class="profile-fields">
+                <div class="profile-field"><span class="profile-label">{t('worker.card.hourly')}</span><span class="profile-value">{fmt(profile.hourly_rate, '€')}</span></div>
+                <div class="profile-field"><span class="profile-label">{t('worker.card.minimum')}</span><span class="profile-value">{fmt(profile.minimum_charge, '€')}</span></div>
+                <div class="profile-field"><span class="profile-label">{t('worker.card.free_estimate')}</span><span class="profile-value">{fmt(profile.free_estimate)}</span></div>
+              </div>
+            </div>
+
+            <div class="profile-section">
+              <div class="profile-section-header">
+                <span class="profile-section-icon">🏆</span>
+                <span class="profile-section-title">{t('worker.card.credentials')}</span>
+              </div>
+              <div class="profile-fields">
+                <div class="profile-field"><span class="profile-label">{t('worker.card.experience')}</span><span class="profile-value">{fmt(profile.years_experience, ' years')}</span></div>
                 <div class="profile-field">
                   <span class="profile-label">{t('worker.card.certifications')}</span>
                   <span class="profile-value">
@@ -427,10 +370,7 @@ export default function WorkerPage() {
                       : <span class="profile-empty">—</span>}
                   </span>
                 </div>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.insurance')}</span>
-                  <span class="profile-value">{fmt(profile.has_insurance)}</span>
-                </div>
+                <div class="profile-field"><span class="profile-label">{t('worker.card.insurance')}</span><span class="profile-value">{fmt(profile.has_insurance)}</span></div>
                 <div class="profile-field">
                   <span class="profile-label">{t('worker.card.languages')}</span>
                   <span class="profile-value">
@@ -439,19 +379,17 @@ export default function WorkerPage() {
                       : <span class="profile-empty">—</span>}
                   </span>
                 </div>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.emergency')}</span>
-                  <span class="profile-value">{fmt(profile.emergency_service)}</span>
-                </div>
+                <div class="profile-field"><span class="profile-label">{t('worker.card.emergency')}</span><span class="profile-value">{fmt(profile.emergency_service)}</span></div>
               </div>
+            </div>
 
-              {/* Online Presence */}
-              <div class="section">
-                <h3 class="section-title">{t('worker.card.online')}</h3>
-                <div class="profile-field">
-                  <span class="profile-label">{t('worker.card.website')}</span>
-                  <span class="profile-value">{fmt(profile.website)}</span>
-                </div>
+            <div class="profile-section">
+              <div class="profile-section-header">
+                <span class="profile-section-icon">🌐</span>
+                <span class="profile-section-title">{t('worker.card.online')}</span>
+              </div>
+              <div class="profile-fields">
+                <div class="profile-field"><span class="profile-label">{t('worker.card.website')}</span><span class="profile-value">{fmt(profile.website)}</span></div>
                 <div class="profile-field">
                   <span class="profile-label">{t('worker.card.social')}</span>
                   <span class="profile-value">
@@ -462,11 +400,14 @@ export default function WorkerPage() {
                 </div>
               </div>
             </div>
+          </div>
 
-            <button class="btn btn-ghost btn-sm card-reset" onClick={handleResetProfile}>{t('worker.card.reset')}</button>
+          <div style={{ display: 'flex', gap: 'var(--sp-2)', marginTop: 'var(--sp-4)' }}>
+            <button class="btn btn-ghost btn-sm" onClick={handleResetProfile} style={{ flex: 1 }}>{t('worker.card.reset')}</button>
+            <button class="btn btn-danger btn-sm" onClick={handleResetRole} style={{ flex: 1 }}>{t('worker.reset.role')}</button>
           </div>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

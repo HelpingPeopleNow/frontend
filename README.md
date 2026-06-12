@@ -217,7 +217,8 @@ Dropdown at the top of the admin page:
 
 | Option | Value | Behaviour |
 |--------|-------|-----------|
-| Default (env: USE_OLLAMA) | `""` | Falls back to helper's `USE_OLLAMA` env var |
+| Default (auto) | `""` | Falls back to helper's auto fallback chain (Mistral → OpenCode → Ollama) |
+| Mistral (cloud) | `"mistral"` | Forces Mistral API (requires `MISTRAL_API_KEY`) |
 | OpenCode (external) | `"opencode"` | Forces OpenCode API regardless of env |
 | Ollama (local) | `"ollama"` | Forces local Ollama regardless of env |
 
