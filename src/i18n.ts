@@ -80,6 +80,10 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.welcome.title': 'Welcome! How can we help you?',
     'chat.welcome.desc1': 'Tell us what you need — home repairs, cleaning, plumbing, electrical work, or anything else.',
     'chat.welcome.desc2': 'We\'ll match you with the right professionals in your area.',
+    'chat.mic.start': 'Press to speak',
+    'chat.mic.stop': 'Stop recording',
+    'chat.mic.listening': 'Listening...',
+    'chat.mic.transcribing': 'Transcribing...',
 
     // Worker Page
     'worker.title': 'Worker Profile',
@@ -260,6 +264,10 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.welcome.title': '¡Bienvenido! ¿Cómo podemos ayudarte?',
     'chat.welcome.desc1': 'Cuéntanos qué necesitas — reparaciones, limpieza, fontanería, electricidad o cualquier otra cosa.',
     'chat.welcome.desc2': 'Te conectaremos con los profesionales adecuados en tu zona.',
+    'chat.mic.start': 'Pulsa para hablar',
+    'chat.mic.stop': 'Detener grabación',
+    'chat.mic.listening': 'Escuchando...',
+    'chat.mic.transcribing': 'Transcribiendo...',
 
     // Worker Page
     'worker.title': 'Perfil de Trabajador',

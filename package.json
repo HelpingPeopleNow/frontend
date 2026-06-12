@@ -14,9 +14,11 @@
     "preact-router": "^4.1.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@preact/preset-vite": "^2.9.0",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
+    "playwright": "^1.60.0",
     "typescript": "^5.8.3",
     "vite": "^6.0.0"
   }

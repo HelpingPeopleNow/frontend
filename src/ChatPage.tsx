@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useState, useRef, useEffect } from 'preact/hooks';
+import { useState, useRef, useEffect, useCallback } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useAuth } from './AuthProvider';
 import { useLanguage } from './i18n';
@@ -25,6 +25,102 @@ export default function ChatPage() {
   const [promptsCheck, setPromptsCheck] = useState<'loading' | 'ok' | 'missing'>('loading');
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // ── Voice input state ─────────────────────────────────────────────
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [micSupported, setMicSupported] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      setMicSupported(true);
+    }
+  }, []);
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? 'audio/webm;codecs=opus'
+          : 'audio/webm',
+      });
+
+      audioChunksRef.current = [];
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach(track => track.stop());
+
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        if (audioBlob.size < 100) return; // too small, probably empty
+
+        setIsTranscribing(true);
+        try {
+          const formData = new FormData();
+          formData.append('audio', audioBlob, 'recording.webm');
+
+          const res = await fetch(`${API}/v1/transcribe`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData,
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.text) {
+              setInput(prev => prev ? prev + ' ' + data.text : data.text);
+            }
+          } else {
+            console.error('[Chat] Transcription failed:', res.status);
+          }
+        } catch (err) {
+          console.error('[Chat] Transcription error:', err);
+        } finally {
+          setIsTranscribing(false);
+        }
+      };
+
+      mediaRecorder.start();
+      mediaRecorderRef.current = mediaRecorder;
+      setIsRecording(true);
+    } catch (err) {
+      console.error('[Chat] Failed to start recording:', err);
+      setIsRecording(false);
+    }
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  }, []);
+
+  const toggleRecording = useCallback(() => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  }, [isRecording, startRecording, stopRecording]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        mediaRecorderRef.current.stop();
+        mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, []);
 
   // Check system prompts on mount
   useEffect(() => {
@@ -104,7 +200,6 @@ export default function ChatPage() {
     const updatedMessages = [...messages, userMsg];
     setMessages(updatedMessages);
     setLoading(true);
-    const startTime = performance.now();
 
     try {
       const history = updatedMessages.slice(0, -1).map(m => ({
@@ -236,12 +331,33 @@ export default function ChatPage() {
             </button>
           ) : (
             <>
+              {micSupported && (
+                <button
+                  class={`chat-mic-btn ${isRecording ? 'chat-mic-recording' : ''} ${isTranscribing ? 'chat-mic-transcribing' : ''}`}
+                  onClick={toggleRecording}
+                  disabled={loading || streaming || isTranscribing}
+                  title={isTranscribing ? t('chat.mic.transcribing') : isRecording ? t('chat.mic.stop') : t('chat.mic.start')}
+                  type="button"
+                >
+                  {isTranscribing ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chat-mic-spinner">
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="22" />
+                    </svg>
+                  )}
+                </button>
+              )}
               <input
                 class="input"
                 value={input}
                 onInput={(e: any) => setInput(e.target.value)}
                 onKeyDown={(e: any) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
-                placeholder={t('chat.placeholder')}
+                placeholder={isTranscribing ? t('chat.mic.transcribing') : isRecording ? t('chat.mic.listening') : t('chat.placeholder')}
                 disabled={loading || streaming}
                 ref={inputRef}
               />
