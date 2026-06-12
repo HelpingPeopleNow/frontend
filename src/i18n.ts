@@ -83,7 +83,6 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.mic.start': 'Press to speak',
     'chat.mic.stop': 'Stop recording',
     'chat.mic.listening': 'Listening...',
-    'chat.mic.transcribing': 'Transcribing...',
 
     // Worker Page
     'worker.title': 'Worker Profile',
@@ -267,7 +266,6 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.mic.start': 'Pulsa para hablar',
     'chat.mic.stop': 'Detener grabación',
     'chat.mic.listening': 'Escuchando...',
-    'chat.mic.transcribing': 'Transcribiendo...',
 
     // Worker Page
     'worker.title': 'Perfil de Trabajador',
