@@ -26,9 +26,8 @@ Preact + Vite SPA served behind nginx. Dark-themed home-services platform where 
 | `/signup` | `SignupPage.tsx` | No | Registration form |
 | `/` | `ChatPage.tsx` | Yes | AI chat interface — the entry point for role detection |
 | `/admin` | `AdminPage.tsx` | Yes | Admin panel — edit system prompts + switch LLM provider |
-| `/worker` | `WorkerPage.tsx` | Yes | Worker dashboard — profile form + profile intake chat |
-| `/client` | `ClientPage.tsx` | Yes | Client dashboard (after role detected as "client") |
-| `/prompts` | `PromptsPage.tsx` | Yes | Saved prompt snippets list (legacy, read-only) |
+| `/worker` | `WorkerPage.tsx` | Yes | Worker dashboard — read-only profile cards + intake chat |
+| `/client` | `ClientPage.tsx` | Yes | Client dashboard — read-only profile cards + intake chat |
 
 ---
 
@@ -41,8 +40,11 @@ Browser ──► Traefik (:80)
               │                       ├── /chat
               │                       ├── /worker/chat
               │                       ├── /worker/profile
+              │                       ├── /client/chat
+              │                       ├── /client/profile
               │                       ├── /system-prompts
-              │                       └── /prompts
+              │                       ├── /user/reset-role
+              │                       └── /conversations
               │
               ├── /api/auth/*    ──► Auth Service (:8083)
               │
@@ -78,16 +80,15 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 | `src/App.tsx` | Root component — router config + `AuthProvider` + `ProtectedRoute` wrapper |
 | `src/AuthProvider.tsx` | Session context — loads user from `/api/auth/session`, exposes `useAuth()` hook |
 | `src/auth.ts` | Auth helpers — signup, login (magic link request), session check |
-| `src/api.ts` | API helper — generic fetch wrapper with error handling |
 | `src/ChatPage.tsx` | Chat UI — message list, input box, API integration with role detection |
 | `src/AdminPage.tsx` | System prompt editor — edit `helper_prompt` + switch `llm_provider` via dropdown |
-| `src/WorkerPage.tsx` | Worker dashboard — profile form + intake chat panel (two-column layout) |
-| `src/ClientPage.tsx` | Client dashboard — search/find workers, request services |
+| `src/WorkerPage.tsx` | Worker dashboard — read-only profile cards + intake chat panel (two-column layout) |
+| `src/ClientPage.tsx` | Client dashboard — read-only profile cards + intake chat panel |
 | `src/LoginPage.tsx` | Magic-link login — email input, send link |
 | `src/SignupPage.tsx` | Registration form — name, email, submit |
-| `src/PromptsPage.tsx` | Read-only view of saved prompt snippets (legacy) |
+| `src/i18n.ts` | Internationalization — translations, language toggle |
 | `nginx.conf` | Static file serving + SPA fallback (`try_files $uri /index.html`) |
-| `Dockerfile` | Multi-stage: `node:22-alpine` build → `nginx:alpine` runtime |
+| `Dockerfile` | Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime |
 
 ---
 
@@ -113,43 +114,98 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 
 ## Worker Profile Intake Chat
 
-The Worker Page (`/worker`) offers two ways to fill in a worker's professional profile:
+The Worker Page (`/worker`) uses a two-column layout:
 
 ### Chat Panel (left column)
 
 - Users type naturally: *"I'm a plumber in Madrid with 12 years experience"*
 - The LLM (with the `worker_profile_prompt`) asks follow-up questions to gather all fields
-- Once the LLM has collected at least 6 fields, it appends `[FIELDS]{json}[/FIELDS]` to its response
-- The frontend parses `detected_fields` from the API response and auto-fills the form
+- Every response includes a `[FIELDS]{json}[/FIELDS]` block with ALL known fields (cumulative)
+- The frontend parses `detected_fields` from the API response and displays them in the profile cards
+- Previous conversations are loaded on mount from `GET /api/v1/conversations?type=worker&limit=1`
 
-### Form Panel (right column)
+### Profile Cards (right column)
 
-- Full manual form — users can type/edit any field directly if they prefer not to chat
-- Tags input for certifications, languages, and social links
-- Checkboxes for booleans (free estimate, insurance, emergency service)
-- "Save Profile" button persists everything via `PUT /api/v1/worker/profile`
+Read-only profile display with 5 sections:
 
-Both columns work independently and together: data from the chat auto-fills the form, and the user can correct or add more fields manually before saving.
+| Section | Fields |
+|---------|--------|
+| **Core** | Profession, Business Name, Bio, Phone |
+| **Location** | City, Address, Service Radius |
+| **Pricing** | Hourly Rate, Minimum Charge, Free Estimate |
+| **Credentials** | Years Experience, Certifications, Has Insurance, Languages |
+| **Online** | Website, Social Links |
 
-### Field Mapping
+- No manual forms — all data comes from the chat conversation
+- "Reset Profile" button calls `DELETE /api/v1/worker/profile` to clear the profile
+- "Reset Role" button calls `PUT /api/v1/user/reset-role` to clear the user role and redirect to chat
 
-The `[FIELDS]` JSON keys map to form fields:
+### Worker Profile Fields
 
-```json
-{
-  "profession": "plumber",
-  "business_name": "Alvaro's Repairs",
-  "bio": "12 years of experience fixing pipes and boilers",
-  "phone": "+34 612 345 678",
-  "city": "Madrid",
-  "service_radius_km": 30,
-  "hourly_rate": 45,
-  "free_estimate": true,
-  "years_experience": 12,
-  "has_insurance": true,
-  "languages": ["Spanish", "English"]
-}
-```
+| Field | JSON key | Type |
+|-------|----------|------|
+| Profession | `profession` | string |
+| Business Name | `business_name` | string |
+| Bio | `bio` | string |
+| Phone | `phone` | string |
+| City | `city` | string |
+| Address | `address` | string |
+| Service Radius | `service_radius_km` | number |
+| Hourly Rate | `hourly_rate` | number |
+| Minimum Charge | `minimum_charge` | number |
+| Free Estimate | `free_estimate` | boolean |
+| Years Exp | `years_experience` | number |
+| Certifications | `certifications` | string[] |
+| Has Insurance | `has_insurance` | boolean |
+| Languages | `languages` | string[] |
+| Emergency | `emergency_service` | boolean |
+| Website | `website` | string |
+| Instagram | `instagram` | string |
+| Facebook | `facebook` | string |
+| Twitter | `twitter` | string |
+| LinkedIn | `linkedin` | string |
+| TikTok | `tiktok` | string |
+| YouTube | `youtube` | string |
+
+---
+
+## Client Profile Intake Chat
+
+The Client Page (`/client`) uses the same two-column layout as the Worker Page:
+
+### Chat Panel (left column)
+
+- Users describe what they need: *"I need help fixing my bathroom"*
+- The LLM (with the `client_profile_prompt`) asks follow-up questions to gather profile fields
+- Every response includes a `[FIELDS]{json}[/FIELDS]` block with ALL known fields
+- The frontend parses `detected_fields` from the API response and displays them in the profile cards
+- Previous conversations are loaded on mount from `GET /api/v1/conversations?type=client&limit=1`
+
+### Profile Cards (right column)
+
+Read-only profile display with 3 sections:
+
+| Section | Fields |
+|---------|--------|
+| **Personal** | Full Name, Phone |
+| **Location** | City, Address |
+| **About** | Bio, Preferred Contact, Property Type, Notes |
+
+- No manual forms — all data comes from the chat conversation
+- "Reset Profile" button calls `DELETE /api/v1/client/profile` to clear the profile
+
+### Client Profile Fields
+
+| Field | JSON key | Type |
+|-------|----------|------|
+| Full Name | `full_name` | string |
+| Phone | `phone` | string |
+| City | `city` | string |
+| Address | `address` | string |
+| Bio | `bio` | string |
+| Preferred Contact | `preferred_contact` | string |
+| Property Type | `property_type` | string |
+| Notes | `notes` | string |
 
 ---
 
@@ -169,7 +225,10 @@ Changes take effect immediately — no container restart needed.
 
 ### Prompt Editor
 
-Textarea to edit the `helper_prompt` — the system prompt sent to the LLM on every chat request.
+Textareas to edit:
+- `helper_prompt` — the system prompt sent to the LLM on every main chat request
+- `worker_profile_prompt` — the system prompt for worker profile intake
+- `client_profile_prompt` — the system prompt for client profile intake
 
 ---
 
@@ -199,11 +258,11 @@ Browser console logging with component prefixes:
 | Prefix | Component | Events |
 |--------|-----------|--------|
 | `[Chat]` | ChatPage | Request timing, answer length, detected_role, errors |
-| `[Worker-Chat]` | WorkerPage | Chat send/response, detected_fields, field merging |
+| `[Worker]` | WorkerPage | Chat send/response, detected_fields, field merging |
+| `[Client]` | ClientPage | Chat send/response, detected_fields, field merging |
 | `[Admin]` | AdminPage | Prompt load/save, provider switch, timing |
 | `[Nav]` | App router | Route changes, auth redirects |
 | `[Auth]` | AuthProvider | Session check, login/logout, redirect |
-| `[API]` | api.ts | Request/response summary for every API call |
 
 Open browser DevTools (F12) → Console for debugging.
 
@@ -215,7 +274,7 @@ Open browser DevTools (F12) → Console for debugging.
 frontend/
 ├── index.html                    # HTML shell
 ├── nginx.conf                    # nginx static file serving
-├── Dockerfile                    # Multi-stage: node:22 → nginx:alpine
+├── Dockerfile                    # Multi-stage: node:20-alpine → nginx:alpine
 ├── package.json                  # Dependencies
 ├── vite.config.js                # Vite config
 ├── tsconfig.json                 # TypeScript config
@@ -224,14 +283,13 @@ frontend/
 │   ├── App.tsx                   # Router + Auth + ProtectedRoute
 │   ├── AuthProvider.tsx          # Session context + useAuth hook
 │   ├── auth.ts                   # Login, signup, session API calls
-│   ├── api.ts                    # Generic fetch wrapper
 │   ├── ChatPage.tsx              # Main chat interface
 │   ├── AdminPage.tsx             # System prompt + LLM provider admin
 │   ├── LoginPage.tsx             # Magic link login
 │   ├── SignupPage.tsx            # Registration
-│   ├── WorkerPage.tsx            # Worker dashboard
-│   ├── ClientPage.tsx            # Client dashboard
-│   ├── PromptsPage.tsx           # Saved prompts (legacy)
-│   └── types.ts                 # Shared TypeScript types
+│   ├── WorkerPage.tsx            # Worker dashboard — profile cards + intake chat
+│   ├── ClientPage.tsx            # Client dashboard — profile cards + intake chat
+│   ├── i18n.ts                   # Translations + language toggle
+│   └── style.css                 # Shared design system
 └── dist/                         # Production build output
 ```

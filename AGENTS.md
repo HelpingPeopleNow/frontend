@@ -18,11 +18,15 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 - Preact with `preact-router` v4 client-side routing
 - `AuthProvider` context wraps app → exposes `useAuth()`: `session`, `loading`, `sendMagicLink`, `logout`, `refreshSession`
 - API calls use relative URLs (`/api/v1/...`, `/api/auth/...`) — proxied by Traefik; no Vite proxy config needed
-- Console logging with component prefixes: `[Chat]`, `[Admin]`, `[Auth]`, `[Nav]`
-- CSS-in-JS via `<style>` tags in each component; `src/style.css` is just a reset
+- Console logging with component prefixes: `[Chat]`, `[Admin]`, `[Auth]`, `[Nav]`, `[Worker]`, `[Client]`
+- CSS-in-JS via `<style>` tags in each component; `src/style.css` is the shared design system
 - Worker profile stores arrays as JSON fields (certifications, languages, social_links)
 - `index.html` imports `/src/main.jsx` (Vite resolves `.tsx` internally)
 - Session cookie name: `better-auth.session_token` (expected by backend's `extractUserIDFromRequest`)
+- WorkerPage and ClientPage use read-only profile cards — no manual forms. All data comes from chat via `[FIELDS]` extraction
+- Both pages load previous conversations on mount from `GET /api/v1/conversations?type=worker|client&limit=1`
+- Profile reset uses `DELETE /api/v1/worker/profile` or `DELETE /api/v1/client/profile`
+- ClientPage has new fields: `preferred_contact`, `property_type`, `notes`
 
 ## Auth flow
 
@@ -51,8 +55,8 @@ Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime. CI builds + push
 
 ## Gotchas
 
-- `PromptsPage.tsx` and `api.ts` are legacy/unused — not imported in `App.tsx`
 - ChatPage supports both JSON (default) and SSE streaming (content-type `text/event-stream`)
 - After role detection (`detected_role` in JSON response), ChatPage replaces the chat input with a profile/request button
 - AdminPage also has a link to Adminer (DB admin tool) at `/adminer`
 - nginx SPA fallback: `try_files $uri /index.html`
+- `PromptsPage.tsx` and `api.ts` were deleted in the latest commit (not present in codebase)
