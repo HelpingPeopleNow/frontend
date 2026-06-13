@@ -111,6 +111,12 @@ export default function AdminPage() {
 
   return (
     <AppShell currentPath="/admin" title={t('admin.title')}>
+      <div style={{ textAlign: 'right', marginBottom: 'var(--sp-3)' }}>
+        <a href="/adminer" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">
+          {t('admin.db')}
+        </a>
+      </div>
+
       {message && (
         <div style={{
           padding: 'var(--sp-3) var(--sp-4)',
