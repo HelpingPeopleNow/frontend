@@ -76,7 +76,6 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
             </div>
           </div>
           <div style={{ display: 'flex', gap: 'var(--sp-2)', marginTop: 'var(--sp-3)' }}>
-            <LangToggle style={{ flex: 1 }} />
             <button class="btn btn-ghost btn-sm" onClick={handleLogout} style={{ flex: 1 }}>
               {t('auth.logout')}
             </button>
@@ -104,6 +103,9 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
           <h1 class="app-header-title">{title}</h1>
           <div class="app-header-actions">
             <LangToggle />
+            <button class="btn btn-ghost btn-sm" onClick={handleLogout}>
+              {t('auth.logout')}
+            </button>
           </div>
         </header>
         <div class="app-content">
