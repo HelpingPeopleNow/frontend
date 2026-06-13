@@ -5,7 +5,6 @@ export interface Session {
     id: string;
     email: string;
     name?: string;
-    role?: string;
   };
   token: string;
 }
@@ -23,7 +22,6 @@ export async function getSession(): Promise<Session | null> {
         id: data.user.id,
         email: data.user.email,
         name: data.user.name,
-        role: data.user.role,
       },
       token: data.session.token,
     };
@@ -44,7 +42,7 @@ export async function sendMagicLink(
       body: JSON.stringify({
         email,
         name,
-        callbackURL: '/chat',
+        callbackURL: '/',
       }),
     });
     if (!res.ok) {

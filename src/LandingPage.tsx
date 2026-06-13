@@ -8,7 +8,7 @@ export default function LandingPage() {
   const { t } = useLanguage();
   const { session, loading } = useAuth();
 
-  // Redirect authenticated users to chat
+  // Redirect authenticated users to chat chooser
   useEffect(() => {
     if (!loading && session) {
       route('/chat', true);
@@ -54,7 +54,7 @@ export default function LandingPage() {
             Get Started Free
           </button>
           <button class="btn btn-secondary btn-lg" onClick={() => route('/login')}>
-            I'm a Professional
+            Sign In
           </button>
         </div>
 

@@ -17,8 +17,7 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
 
   const navItems = [
     { path: '/chat', icon: '💬', label: t('nav.chat') },
-    { path: '/worker', icon: '🔧', label: t('nav.worker.profile'), show: session?.user?.role === 'worker' || !session?.user?.role },
-    { path: '/client', icon: '🏠', label: t('nav.client.portal'), show: session?.user?.role === 'client' || !session?.user?.role },
+    { path: '/find', icon: '🔍', label: t('nav.find') },
     { path: '/admin', icon: '⚙️', label: t('nav.admin') },
   ];
 
@@ -53,7 +52,7 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
 
         <nav class="sidebar-nav">
           <div class="sidebar-section-label">Main</div>
-          {navItems.filter(n => n.show !== false).map(item => (
+          {navItems.map(item => (
             <button
               key={item.path}
               class={`sidebar-link ${currentPath === item.path ? 'active' : ''}`}
@@ -70,9 +69,6 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
             <div class="sidebar-avatar">{userInitial}</div>
             <div class="sidebar-user-info">
               <div class="sidebar-user-name">{session?.user?.name || session?.user?.email}</div>
-              {session?.user?.role && (
-                <div class="sidebar-user-role">{session.user.role}</div>
-              )}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 'var(--sp-2)', marginTop: 'var(--sp-3)' }}>

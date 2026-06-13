@@ -1,9 +1,7 @@
 import { h } from 'preact';
 import { useState, useRef, useEffect, useCallback } from 'preact/hooks';
-import { useAuth } from './AuthProvider';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
-import ModeChooser from './ModeChooser';
 
 const API = '/api';
 
@@ -27,34 +25,15 @@ interface WorkerCard {
   emergency_service: boolean;
 }
 
-export default function ChatPage() {
-  const { session } = useAuth();
+export default function FindPage() {
   const { t } = useLanguage();
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [streaming, setStreaming] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [promptsCheck, setPromptsCheck] = useState<'loading' | 'ok' | 'missing'>('loading');
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Determine mode from URL query params
-  const params = new URLSearchParams(window.location.search);
-  const modeParam = params.get('mode') as 'worker_intake' | 'client_intake' | null;
-
-  // If no mode selected, show the chooser
-  if (!modeParam) {
-    return (
-      <AppShell currentPath="/" title={t('app.title')}>
-        <ModeChooser />
-      </AppShell>
-    );
-  }
-
-  const mode = modeParam;
-  const convType = mode === 'worker_intake' ? 'worker' : 'client';
 
   // ── Voice input state ─────────────────────────────────────────────
   const [isRecording, setIsRecording] = useState(false);
@@ -83,7 +62,7 @@ export default function ChatPage() {
     };
 
     recognition.onerror = (event: any) => {
-      console.error('[Chat] Speech recognition error:', event.error);
+      console.error('[Find] Speech recognition error:', event.error);
       setIsRecording(false);
     };
 
@@ -119,32 +98,11 @@ export default function ChatPage() {
     };
   }, []);
 
-  // Check system prompts on mount
+  // Load most recent search conversation on mount
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/v1/system-prompts', { credentials: 'include' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.worker_profile_prompt && data.client_profile_prompt) {
-            setPromptsCheck('ok');
-          } else {
-            setPromptsCheck('missing');
-          }
-        } else {
-          setPromptsCheck('missing');
-        }
-      } catch {
-        setPromptsCheck('missing');
-      }
-    })();
-  }, []);
-
-  // Load most recent conversation on mount
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(`/api/v1/conversations?type=${convType}&limit=1`, { credentials: 'include' });
+        const res = await fetch('/api/v1/conversations?type=client-find&limit=1', { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           if (data.conversations && data.conversations.length > 0) {
@@ -179,14 +137,14 @@ export default function ChatPage() {
   }, [messages]);
 
   useEffect(() => {
-    if (!loading && !streaming && !initialLoading) {
+    if (!loading && !initialLoading) {
       inputRef.current?.focus();
     }
-  }, [loading, streaming, initialLoading]);
+  }, [loading, initialLoading]);
 
   const send = async () => {
     const text = input.trim();
-    if (!text || loading || streaming) return;
+    if (!text || loading) return;
     setInput('');
     const userMsg: ChatMsg = { role: 'user', text };
     const updatedMessages = [...messages, userMsg];
@@ -203,7 +161,7 @@ export default function ChatPage() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          mode,
+          mode: 'search',
           message: text,
           history,
           conversation_id: conversationId || undefined,
@@ -213,78 +171,29 @@ export default function ChatPage() {
         setMessages(m => [...m, { role: 'assistant', text: `Error ${res.status}` }]);
         return;
       }
-      let responseText = '';
-      setLoading(false);
-      setStreaming(true);
-
-      if (res.headers.get('content-type')?.includes('text/event-stream')) {
-        const reader = res.body?.getReader();
-        if (!reader) return;
-        const decoder = new TextDecoder();
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
-          for (const line of lines) {
-            const data = line.slice(6);
-            if (data === '[DONE]') break;
-            try {
-              const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content || '';
-              responseText += content;
-              setMessages(m => {
-                const newM = [...m];
-                if (newM[newM.length - 1]?.role === 'assistant') {
-                  newM[newM.length - 1] = { role: 'assistant', text: responseText };
-                } else {
-                  newM.push({ role: 'assistant', text: responseText });
-                }
-                return newM;
-              });
-            } catch {}
-          }
-        }
-      } else {
-        const data = await res.json();
-        responseText = data.answer || data.response || data.text || JSON.stringify(data);
-        const workers = data.workers || undefined;
-        setMessages(m => [...m, { role: 'assistant', text: responseText, workers }]);
-        if (data.conversation_id) {
-          setConversationId(data.conversation_id);
-        }
+      const data = await res.json();
+      const responseText = data.answer || '';
+      const workers = data.workers || undefined;
+      setMessages(m => [...m, { role: 'assistant', text: responseText, workers }]);
+      if (data.conversation_id) {
+        setConversationId(data.conversation_id);
       }
     } catch {
       setMessages(m => [...m, { role: 'assistant', text: t('chat.error.network') }]);
     } finally {
       setLoading(false);
-      setStreaming(false);
     }
   };
 
-  if (promptsCheck === 'missing') {
-    return (
-      <AppShell currentPath="/" title={t('app.title')}>
-        <div class="prompts-missing">
-          <div class="prompts-missing-card">
-            <div class="prompts-missing-icon">⚠️</div>
-            <h2>System Prompts Missing</h2>
-            <p>{t('chat.prompts.missing')}</p>
-          </div>
-        </div>
-      </AppShell>
-    );
-  }
-
   return (
-    <AppShell currentPath="/" title={t('app.title')}>
+    <AppShell currentPath="/find" title={t('find.title')}>
       <div class="chat-container">
         <div class="chat-messages" ref={listRef}>
           {messages.length === 0 && !initialLoading ? (
             <div class="chat-welcome">
-              <div class="chat-welcome-icon">💬</div>
-              <h3>{mode === 'worker_intake' ? t('chat.welcome.worker.title') : t('chat.welcome.client.title')}</h3>
-              <p>{mode === 'worker_intake' ? t('chat.welcome.worker.desc') : t('chat.welcome.client.desc')}</p>
+              <div class="chat-welcome-icon">🔍</div>
+              <h3>{t('find.welcome.title')}</h3>
+              <p>{t('find.welcome.desc')}</p>
             </div>
           ) : (
             messages.map((m, i) => (
@@ -320,7 +229,7 @@ export default function ChatPage() {
               </div>
             ))
           )}
-          {(loading || streaming) && (
+          {loading && (
             <div class="chat-bubble chat-bubble-assistant">
               <div class="chat-role-label">Assistant</div>
               <div class="chat-typing">
@@ -337,7 +246,7 @@ export default function ChatPage() {
             <button
               class={`chat-mic-btn ${isRecording ? 'chat-mic-recording' : ''}`}
               onClick={toggleRecording}
-              disabled={loading || streaming}
+              disabled={loading}
               title={isRecording ? t('chat.mic.stop') : t('chat.mic.start')}
               type="button"
             >
@@ -353,16 +262,16 @@ export default function ChatPage() {
             value={input}
             onInput={(e: any) => setInput(e.target.value)}
             onKeyDown={(e: any) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
-            placeholder={isRecording ? t('chat.mic.listening') : t('chat.placeholder')}
-            disabled={loading || streaming}
+            placeholder={isRecording ? t('chat.mic.listening') : t('find.placeholder')}
+            disabled={loading}
             ref={inputRef}
           />
           <button
             class="chat-send-btn"
             onClick={send}
-            disabled={loading || streaming || !input.trim()}
+            disabled={loading || !input.trim()}
           >
-            {loading || streaming ? '...' : '↑'}
+            {loading ? '...' : '↑'}
           </button>
         </div>
       </div>

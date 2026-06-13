@@ -6,9 +6,10 @@ import AppShell from './AppShell';
 const API = '/api';
 
 interface SystemPrompts {
-  helper_prompt: string;
   worker_profile_prompt: string;
   client_profile_prompt: string;
+  find_trader_search_prompt: string;
+  find_trader_presentation_prompt: string;
   llm_provider: string;
   [key: string]: string;
 }
@@ -34,7 +35,6 @@ export default function AdminPage() {
       .then((data: SystemPrompts) => {
         setPrompts(data);
         setEditing({
-          helper_prompt: data.helper_prompt || '',
           worker_profile_prompt: data.worker_profile_prompt || '',
           client_profile_prompt: data.client_profile_prompt || '',
           find_trader_search_prompt: data.find_trader_search_prompt || '',
@@ -94,7 +94,6 @@ export default function AdminPage() {
 
   const labelFor = (col: string) => {
     const map: Record<string, string> = {
-      helper_prompt: 'admin.prompt.helper',
       worker_profile_prompt: 'admin.prompt.worker',
       client_profile_prompt: 'admin.prompt.client',
       find_trader_search_prompt: 'admin.prompt.find_trader_search',
@@ -104,7 +103,6 @@ export default function AdminPage() {
   };
 
   const promptMeta = [
-    { key: 'helper_prompt', labelKey: 'admin.prompt.helper', descKey: 'admin.helper.desc' },
     { key: 'worker_profile_prompt', labelKey: 'admin.prompt.worker', descKey: 'admin.worker.desc' },
     { key: 'client_profile_prompt', labelKey: 'admin.prompt.client', descKey: 'admin.client.desc' },
     { key: 'find_trader_search_prompt', labelKey: 'admin.prompt.find_trader_search', descKey: 'admin.find_trader_search.desc' },

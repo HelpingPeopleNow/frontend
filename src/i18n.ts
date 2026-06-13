@@ -39,8 +39,7 @@ const translations: Record<Lang, Record<string, string>> = {
     // Navigation
     'nav.admin': 'Admin',
     'nav.chat': 'Chat',
-    'nav.worker.profile': 'Worker Profile',
-    'nav.client.portal': 'Client Portal',
+    'nav.find': 'Find a Pro',
     'nav.back': '← Back',
 
     // Admin Page
@@ -80,9 +79,29 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.welcome.title': 'Welcome! How can we help you?',
     'chat.welcome.desc1': 'Tell us what you need — home repairs, cleaning, plumbing, electrical work, or anything else.',
     'chat.welcome.desc2': 'We\'ll match you with the right professionals in your area.',
+    'chat.welcome.worker.title': 'Set Up Your Worker Profile',
+    'chat.welcome.worker.desc': 'Tell us about your trade and experience — we\'ll build your profile through conversation.',
+    'chat.welcome.client.title': 'Set Up Your Client Profile',
+    'chat.welcome.client.desc': 'Tell us about yourself so professionals can better assist you.',
     'chat.mic.start': 'Press to speak',
     'chat.mic.stop': 'Stop recording',
     'chat.mic.listening': 'Listening...',
+
+    // Mode Chooser
+    'chooser.title': 'What would you like to do?',
+    'chooser.desc': 'Choose how you want to use HelpingPeopleNow.',
+    'chooser.worker.label': 'Set Up as a Worker',
+    'chooser.worker.desc': 'Build your professional profile through a quick chat.',
+    'chooser.client.label': 'Set Up as a Client',
+    'chooser.client.desc': 'Create your client profile so professionals can find you.',
+    'chooser.search.label': 'Find a Professional',
+    'chooser.search.desc': 'Search for verified workers in your area.',
+
+    // Find Page
+    'find.title': 'Find a Professional',
+    'find.welcome.title': 'Find the Right Professional',
+    'find.welcome.desc': 'Tell us what you need and we\'ll find verified workers in your area.',
+    'find.placeholder': 'I need an electrician in Madrid…',
 
     // Worker Page
     'worker.title': 'Worker Profile',
@@ -222,8 +241,7 @@ const translations: Record<Lang, Record<string, string>> = {
     // Navigation
     'nav.admin': 'Admin',
     'nav.chat': 'Chat',
-    'nav.worker.profile': 'Perfil de Trabajador',
-    'nav.client.portal': 'Portal de Cliente',
+    'nav.find': 'Buscar Profesional',
     'nav.back': '← Volver',
 
     // Admin Page
@@ -263,9 +281,29 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.welcome.title': '¡Bienvenido! ¿Cómo podemos ayudarte?',
     'chat.welcome.desc1': 'Cuéntanos qué necesitas — reparaciones, limpieza, fontanería, electricidad o cualquier otra cosa.',
     'chat.welcome.desc2': 'Te conectaremos con los profesionales adecuados en tu zona.',
+    'chat.welcome.worker.title': 'Configura tu Perfil de Trabajador',
+    'chat.welcome.worker.desc': 'Cuéntanos sobre tu oficio y experiencia — construiremos tu perfil mediante una conversación.',
+    'chat.welcome.client.title': 'Configura tu Perfil de Cliente',
+    'chat.welcome.client.desc': 'Cuéntanos sobre ti para que los profesionales puedan ayudarte mejor.',
     'chat.mic.start': 'Pulsa para hablar',
     'chat.mic.stop': 'Detener grabación',
     'chat.mic.listening': 'Escuchando...',
+
+    // Mode Chooser
+    'chooser.title': '¿Qué te gustaría hacer?',
+    'chooser.desc': 'Elige cómo quieres usar HelpingPeopleNow.',
+    'chooser.worker.label': 'Registrarme como Trabajador',
+    'chooser.worker.desc': 'Crea tu perfil profesional en una conversación rápida.',
+    'chooser.client.label': 'Registrarme como Cliente',
+    'chooser.client.desc': 'Crea tu perfil de cliente para que los profesionales te encuentren.',
+    'chooser.search.label': 'Buscar un Profesional',
+    'chooser.search.desc': 'Busca profesionales verificados en tu zona.',
+
+    // Find Page
+    'find.title': 'Buscar un Profesional',
+    'find.welcome.title': 'Encuentra al Profesional Adecuado',
+    'find.welcome.desc': 'Cuéntanos qué necesitas y encontraremos profesionales verificados en tu zona.',
+    'find.placeholder': 'Necesito un electricista en Madrid…',
 
     // Worker Page
     'worker.title': 'Perfil de Trabajador',
