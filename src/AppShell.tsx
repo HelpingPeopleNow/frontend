@@ -76,6 +76,7 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
             </div>
           </div>
           <div style={{ display: 'flex', gap: 'var(--sp-2)', marginTop: 'var(--sp-3)' }}>
+            <LangToggle style={{ flex: 1 }} />
             <button class="btn btn-ghost btn-sm" onClick={handleLogout} style={{ flex: 1 }}>
               {t('auth.logout')}
             </button>
@@ -90,7 +91,6 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
           <span>HelpingPeopleNow</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
-          <LangToggle />
           <button class="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}>
             {sidebarOpen ? '✕' : '☰'}
           </button>
@@ -102,7 +102,6 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
         <header class="app-header">
           <h1 class="app-header-title">{title}</h1>
           <div class="app-header-actions">
-            <LangToggle />
           </div>
         </header>
         <div class="app-content">
