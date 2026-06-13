@@ -103,9 +103,6 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
           <h1 class="app-header-title">{title}</h1>
           <div class="app-header-actions">
             <LangToggle />
-            <button class="btn btn-ghost btn-sm" onClick={handleLogout}>
-              {t('auth.logout')}
-            </button>
           </div>
         </header>
         <div class="app-content">
