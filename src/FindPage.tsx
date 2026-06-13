@@ -107,19 +107,16 @@ export default function FindPage() {
           const data = await res.json();
           if (data.conversations && data.conversations.length > 0) {
             const conv = data.conversations[0];
-            const updated = new Date(conv.updated_at).getTime();
-            if (Date.now() - updated < 24 * 60 * 60 * 1000) {
-              const detailRes = await fetch(`/api/v1/conversations/${conv.id}`, { credentials: 'include' });
-              if (detailRes.ok) {
-                const detail = await detailRes.json();
-                if (detail.messages && Array.isArray(detail.messages)) {
-                  const loaded = detail.messages.map((m: any) => ({
-                    role: m.role as 'user' | 'assistant',
-                    text: m.content,
-                  }));
-                  setMessages(loaded);
-                  setConversationId(detail.id);
-                }
+            const detailRes = await fetch(`/api/v1/conversations/${conv.id}`, { credentials: 'include' });
+            if (detailRes.ok) {
+              const detail = await detailRes.json();
+              if (detail.messages && Array.isArray(detail.messages)) {
+                const loaded = detail.messages.map((m: any) => ({
+                  role: m.role as 'user' | 'assistant',
+                  text: m.content,
+                }));
+                setMessages(loaded);
+                setConversationId(detail.id);
               }
             }
           }
