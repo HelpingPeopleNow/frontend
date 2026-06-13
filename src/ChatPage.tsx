@@ -199,10 +199,10 @@ export default function ChatPage() {
         content: m.text,
       }));
       // Route to the correct backend endpoint based on mode
-      let endpoint = `${API}/v1/chat`;
+      let endpoint: string;
       if (mode === 'worker_intake') endpoint = `${API}/v1/worker/chat`;
       else if (mode === 'client_intake') endpoint = `${API}/v1/client/chat`;
-      else if (mode === 'find_traders') endpoint = `${API}/v1/client/find-chat`;
+      else endpoint = `${API}/v1/client/find-chat`;
 
       const res = await fetch(endpoint, {
         method: 'POST',
