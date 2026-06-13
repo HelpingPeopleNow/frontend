@@ -1721,6 +1721,7 @@ button { cursor: pointer; font-family: inherit; }
   transition: border-color 150ms ease, box-shadow 150ms ease;
   text-align: left;
   font-family: inherit;
+  color: var(--text);
 }
 
 .chooser-card:hover {
