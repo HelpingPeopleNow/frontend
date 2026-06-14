@@ -32,7 +32,7 @@ export async function getSession(): Promise<Session | null> {
 
 export async function sendMagicLink(
   email: string,
-  name?: string
+  lang: string = 'es'
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const res = await fetch(`${API}/auth/sign-in/magic-link`, {
@@ -41,7 +41,7 @@ export async function sendMagicLink(
       credentials: 'include',
       body: JSON.stringify({
         email,
-        name,
+        lang,
         callbackURL: '/',
       }),
     });

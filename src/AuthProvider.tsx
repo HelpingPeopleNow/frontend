@@ -1,11 +1,12 @@
 import { h, createContext } from 'preact';
 import { useState, useEffect, useContext } from 'preact/hooks';
 import { getSession, sendMagicLink, logout, Session } from './auth';
+import { useLanguage } from './i18n';
 
 export interface AuthContextValue {
   session: Session | null;
   loading: boolean;
-  sendMagicLink: typeof sendMagicLink;
+  sendMagicLink: (email: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<Session | null>;
 }
@@ -13,7 +14,7 @@ export interface AuthContextValue {
 const AuthCtx = createContext<AuthContextValue>({
   session: null,
   loading: true,
-  sendMagicLink,
+  sendMagicLink: async (email: string) => sendMagicLink(email),
   logout,
   refreshSession: async () => null,
 });
@@ -21,6 +22,7 @@ const AuthCtx = createContext<AuthContextValue>({
 export function AuthProvider({ children }: { children: h.JSX.Element }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const { lang } = useLanguage();
 
   // On mount and after magic link redirect, check session
   useEffect(() => {
@@ -36,8 +38,8 @@ export function AuthProvider({ children }: { children: h.JSX.Element }) {
     setSession(null);
   };
 
-  const sendMagicLinkFn = async (email: string, name?: string) => {
-    const result = await sendMagicLink(email, name);
+  const sendMagicLinkFn = async (email: string) => {
+    const result = await sendMagicLink(email, lang);
     return result;
   };
 
