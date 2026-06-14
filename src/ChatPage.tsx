@@ -279,7 +279,7 @@ export default function ChatPage() {
         <div class="prompts-missing">
           <div class="prompts-missing-card">
             <div class="prompts-missing-icon">⚠️</div>
-            <h2>System Prompts Missing</h2>
+            <h2>{t('chat.prompts.title')}</h2>
             <p>{t('chat.prompts.missing')}</p>
           </div>
         </div>
@@ -301,7 +301,7 @@ export default function ChatPage() {
             messages.map((m, i) => (
               <div key={i} class={`chat-bubble ${m.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-assistant'}`}>
                 {m.role === 'assistant' && (
-                  <div class="chat-role-label">Assistant</div>
+                  <div class="chat-role-label">{t('chat.role.assistant')}</div>
                 )}
                 <div class="chat-content">{m.text}</div>
                 {m.workers && m.workers.length > 0 && (
@@ -313,7 +313,7 @@ export default function ChatPage() {
                           <span class="worker-card-rate">€{w.hourly_rate}/hr</span>
                         </div>
                         <div class="worker-card-meta">
-                          {w.profession} · {w.city} · {w.years_experience} years exp.
+                          {w.profession} · {w.city} · {w.years_experience} {t('worker.card.years_exp')}
                         </div>
                         {w.bio && <div class="worker-card-bio">{w.bio}</div>}
                         <div class="worker-card-badges">
@@ -333,7 +333,7 @@ export default function ChatPage() {
           )}
           {(loading || streaming) && (
             <div class="chat-bubble chat-bubble-assistant">
-              <div class="chat-role-label">Assistant</div>
+              <div class="chat-role-label">{t('chat.role.assistant')}</div>
               <div class="chat-typing">
                 <span class="chat-typing-dot" />
                 <span class="chat-typing-dot" />

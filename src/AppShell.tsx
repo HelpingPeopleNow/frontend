@@ -44,14 +44,14 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
       {/* ── Sidebar ────────────────────────────────── */}
       <aside class={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div class="sidebar-header">
-          <div class="sidebar-logo">
+          <button class="sidebar-logo" onClick={() => handleNav('/')}>
             <span class="logo-mark">H</span>
             <span>HelpingPeopleNow</span>
-          </div>
+          </button>
         </div>
 
         <nav class="sidebar-nav">
-          <div class="sidebar-section-label">Main</div>
+          <div class="sidebar-section-label">{t('sidebar.main')}</div>
           {navItems.map(item => (
             <button
               key={item.path}
@@ -82,10 +82,10 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
 
       {/* ── Mobile header ──────────────────────────── */}
       <header class="mobile-header">
-        <div class="logo">
+        <button class="logo" onClick={() => handleNav('/')}>
           <span class="logo-mark">H</span>
           <span>HelpingPeopleNow</span>
-        </div>
+        </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
           <button class="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}>
             {sidebarOpen ? '✕' : '☰'}

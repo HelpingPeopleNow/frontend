@@ -207,6 +207,11 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // General
     'lang.switch': 'Language',
+    'sidebar.main': 'Main',
+    'chat.role.assistant': 'Assistant',
+    'chat.prompts.title': 'System Prompts Missing',
+    'worker.card.years_exp': 'years exp.',
+    'auth.placeholder.name': 'Your name',
   },
 
   es: {
@@ -409,6 +414,11 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // General
     'lang.switch': 'Idioma',
+    'sidebar.main': 'Principal',
+    'chat.role.assistant': 'Asistente',
+    'chat.prompts.title': 'Faltan Prompts del Sistema',
+    'worker.card.years_exp': 'años de exp.',
+    'auth.placeholder.name': 'Tu nombre',
   },
 };
 
@@ -420,7 +430,7 @@ interface LangContextValue {
 }
 
 const LangContext = createContext<LangContextValue>({
-  lang: 'en',
+  lang: 'es',
   setLang: () => {},
   t: (k) => k,
 });
@@ -430,7 +440,7 @@ export function useLanguage() {
 }
 
 export function LanguageProvider({ children }: { children: any }) {
-  const [lang, setLangState] = useState<Lang>('en');
+  const [lang, setLangState] = useState<Lang>('es');
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Lang | null;

@@ -2,25 +2,32 @@ import { h } from 'preact';
 import { route } from 'preact-router';
 import { useLanguage } from './i18n';
 import { useAuth } from './AuthProvider';
-import { useEffect } from 'preact/hooks';
+import ModeChooser from './ModeChooser';
 
 export default function LandingPage() {
   const { t } = useLanguage();
   const { session, loading } = useAuth();
 
-  // Redirect authenticated users to chat chooser
-  useEffect(() => {
-    if (!loading && session) {
-      route('/chat', true);
-    }
-  }, [loading, session]);
-
   if (loading) {
     return <div class="loading" style={{ minHeight: '100vh' }}><div class="spinner" /></div>;
   }
 
-  if (session) return null;
+  // ── Authenticated: show ModeChooser (no sign-in buttons) ──
+  if (session) {
+    return (
+      <div class="landing" style={{ justifyContent: 'center', alignItems: 'center' }}>
+        <nav class="landing-nav">
+          <div class="logo">
+            <span class="logo-mark">H</span>
+            <span>HelpingPeopleNow</span>
+          </div>
+        </nav>
+        <ModeChooser />
+      </div>
+    );
+  }
 
+  // ── Not authenticated: show marketing landing page ──
   return (
     <div class="landing">
       {/* ── Nav ──────────────────────────────────────── */}
@@ -41,20 +48,20 @@ export default function LandingPage() {
 
       {/* ── Hero ─────────────────────────────────────── */}
       <section class="hero">
-        <div class="hero-badge">Trusted by homeowners & professionals</div>
+        <div class="hero-badge">De confianza para propietarios y profesionales</div>
         <h1>
-          Your home deserves<br />
-          <span class="gradient-text">the best professionals</span>
+          Tu hogar merece<br />
+          <span class="gradient-text">a los mejores profesionales</span>
         </h1>
         <p class="hero-desc">
-          Connecting you with verified, insured local professionals for every home service — plumbing, electrical, cleaning, and more.
+          Conectamos con profesionales locales verificados y asegurados para todo tipo de servicios del hogar — fontanería, electricidad, limpieza y más.
         </p>
         <div class="hero-actions">
           <button class="btn btn-primary btn-lg" onClick={() => route('/signup')}>
-            Get Started Free
+            Empieza Gratis
           </button>
           <button class="btn btn-secondary btn-lg" onClick={() => route('/login')}>
-            Sign In
+            Iniciar Sesión
           </button>
         </div>
 
@@ -62,15 +69,15 @@ export default function LandingPage() {
         <div class="stats-bar">
           <div class="stat-item">
             <div class="stat-value">500+</div>
-            <div class="stat-label">Verified Professionals</div>
+            <div class="stat-label">Profesionales Verificados</div>
           </div>
           <div class="stat-item">
             <div class="stat-value">2,400+</div>
-            <div class="stat-label">Jobs Completed</div>
+            <div class="stat-label">Trabajos Realizados</div>
           </div>
           <div class="stat-item">
             <div class="stat-value">4.9</div>
-            <div class="stat-label">Average Rating</div>
+            <div class="stat-label">Valoración Media</div>
           </div>
         </div>
       </section>
@@ -78,39 +85,39 @@ export default function LandingPage() {
       {/* ── Features ─────────────────────────────────── */}
       <section class="landing-section">
         <div class="section-header">
-          <h2>Why professionals choose us</h2>
-          <p>A platform built for trust, quality, and seamless connections.</p>
+          <h2>Por qué los profesionales nos eligen</h2>
+          <p>Una plataforma creada para la confianza, la calidad y conexiones sin complicaciones.</p>
         </div>
         <div class="features-grid">
           <div class="feature-card animate-in">
             <div class="feature-icon blue">🔒</div>
-            <h3>Verified Professionals</h3>
-            <p>Every worker is vetted with insurance checks, background verification, and credential validation.</p>
+            <h3>Profesionales Verificados</h3>
+            <p>Cada trabajador pasa por comprobaciones de seguro, verificación de antecedentes y validación de credenciales.</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-1">
             <div class="feature-icon teal">💬</div>
-            <h3>AI-Powered Matching</h3>
-            <p>Our intelligent assistant understands your needs and connects you with the perfect professional.</p>
+            <h3>Emparejamiento con IA</h3>
+            <p>Nuestro asistente inteligente entiende tus necesidades y te conecta con el profesional perfecto.</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-2">
             <div class="feature-icon green">⚡</div>
-            <h3>Instant Response</h3>
-            <p>Get matched with available professionals in minutes, not days. Emergency services available.</p>
+            <h3>Respuesta Instantánea</h3>
+            <p>Conecta con profesionales disponibles en minutos, no en días. Servicios de emergencia disponibles.</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-3">
             <div class="feature-icon orange">📊</div>
-            <h3>Transparent Pricing</h3>
-            <p>See hourly rates, minimum charges, and free estimates upfront. No hidden fees.</p>
+            <h3>Precios Transparentes</h3>
+            <p>Consulta tarifas por hora, cargos mínimos y presupuestos gratuitos de antemano. Sin costes ocultos.</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-4">
             <div class="feature-icon blue">🌍</div>
-            <h3>Multilingual Support</h3>
-            <p>Communicate in your preferred language. Our platform supports English and Spanish.</p>
+            <h3>Soporte Multilingüe</h3>
+            <p>Comunícate en tu idioma preferido. Nuestra plataforma soporta inglés y español.</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-4">
             <div class="feature-icon green">📱</div>
-            <h3>Mobile First</h3>
-            <p>Manage your services from anywhere. Full functionality on any device, anywhere.</p>
+            <h3>Móvil Primero</h3>
+            <p>Gestiona tus servicios desde cualquier lugar. Funcionalidad completa en cualquier dispositivo.</p>
           </div>
         </div>
       </section>
@@ -118,29 +125,29 @@ export default function LandingPage() {
       {/* ── How It Works ─────────────────────────────── */}
       <section class="landing-section">
         <div class="section-header">
-          <h2>How it works</h2>
-          <p>Three simple steps to get your home services done.</p>
+          <h2>Cómo funciona</h2>
+          <p>Tres sencillos pasos para que te atiendan en tu hogar.</p>
         </div>
         <div class="steps">
           <div class="step animate-in">
             <div class="step-number">1</div>
             <div class="step-content">
-              <h3>Tell us what you need</h3>
-              <p>Describe your home service request in a quick conversation with our AI assistant. No forms to fill.</p>
+              <h3>Cuéntanos qué necesitas</h3>
+              <p>Describe tu solicitud de servicio del hogar en una conversación rápida con nuestro asistente IA. Sin formularios.</p>
             </div>
           </div>
           <div class="step animate-in animate-in-delay-1">
             <div class="step-number">2</div>
             <div class="step-content">
-              <h3>Get matched instantly</h3>
-              <p>Our system finds verified professionals in your area that match your specific requirements.</p>
+              <h3>Emparejamiento instantáneo</h3>
+              <p>Nuestro sistema encuentra profesionales verificados en tu zona que se ajustan a tus requisitos.</p>
             </div>
           </div>
           <div class="step animate-in animate-in-delay-2">
             <div class="step-number">3</div>
             <div class="step-content">
-              <h3>Book with confidence</h3>
-              <p>Review profiles, compare rates, and hire professionals you can trust. All backed by our quality guarantee.</p>
+              <h3>Contrata con confianza</h3>
+              <p>Revisa perfiles, compara tarifas y contrata profesionales de confianza. Todo respaldado por nuestra garantía de calidad.</p>
             </div>
           </div>
         </div>
@@ -149,46 +156,46 @@ export default function LandingPage() {
       {/* ── Testimonials ─────────────────────────────── */}
       <section class="landing-section">
         <div class="section-header">
-          <h2>Trusted by homeowners</h2>
-          <p>See what our community has to say.</p>
+          <h2>La confianza de los propietarios</h2>
+          <p>Mira lo que dice nuestra comunidad.</p>
         </div>
         <div class="testimonials-grid">
           <div class="testimonial-card animate-in">
             <div class="testimonial-stars">★★★★★</div>
             <p class="testimonial-text">
-              "Found a plumber within 10 minutes. The AI understood exactly what I needed and matched me with a verified professional. Incredible service."
+              "Encontré un fontanero en 10 minutos. La IA entendió exactamente lo que necesitaba y me conectó con un profesional verificado. Increíble servicio."
             </p>
             <div class="testimonial-author">
               <div class="testimonial-avatar">MG</div>
               <div>
-                <div class="testimonial-name">Maria Garcia</div>
-                <div class="testimonial-role">Homeowner, Madrid</div>
+                <div class="testimonial-name">María García</div>
+                <div class="testimonial-role">Propietaria, Madrid</div>
               </div>
             </div>
           </div>
           <div class="testimonial-card animate-in animate-in-delay-1">
             <div class="testimonial-stars">★★★★★</div>
             <p class="testimonial-text">
-              "As an electrician, this platform has transformed my business. I get qualified leads and the profile builder was so easy — just a chat conversation."
+              "Como electricista, esta plataforma ha transformado mi negocio. Consigo clientes cualificados y el creador de perfil fue muy fácil — solo una conversación."
             </p>
             <div class="testimonial-author">
               <div class="testimonial-avatar">JR</div>
               <div>
-                <div class="testimonial-name">Juan Rodriguez</div>
-                <div class="testimonial-role">Licensed Electrician</div>
+                <div class="testimonial-name">Juan Rodríguez</div>
+                <div class="testimonial-role">Electricista Certificado</div>
               </div>
             </div>
           </div>
           <div class="testimonial-card animate-in animate-in-delay-2">
             <div class="testimonial-stars">★★★★★</div>
             <p class="testimonial-text">
-              "The transparency is what sold me. I could see rates, certifications, and insurance status before booking. No surprises."
+              "La transparencia fue lo que me convenció. Pude ver tarifas, certificaciones y estado del seguro antes de contratar. Sin sorpresas."
             </p>
             <div class="testimonial-author">
               <div class="testimonial-avatar">AL</div>
               <div>
-                <div class="testimonial-name">Ana Lopez</div>
-                <div class="testimonial-role">Property Manager</div>
+                <div class="testimonial-name">Ana López</div>
+                <div class="testimonial-role">Gestora de Propiedades</div>
               </div>
             </div>
           </div>
@@ -197,21 +204,21 @@ export default function LandingPage() {
 
       {/* ── CTA ──────────────────────────────────────── */}
       <section class="landing-cta">
-        <h2>Ready to find your next professional?</h2>
-        <p>Join thousands of homeowners and professionals already using HelpingPeopleNow.</p>
+        <h2>¿Listo para encontrar a tu próximo profesional?</h2>
+        <p>Únete a miles de propietarios y profesionales que ya usan HelpingPeopleNow.</p>
         <div class="hero-actions" style={{ justifyContent: 'center' }}>
           <button class="btn btn-primary btn-lg" onClick={() => route('/signup')}>
-            Start Free Today
+            Empieza Gratis Hoy
           </button>
           <button class="btn btn-ghost btn-lg" onClick={() => route('/login')}>
-            Sign In
+            Iniciar Sesión
           </button>
         </div>
       </section>
 
       {/* ── Footer ───────────────────────────────────── */}
       <footer class="landing-footer">
-        <p>© 2026 HelpingPeopleNow. All rights reserved.</p>
+        <p>© 2026 HelpingPeopleNow. Todos los derechos reservados.</p>
       </footer>
     </div>
   );

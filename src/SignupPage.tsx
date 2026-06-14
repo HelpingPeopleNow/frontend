@@ -77,7 +77,7 @@ export default function SignupPage({ onNavigate }: { onNavigate: (path: string) 
               <input
                 class="input"
                 type="text"
-                placeholder="Your name"
+                placeholder={t('auth.placeholder.name')}
                 value={name}
                 onInput={(e: any) => setName(e.target.value)}
                 required
