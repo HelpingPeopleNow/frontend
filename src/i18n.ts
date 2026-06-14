@@ -67,6 +67,12 @@ const translations: Record<Lang, Record<string, string>> = {
     'admin.prompt.find_trader_presentation': 'Find Trader Presentation Prompt',
     'admin.find_trader_search.desc': 'System prompt for finding traders (search phase)',
     'admin.find_trader_presentation.desc': 'System prompt for presenting traders to clients',
+    'admin.menu.llm': 'LLM Provider',
+    'admin.menu.llm.desc': 'Change which AI model the assistant uses',
+    'admin.menu.prompts': 'System Prompts',
+    'admin.menu.prompts.desc': 'Edit the prompts that guide the AI assistant',
+    'admin.menu.db.desc': 'Direct database access',
+    'admin.back': 'Back',
 
     // Chat Page
     'chat.placeholder': 'Ask anything...',
@@ -274,6 +280,12 @@ const translations: Record<Lang, Record<string, string>> = {
     'admin.prompt.find_trader_presentation': 'Prompt de Presentación de Profesional',
     'admin.find_trader_search.desc': 'Prompt del sistema para buscar profesionales (fase de búsqueda)',
     'admin.find_trader_presentation.desc': 'Prompt del sistema para presentar profesionales a clientes',
+    'admin.menu.llm': 'Proveedor LLM',
+    'admin.menu.llm.desc': 'Cambiar qué modelo de IA usa el asistente',
+    'admin.menu.prompts': 'Prompts del Sistema',
+    'admin.menu.prompts.desc': 'Editar los prompts que guían al asistente de IA',
+    'admin.menu.db.desc': 'Acceso directo a la base de datos',
+    'admin.back': 'Volver',
 
     // Chat Page
     'chat.placeholder': 'Pregunta lo que quieras...',

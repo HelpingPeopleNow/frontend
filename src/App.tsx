@@ -6,6 +6,8 @@ import LandingPage from './LandingPage';
 import ChatPage from './ChatPage';
 import FindPage from './FindPage';
 import AdminPage from './AdminPage';
+import AdminLLMPage from './AdminLLMPage';
+import AdminPromptsPage from './AdminPromptsPage';
 import LoginPage from './LoginPage';
 import SignupPage from './SignupPage';
 
@@ -36,6 +38,8 @@ function AppRouter() {
       <Route path="/chat" component={() => <ProtectedRoute component={ChatPage} />} />
       <Route path="/find" component={() => <ProtectedRoute component={FindPage} />} />
       <Route path="/admin" component={() => <ProtectedRoute component={AdminPage} />} />
+      <Route path="/admin/llm" component={() => <ProtectedRoute component={AdminLLMPage} />} />
+      <Route path="/admin/prompts" component={() => <ProtectedRoute component={AdminPromptsPage} />} />
     </Router>
   );
 }

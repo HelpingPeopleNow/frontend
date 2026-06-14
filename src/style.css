@@ -1905,6 +1905,44 @@ button { cursor: pointer; font-family: inherit; }
   min-height: 120px;
 }
 
+.admin-menu-card {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.15s, background 0.15s;
+}
+.admin-menu-card:hover {
+  border-color: var(--primary);
+  background: var(--surface-hover);
+}
+.admin-menu-icon {
+  font-size: 2rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border-radius: var(--r-md);
+  flex-shrink: 0;
+}
+.admin-menu-title {
+  font-weight: 600;
+  font-size: var(--text-base);
+  color: var(--text);
+}
+.admin-menu-desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
 /* ═══════════════════════════════════════════════════════════
    Language Toggle
    ═══════════════════════════════════════════════════════════ */
