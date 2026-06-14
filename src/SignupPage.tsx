@@ -4,7 +4,6 @@ import { useAuth } from './AuthProvider';
 import { useLanguage } from './i18n';
 
 export default function SignupPage({ onNavigate }: { onNavigate: (path: string) => void }) {
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
@@ -15,9 +14,9 @@ export default function SignupPage({ onNavigate }: { onNavigate: (path: string) 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
     setError('');
-    if (!name || !email) { setError(t('auth.name.email.required')); return; }
+    if (!email) { setError(t('auth.email.required')); return; }
     setSubmitting(true);
-    const result = await sendMagicLink(email, name);
+    const result = await sendMagicLink(email);
     setSubmitting(false);
     if (!result.ok) {
       setError(result.error || 'Unknown error');
@@ -46,7 +45,7 @@ export default function SignupPage({ onNavigate }: { onNavigate: (path: string) 
               <p>{t('auth.magic.click.signup')}</p>
               <p class="expires">{t('auth.magic.expires')}</p>
               <div style={{ marginTop: 'var(--sp-6)' }}>
-                <button class="btn btn-ghost" onClick={() => { setSent(false); setEmail(''); setName(''); }}>
+                <button class="btn btn-ghost" onClick={() => { setSent(false); setEmail(''); }}>
                   {t('auth.send.again')}
                 </button>
               </div>
@@ -73,18 +72,6 @@ export default function SignupPage({ onNavigate }: { onNavigate: (path: string) 
           <form onSubmit={handleSubmit} class="auth-form">
             {error && <div class="auth-error">{error}</div>}
             <div class="field">
-              <label class="field-label">{t('auth.name')}</label>
-              <input
-                class="input"
-                type="text"
-                placeholder={t('auth.placeholder.name')}
-                value={name}
-                onInput={(e: any) => setName(e.target.value)}
-                required
-                autoFocus
-              />
-            </div>
-            <div class="field">
               <label class="field-label">{t('auth.email')}</label>
               <input
                 class="input"
@@ -93,6 +80,7 @@ export default function SignupPage({ onNavigate }: { onNavigate: (path: string) 
                 value={email}
                 onInput={(e: any) => setEmail(e.target.value)}
                 required
+                autoFocus
               />
             </div>
             <button class="btn btn-primary" type="submit" disabled={submitting} style={{ width: '100%', padding: '12px' }}>
