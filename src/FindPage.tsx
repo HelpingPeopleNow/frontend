@@ -26,7 +26,7 @@ interface WorkerCard {
 }
 
 export default function FindPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -162,6 +162,7 @@ export default function FindPage() {
           message: text,
           history,
           conversation_id: conversationId || undefined,
+          lang,
         }),
       });
       if (!res.ok) {
