@@ -35,40 +35,40 @@ export default function AdminPage() {
           <a href="/admin/users" class="admin-menu-card">
             <div class="admin-menu-icon">👤</div>
             <div>
-              <div class="admin-menu-title">Users</div>
-              <div class="admin-menu-desc">View, edit and delete registered users</div>
+              <div class="admin-menu-title">{t('admin.menu.users')}</div>
+              <div class="admin-menu-desc">{t('admin.menu.users.desc')}</div>
             </div>
           </a>
 
           <a href="/admin/worker-profiles" class="admin-menu-card">
             <div class="admin-menu-icon">🔧</div>
             <div>
-              <div class="admin-menu-title">Workers</div>
-              <div class="admin-menu-desc">Manage worker profiles and tradespeople</div>
+              <div class="admin-menu-title">{t('admin.menu.workers')}</div>
+              <div class="admin-menu-desc">{t('admin.menu.workers.desc')}</div>
             </div>
           </a>
 
           <a href="/admin/client-profiles" class="admin-menu-card">
             <div class="admin-menu-icon">🏠</div>
             <div>
-              <div class="admin-menu-title">Clients</div>
-              <div class="admin-menu-desc">Manage client profiles and home owners</div>
+              <div class="admin-menu-title">{t('admin.menu.clients')}</div>
+              <div class="admin-menu-desc">{t('admin.menu.clients.desc')}</div>
             </div>
           </a>
 
           <a href="/admin/conversations" class="admin-menu-card">
             <div class="admin-menu-icon">💭</div>
             <div>
-              <div class="admin-menu-title">Conversations</div>
-              <div class="admin-menu-desc">View chat conversations and metadata</div>
+              <div class="admin-menu-title">{t('admin.menu.conversations')}</div>
+              <div class="admin-menu-desc">{t('admin.menu.conversations.desc')}</div>
             </div>
           </a>
 
           <a href="/admin/messages" class="admin-menu-card">
             <div class="admin-menu-icon">📨</div>
             <div>
-              <div class="admin-menu-title">Messages</div>
-              <div class="admin-menu-desc">Browse individual chat messages</div>
+              <div class="admin-menu-title">{t('admin.menu.messages')}</div>
+              <div class="admin-menu-desc">{t('admin.menu.messages.desc')}</div>
             </div>
           </a>
 
