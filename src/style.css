@@ -1944,6 +1944,90 @@ button { cursor: pointer; font-family: inherit; }
 }
 
 /* ═══════════════════════════════════════════════════════════
+   Entity Tables & Detail Pages
+   ═══════════════════════════════════════════════════════════ */
+
+.entity-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+.entity-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.entity-table th {
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.entity-table td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entity-table tr:hover {
+  background: var(--bg-secondary);
+}
+
+.entity-table tr:last-child td {
+  border-bottom: none;
+}
+
+.entity-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.entity-field:last-child {
+  border-bottom: none;
+}
+
+.entity-field-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.entity-field-value {
+  font-size: var(--text-sm);
+  color: var(--text);
+  word-break: break-word;
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--sp-8) var(--sp-4);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.error-state {
+  text-align: center;
+  padding: var(--sp-8) var(--sp-4);
+  color: var(--error);
+  font-size: var(--text-sm);
+}
+
+/* ═══════════════════════════════════════════════════════════
    Language Toggle
    ═══════════════════════════════════════════════════════════ */
 
