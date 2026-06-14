@@ -90,9 +90,9 @@ const translations: Record<Lang, Record<string, string>> = {
     // Mode Chooser
     'chooser.title': 'What would you like to do?',
     'chooser.desc': 'Choose how you want to use HelpingPeopleNow.',
-    'chooser.worker.label': 'Set Up as a Worker',
+    'chooser.worker.label': 'I am a Worker',
     'chooser.worker.desc': 'Build your professional profile through a quick chat.',
-    'chooser.client.label': 'Set Up as a Client',
+    'chooser.client.label': 'I am a Client',
     'chooser.client.desc': 'Create your client profile so professionals can find you.',
     'chooser.search.label': 'Find a Professional',
     'chooser.search.desc': 'Search for verified workers in your area.',
