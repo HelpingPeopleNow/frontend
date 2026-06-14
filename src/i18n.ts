@@ -297,9 +297,9 @@ const translations: Record<Lang, Record<string, string>> = {
     // Mode Chooser
     'chooser.title': '¿Qué te gustaría hacer?',
     'chooser.desc': 'Elige cómo quieres usar HelpingPeopleNow.',
-    'chooser.worker.label': 'Registrarme como Trabajador',
+    'chooser.worker.label': 'Soy Trabajador',
     'chooser.worker.desc': 'Crea tu perfil profesional en una conversación rápida.',
-    'chooser.client.label': 'Registrarme como Cliente',
+    'chooser.client.label': 'Soy Cliente',
     'chooser.client.desc': 'Crea tu perfil de cliente para que los profesionales te encuentren.',
     'chooser.search.label': 'Buscar un Profesional',
     'chooser.search.desc': 'Busca profesionales verificados en tu zona.',
