@@ -22,12 +22,12 @@ Preact + Vite SPA served behind nginx. Dark-themed home-services platform where 
 
 | Route | Component | Auth Required | Description |
 |-------|-----------|:---:|-------------|
+| `/` | `LandingPage.tsx` | No | Landing page — redirects to `/chat` if logged in |
 | `/login` | `LoginPage.tsx` | No | Magic-link login form |
 | `/signup` | `SignupPage.tsx` | No | Registration form |
-| `/` | `ChatPage.tsx` | Yes | AI chat interface — the entry point for role detection |
+| `/chat` | `ChatPage.tsx` | Yes | AI chat — modes via `?mode=` param: `worker_intake`, `client_intake`, `search` |
+| `/find` | `FindPage.tsx` | Yes | Find professionals — worker card grid |
 | `/admin` | `AdminPage.tsx` | Yes | Admin panel — edit system prompts + switch LLM provider |
-| `/worker` | `WorkerPage.tsx` | Yes | Worker dashboard — read-only profile cards + intake chat |
-| `/client` | `ClientPage.tsx` | Yes | Client dashboard — read-only profile cards + intake chat |
 
 ---
 
@@ -37,11 +37,11 @@ Preact + Vite SPA served behind nginx. Dark-themed home-services platform where 
 Browser ──► Traefik (:80)
               │
               ├── /api/v1/*      ──► Backend (:8081)
-              │                       ├── /chat
               │                       ├── /worker/chat
               │                       ├── /worker/profile
               │                       ├── /client/chat
               │                       ├── /client/profile
+              │                       ├── /client/find-chat
               │                       ├── /system-prompts
               │                       ├── /user/reset-role
               │                       └── /conversations
@@ -68,7 +68,15 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 2. Clicking the magic link creates a session cookie (`better-auth-session`)
 3. `AuthProvider` checks the session on every route change
 4. `ProtectedRoute` wrapper redirects to `/login` if no valid session
-5. After role detection via chat, the frontend checks `session.user.role` and redirects to `/worker` or `/client`
+5. After login, user lands on LandingPage → navigates to `/chat`
+6. `ModeChooser` (shown when no `?mode=` query param) displays: 'I am a Worker', 'I am a Client', 'Find a Professional'
+
+### Internationalization (i18n)
+
+- Spanish is the default language (configurable via `LangToggle` in sidebar)
+- Single `i18n.ts` file with translations, language context, `useLanguage()` hook, and toggle
+- All UI text uses `t()` from `useLanguage()` for translated strings
+- Chat requests include a `lang` parameter so the AI responds in the matching language
 
 ---
 
@@ -82,8 +90,6 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 | `src/auth.ts` | Auth helpers — signup, login (magic link request), session check |
 | `src/ChatPage.tsx` | Chat UI — message list, input box, API integration with role detection |
 | `src/AdminPage.tsx` | System prompt editor — edit `helper_prompt` + switch `llm_provider` via dropdown |
-| `src/WorkerPage.tsx` | Worker dashboard — read-only profile cards + intake chat panel (two-column layout) |
-| `src/ClientPage.tsx` | Client dashboard — read-only profile cards + intake chat panel |
 | `src/LoginPage.tsx` | Magic-link login — email input, send link |
 | `src/SignupPage.tsx` | Registration form — name, email, submit |
 | `src/i18n.ts` | Internationalization — translations, language toggle |

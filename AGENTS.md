@@ -54,8 +54,8 @@ Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime. CI builds + push
 - `ChatPage` reads `mode` from `window.location.search` (`?mode=worker_intake`, `?mode=client_intake`, `?mode=search`)
 - `ChatPage` shows `ModeChooser` when no `?mode=` query param is present
 - `FindPage` hardcodes `mode: 'search'` and renders worker cards grid
-- `ModeChooser` shows three buttons for authenticated users: "Set Up as a Worker", "Set Up as a Client", "Find a Professional"
-- `LandingPage` redirects logged-in users to `/chat`
+- `ModeChooser` shows three buttons for authenticated users: "I am a Worker" / "Soy Trabajador", "I am a Client" / "Soy Cliente", "Find a Professional"
+- `LandingPage` shows a welcome page with `ModeChooser` for logged-in users, hero section for visitors
 - AdminPage also has a link to Adminer (DB admin tool) at `/adminer`
+- `useLanguage()` hook returns `{ lang, setLang, t }`. Spanish is the default language. All chat requests include `lang` in body so the backend instructs AI to respond in the matching language.
 - nginx SPA fallback: `try_files $uri /index.html`
-- `/worker` and `/client` routes are removed — visiting them shows blank pages (no SPA route match)
