@@ -4,6 +4,7 @@ import { useAuth } from './AuthProvider';
 import { useLanguage } from './i18n';
 
 export default function SignupPage({ onNavigate }: { onNavigate: (path: string) => void }) {
+  document.title = `Create Account | HelpingPeopleNow`;
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);

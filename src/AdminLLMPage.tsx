@@ -7,13 +7,15 @@ const API = '/api';
 
 const PROVIDERS: { value: string; labelKey?: string; label?: string }[] = [
   { value: '', labelKey: 'admin.provider.default' },
-  { value: 'opencode', label: 'OpenCode (external)' },
+  { value: 'opencode1', label: 'OpenCode 1 (DeepSeek V4 Flash)' },
+  { value: 'opencode2', label: 'OpenCode 2 (Mimo V2.5)' },
   { value: 'ollama', label: 'Ollama (local)' },
   { value: 'mistral', label: 'Mistral (cloud)' },
 ];
 
 export default function AdminLLMPage() {
   const { t } = useLanguage();
+  document.title = `Admin - LLM Provider | HelpingPeopleNow`;
   const [provider, setProvider] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');

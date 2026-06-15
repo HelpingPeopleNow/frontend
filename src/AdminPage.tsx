@@ -4,6 +4,7 @@ import AppShell from './AppShell';
 
 export default function AdminPage() {
   const { t } = useLanguage();
+  document.title = `Admin | HelpingPeopleNow`;
 
   return (
     <AppShell currentPath="/admin" title="Admin">

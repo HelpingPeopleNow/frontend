@@ -30,6 +30,15 @@ interface WorkerCard {
 export default function ChatPage() {
   const { session } = useAuth();
   const { t, lang } = useLanguage();
+
+  // Determine mode from URL query params
+  const params = new URLSearchParams(window.location.search);
+  const modeParam = params.get('mode') as 'worker_intake' | 'client_intake' | null;
+
+  const mode = modeParam;
+  const convType = mode === 'worker_intake' ? 'worker' : mode === 'client_intake' ? 'client' : 'client';
+
+  // ── All hooks (must be unconditional) ──────────────────────────────
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -39,27 +48,22 @@ export default function ChatPage() {
   const [promptsCheck, setPromptsCheck] = useState<'loading' | 'ok' | 'missing'>('loading');
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Determine mode from URL query params
-  const params = new URLSearchParams(window.location.search);
-  const modeParam = params.get('mode') as 'worker_intake' | 'client_intake' | null;
-
-  // If no mode selected, show the chooser
-  if (!modeParam) {
-    return (
-      <AppShell currentPath="/" title={t('app.title')}>
-        <ModeChooser />
-      </AppShell>
-    );
-  }
-
-  const mode = modeParam;
-  const convType = mode === 'worker_intake' ? 'worker' : 'client';
-
-  // ── Voice input state ─────────────────────────────────────────────
   const [isRecording, setIsRecording] = useState(false);
   const [micSupported, setMicSupported] = useState(false);
   const recognitionRef = useRef<any>(null);
+
+  // Set browser tab title (useEffect to ensure URL is fully resolved)
+  useEffect(() => {
+    const mp = new URLSearchParams(window.location.search).get('mode');
+    console.log('[Chat] title effect, mode:', mp, 'url:', window.location.href);
+    if (mp === 'worker_intake') {
+      document.title = `${t('worker.title')} | HelpingPeopleNow`;
+    } else if (mp === 'client_intake') {
+      document.title = `${t('client.title')} | HelpingPeopleNow`;
+    } else {
+      document.title = `HelpingPeopleNow`;
+    }
+  });
 
   useEffect(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -274,9 +278,21 @@ export default function ChatPage() {
     }
   };
 
+  // ── Conditional rendering (after all hooks) ────────────────────────
+
+  const pageHeading = modeParam === 'worker_intake' ? t('worker.title') : modeParam === 'client_intake' ? t('client.title') : t('chooser.title');
+
+  if (!modeParam) {
+    return (
+      <AppShell currentPath="/" title={t('chooser.title')}>
+        <ModeChooser />
+      </AppShell>
+    );
+  }
+
   if (promptsCheck === 'missing') {
     return (
-      <AppShell currentPath="/" title={t('app.title')}>
+      <AppShell currentPath="/" title={pageHeading}>
         <div class="prompts-missing">
           <div class="prompts-missing-card">
             <div class="prompts-missing-icon">⚠️</div>
@@ -289,7 +305,7 @@ export default function ChatPage() {
   }
 
   return (
-    <AppShell currentPath="/" title={t('app.title')}>
+    <AppShell currentPath="/" title={pageHeading}>
       <div class="chat-container">
         <div class="chat-messages" ref={listRef}>
           {messages.length === 0 && !initialLoading ? (

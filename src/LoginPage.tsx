@@ -4,6 +4,7 @@ import { useAuth } from './AuthProvider';
 import { useLanguage } from './i18n';
 
 export default function LoginPage({ onNavigate }: { onNavigate: (path: string) => void }) {
+  document.title = `Sign In | HelpingPeopleNow`;
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);

@@ -35,6 +35,8 @@ export default function FindPage() {
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  document.title = `${t('find.title')} | HelpingPeopleNow`;
+
   // ── Voice input state ─────────────────────────────────────────────
   const [isRecording, setIsRecording] = useState(false);
   const [micSupported, setMicSupported] = useState(false);

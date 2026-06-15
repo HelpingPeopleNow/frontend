@@ -1,4 +1,5 @@
 import { h } from 'preact';
+import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useLanguage } from './i18n';
 import { useAuth } from './AuthProvider';
@@ -7,6 +8,10 @@ import ModeChooser from './ModeChooser';
 export default function LandingPage() {
   const { t } = useLanguage();
   const { session, loading } = useAuth();
+
+  useEffect(() => {
+    document.title = `HelpingPeopleNow — Trusted Home Services`;
+  }, []);
 
   if (loading) {
     return <div class="loading" style={{ minHeight: '100vh' }}><div class="spinner" /></div>;
