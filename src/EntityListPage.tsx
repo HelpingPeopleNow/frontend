@@ -13,9 +13,10 @@ interface Props {
   idKey?: string;       // ID column name (default: "id")
   backTo?: string;      // Back link (default: "/admin")
   labelFn?: (row: Record<string, any>) => string; // Custom label for each row
+  linkable?: boolean;   // Whether rows link to detail page (default: true)
 }
 
-export default function EntityListPage({ entity, title, columns, idKey = 'id', backTo = '/admin', labelFn }: Props) {
+export default function EntityListPage({ entity, title, columns, idKey = 'id', backTo = '/admin', labelFn, linkable = true }: Props) {
   const { t } = useLanguage();
   const [rows, setRows] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,11 +45,15 @@ export default function EntityListPage({ entity, title, columns, idKey = 'id', b
     }
   };
 
-  const formatVal = (v: any) => {
+  const formatVal = (v: any, col: string) => {
     if (v === null || v === undefined) return '—';
     if (typeof v === 'boolean') return v ? '✓' : '✗';
-    if (typeof v === 'string' && v.length > 60) return v.substring(0, 57) + '…';
-    return String(v);
+    const s = String(v);
+    if (col.toLowerCase().includes('id') && s.length > 8) {
+      return <span title={s} style={{ cursor: 'help' }}>{s.substring(0, 4)}…{s.substring(s.length - 4)}</span>;
+    }
+    if (s.length > 60) return s.substring(0, 57) + '…';
+    return s;
   };
 
   if (loading) return <AppShell currentPath="/admin" title="Admin"><div class="loading"><div class="spinner" /></div></AppShell>;
@@ -74,9 +79,9 @@ export default function EntityListPage({ entity, title, columns, idKey = 'id', b
               </thead>
               <tbody>
                 {rows.map((row, idx) => (
-                  <tr key={String(row[idKey]) || idx} onClick={() => handleClick(row[idKey])} style={{ cursor: 'pointer' }}>
+                  <tr key={String(row[idKey]) || idx} onClick={linkable ? () => handleClick(row[idKey]) : undefined} style={{ cursor: linkable ? 'pointer' : 'default' }}>
                     {columns.map(col => (
-                      <td key={col}>{formatVal(row[col])}</td>
+                      <td key={col}>{formatVal(row[col], col)}</td>
                     ))}
                     <td>
                       <button

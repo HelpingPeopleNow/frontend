@@ -11,6 +11,7 @@ export default function ConversationsPage() {
       columns={["id", "user_id", "type", "created_at", "updated_at"]}
       idKey="id"
       backTo="/admin"
+      linkable={false}
     />
   );
 }

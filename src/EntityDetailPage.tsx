@@ -5,6 +5,7 @@ import { useLanguage } from './i18n';
 import AppShell from './AppShell';
 
 const API = '/api';
+const READONLY_KEYS = ['id', 'created_at', 'createdAt', 'updated_at', 'updatedAt', 'user_id', 'conversation_id'];
 
 interface Props {
   entity: string;
@@ -111,9 +112,10 @@ export default function EntityDetailPage({ entity, title, id, backTo, editable =
 
         <div class="admin-card">
           {keys.map(key => (
+            editing && READONLY_KEYS.includes(key) ? null : (
             <div class="entity-field" key={key}>
               <label class="entity-field-label">{key}</label>
-              {editing ? (
+              {editing && !READONLY_KEYS.includes(key) ? (
                 typeof data[key] === 'boolean' ? (
                   <select
                     class="input"
@@ -133,10 +135,19 @@ export default function EntityDetailPage({ entity, title, id, backTo, editable =
                 )
               ) : (
                 <div class="entity-field-value">
-                  {data[key] === null ? <span class="text-muted">null</span> : String(data[key])}
+                  {data[key] === null ? (
+                    <span class="text-muted">null</span>
+                  ) : key.toLowerCase().includes('id') && String(data[key]).length > 8 ? (
+                    <span title={String(data[key])} style={{ cursor: 'help' }}>
+                      {String(data[key]).substring(0, 4)}…{String(data[key]).substring(String(data[key]).length - 4)}
+                    </span>
+                  ) : (
+                    String(data[key])
+                  )}
                 </div>
               )}
             </div>
+            )
           ))}
         </div>
       </div>
