@@ -41,7 +41,7 @@ export default function ModeChooser() {
           <button
             key={m.mode}
             class="chooser-card"
-            onClick={() => route(m.route, true)}
+            onClick={() => route(m.route, false)}
           >
             <div class="chooser-card-icon">{m.icon}</div>
             <div class="chooser-card-label">{m.label}</div>
