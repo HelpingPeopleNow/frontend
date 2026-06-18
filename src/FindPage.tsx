@@ -155,7 +155,7 @@ export default function FindPage() {
         role: m.role,
         content: m.text,
       }));
-      const res = await fetch(`${API}/v1/client/find-chat`, {
+      const res = await fetch(`${API}/v1/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
