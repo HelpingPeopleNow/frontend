@@ -21,7 +21,7 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 - Console logging with component prefixes: `[Chat]`, `[Admin]`, `[Auth]`, `[Nav]`, `[ModeChooser]`
 - CSS-in-JS via `<style>` tags in each component; `src/style.css` is the shared design system
 - Worker profile stores arrays as JSON fields (certifications, languages, social_links)
-- `index.html` imports `/src/main.jsx` (Vite resolves `.tsx` internally)
+- `index.html` imports `/src/main.tsx`
 - Session cookie name: `better-auth.session_token` (expected by backend's `extractUserIDFromRequest`)
 
 ## Auth flow
