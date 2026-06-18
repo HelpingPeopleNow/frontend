@@ -55,7 +55,6 @@ export default function ChatPage() {
   // Set browser tab title (useEffect to ensure URL is fully resolved)
   useEffect(() => {
     const mp = new URLSearchParams(window.location.search).get('mode');
-    console.log('[Chat] title effect, mode:', mp, 'url:', window.location.href);
     if (mp === 'worker_intake') {
       document.title = `${t('worker.title')} | HelpingPeopleNow`;
     } else if (mp === 'client_intake') {

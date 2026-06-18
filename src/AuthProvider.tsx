@@ -27,7 +27,6 @@ export function AuthProvider({ children }: { children: h.JSX.Element }) {
   // On mount and after magic link redirect, check session
   useEffect(() => {
     getSession().then((s) => {
-      console.log('[Auth] session check:', s ? `user=${s.user.email}` : 'none');
       setSession(s);
       setLoading(false);
     });
