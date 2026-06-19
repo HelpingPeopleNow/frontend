@@ -3,8 +3,8 @@ import { useState, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
-
-const API = '/api';
+import { listEntities, deleteEntity } from './services/admin';
+import { ApiError } from './services/api';
 
 interface Props {
   entity: string;       // URL slug: "users", "worker-profiles", etc.
@@ -24,10 +24,12 @@ export default function EntityListPage({ entity, title, columns, idKey = 'id', b
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`${API}/v1/admin/${entity}?limit=200`)
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+    listEntities<Record<string, unknown>>(entity, 200)
       .then(data => { setRows(Array.isArray(data) ? data : []); setLoading(false); })
-      .catch(err => { setError(err.message); setLoading(false); });
+      .catch(err => {
+        const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
+        setError(msg); setLoading(false);
+      });
   }, [entity]);
 
   const handleClick = (id: any) => {
@@ -38,11 +40,11 @@ export default function EntityListPage({ entity, title, columns, idKey = 'id', b
     e.stopPropagation();
     if (!confirm(t('admin.confirm_delete') || 'Delete this record?')) return;
     try {
-      const res = await fetch(`${API}/v1/admin/${entity}/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await deleteEntity(entity, String(id));
       setRows(prev => prev.filter(r => String(r[idKey]) !== String(id)));
-    } catch (err: any) {
-      alert(`Delete failed: ${err.message}`);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
+      alert(`Delete failed: ${msg}`);
     }
   };
 

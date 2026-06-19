@@ -3,8 +3,8 @@ import { useState, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
-
-const API = '/api';
+import { getEntity, updateEntity, deleteEntity } from './services/admin';
+import { ApiError } from './services/api';
 const READONLY_KEYS = ['id', 'created_at', 'createdAt', 'updated_at', 'updatedAt', 'user_id', 'conversation_id'];
 
 interface Props {
@@ -28,28 +28,23 @@ export default function EntityDetailPage({ entity, title, id, backTo, editable =
   const listPath = backTo || `/admin/${entity}`;
 
   useEffect(() => {
-    fetch(`${API}/v1/admin/${entity}/${id}`)
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+    getEntity<Record<string, unknown>>(entity, id)
       .then(d => { setData(d); setForm(d); setLoading(false); })
-      .catch(err => { setError(err.message); setLoading(false); });
+      .catch(err => {
+        const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
+        setError(msg); setLoading(false);
+      });
   }, [entity, id]);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${API}/v1/admin/${entity}/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `HTTP ${res.status}`);
-      }
+      await updateEntity(entity, id, form);
       setData(form);
       setEditing(false);
-    } catch (err: any) {
-      alert(`Save failed: ${err.message}`);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
+      alert(`Save failed: ${msg}`);
     } finally {
       setSaving(false);
     }
@@ -58,11 +53,11 @@ export default function EntityDetailPage({ entity, title, id, backTo, editable =
   const handleDelete = async () => {
     if (!confirm(t('admin.confirm_delete') || 'Delete this record?')) return;
     try {
-      const res = await fetch(`${API}/v1/admin/${entity}/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await deleteEntity(entity, id);
       route(listPath);
-    } catch (err: any) {
-      alert(`Delete failed: ${err.message}`);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
+      alert(`Delete failed: ${msg}`);
     }
   };
 

@@ -2,17 +2,8 @@ import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
-
-const API = '/api';
-
-interface SystemPrompts {
-  worker_profile_prompt: string;
-  client_profile_prompt: string;
-  find_trader_search_prompt: string;
-  find_trader_presentation_prompt: string;
-  llm_provider: string;
-  [key: string]: string;
-}
+import { getSystemPrompts, updateSystemPromptColumn, SystemPromptDTO } from './services/systemPrompts';
+import { ApiError } from './services/api';
 
 const promptMeta = [
   { key: 'worker_profile_prompt', labelKey: 'admin.prompt.worker', descKey: 'admin.worker.desc' },
@@ -24,15 +15,14 @@ const promptMeta = [
 export default function AdminPromptsPage() {
   const { t } = useLanguage();
   document.title = `Admin - System Prompts | HelpingPeopleNow`;
-  const [prompts, setPrompts] = useState<SystemPrompts | null>(null);
+  const [prompts, setPrompts] = useState<SystemPromptDTO | null>(null);
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    fetch(`${API}/v1/system-prompts`)
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then((data: SystemPrompts) => {
+    getSystemPrompts()
+      .then((data) => {
         setPrompts(data);
         setEditing({
           worker_profile_prompt: data.worker_profile_prompt || '',
@@ -47,19 +37,10 @@ export default function AdminPromptsPage() {
   const handleSave = async (col: string) => {
     setSaving(col);
     try {
-      const res = await fetch(`${API}/v1/system-prompts/${col.replace('_prompt', '')}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: editing[col] }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setMessage(`✓ ${t(labelFor(col))} updated`);
-      } else {
-        setMessage(`✕ ${data.error || 'update failed'}`);
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'request failed';
+      await updateSystemPromptColumn(col.replace('_prompt', ''), editing[col] || '');
+      setMessage(`✓ ${t(labelFor(col))} updated`);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
       setMessage(`✕ ${msg}`);
     } finally {
       setSaving(null);

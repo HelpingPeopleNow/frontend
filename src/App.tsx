@@ -2,6 +2,7 @@ import { h } from 'preact';
 import { Router, Route, route } from 'preact-router';
 import { useEffect } from 'preact/hooks';
 import { AuthProvider, useAuth } from './AuthProvider';
+import ErrorBoundary from './components/ErrorBoundary';
 import LandingPage from './LandingPage';
 import ChatPage from './ChatPage';
 import FindPage from './FindPage';
@@ -20,6 +21,9 @@ import MessagesPage from './MessagesPage';
 import MessageDetailPage from './MessageDetailPage';
 import LoginPage from './LoginPage';
 import SignupPage from './SignupPage';
+import WorkerContactPage from './pages/WorkerContactPage';
+import InboxPage from './pages/InboxPage';
+import DirectMessagePage from './pages/DirectMessagePage';
 
 function ProtectedRoute({ component: Component, ...props }: any) {
   const { session, loading } = useAuth();
@@ -45,33 +49,38 @@ function AppRouter() {
       <Route path="/" component={LandingPage} />
       <Route path="/login" component={LoginPage} onNavigate={(p: string) => route(p)} />
       <Route path="/signup" component={SignupPage} onNavigate={(p: string) => route(p)} />
-      <Route path="/chat" component={() => <ProtectedRoute component={ChatPage} />} />
-      <Route path="/find" component={() => <ProtectedRoute component={FindPage} />} />
+      <Route path="/chat" component={() => <ErrorBoundary><ProtectedRoute component={ChatPage} /></ErrorBoundary>} />
+      <Route path="/find" component={() => <ErrorBoundary><ProtectedRoute component={FindPage} /></ErrorBoundary>} />
+
+      {/* Direct Messages */}
+      <Route path="/inbox" component={() => <ErrorBoundary><ProtectedRoute component={InboxPage} /></ErrorBoundary>} />
+      <Route path="/inbox/:convId" component={({ convId }: { convId: string }) => <ErrorBoundary><ProtectedRoute component={DirectMessagePage} convId={convId} /></ErrorBoundary>} />
+      <Route path="/workers/:workerId" component={({ workerId }: { workerId: string }) => <ErrorBoundary><ProtectedRoute component={WorkerContactPage} workerId={workerId} /></ErrorBoundary>} />
 
       {/* Admin */}
-      <Route path="/admin" component={() => <ProtectedRoute component={AdminPage} />} />
-      <Route path="/admin/llm" component={() => <ProtectedRoute component={AdminLLMPage} />} />
-      <Route path="/admin/prompts" component={() => <ProtectedRoute component={AdminPromptsPage} />} />
+      <Route path="/admin" component={() => <ErrorBoundary><ProtectedRoute component={AdminPage} /></ErrorBoundary>} />
+      <Route path="/admin/llm" component={() => <ErrorBoundary><ProtectedRoute component={AdminLLMPage} /></ErrorBoundary>} />
+      <Route path="/admin/prompts" component={() => <ErrorBoundary><ProtectedRoute component={AdminPromptsPage} /></ErrorBoundary>} />
 
       {/* Users */}
-      <Route path="/admin/users" component={() => <ProtectedRoute component={UsersPage} />} />
-      <Route path="/admin/users/:id" component={({ id }: { id: string }) => <ProtectedRoute component={UserDetailPage} id={id} />} />
+      <Route path="/admin/users" component={() => <ErrorBoundary><ProtectedRoute component={UsersPage} /></ErrorBoundary>} />
+      <Route path="/admin/users/:id" component={({ id }: { id: string }) => <ErrorBoundary><ProtectedRoute component={UserDetailPage} id={id} /></ErrorBoundary>} />
 
       {/* Workers */}
-      <Route path="/admin/worker-profiles" component={() => <ProtectedRoute component={WorkersPage} />} />
-      <Route path="/admin/worker-profiles/:id" component={({ id }: { id: string }) => <ProtectedRoute component={WorkerDetailPage} id={id} />} />
+      <Route path="/admin/worker-profiles" component={() => <ErrorBoundary><ProtectedRoute component={WorkersPage} /></ErrorBoundary>} />
+      <Route path="/admin/worker-profiles/:id" component={({ id }: { id: string }) => <ErrorBoundary><ProtectedRoute component={WorkerDetailPage} id={id} /></ErrorBoundary>} />
 
       {/* Clients */}
-      <Route path="/admin/client-profiles" component={() => <ProtectedRoute component={ClientsPage} />} />
-      <Route path="/admin/client-profiles/:id" component={({ id }: { id: string }) => <ProtectedRoute component={ClientDetailPage} id={id} />} />
+      <Route path="/admin/client-profiles" component={() => <ErrorBoundary><ProtectedRoute component={ClientsPage} /></ErrorBoundary>} />
+      <Route path="/admin/client-profiles/:id" component={({ id }: { id: string }) => <ErrorBoundary><ProtectedRoute component={ClientDetailPage} id={id} /></ErrorBoundary>} />
 
       {/* Conversations */}
-      <Route path="/admin/conversations" component={() => <ProtectedRoute component={ConversationsPage} />} />
-      <Route path="/admin/conversations/:id" component={({ id }: { id: string }) => <ProtectedRoute component={ConversationDetailPage} id={id} />} />
+      <Route path="/admin/conversations" component={() => <ErrorBoundary><ProtectedRoute component={ConversationsPage} /></ErrorBoundary>} />
+      <Route path="/admin/conversations/:id" component={({ id }: { id: string }) => <ErrorBoundary><ProtectedRoute component={ConversationDetailPage} id={id} /></ErrorBoundary>} />
 
       {/* Messages */}
-      <Route path="/admin/messages" component={() => <ProtectedRoute component={MessagesPage} />} />
-      <Route path="/admin/messages/:id" component={({ id }: { id: string }) => <ProtectedRoute component={MessageDetailPage} id={id} />} />
+      <Route path="/admin/messages" component={() => <ErrorBoundary><ProtectedRoute component={MessagesPage} /></ErrorBoundary>} />
+      <Route path="/admin/messages/:id" component={({ id }: { id: string }) => <ErrorBoundary><ProtectedRoute component={MessageDetailPage} id={id} /></ErrorBoundary>} />
     </Router>
   );
 }

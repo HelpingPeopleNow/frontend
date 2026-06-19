@@ -2,8 +2,8 @@ import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
-
-const API = '/api';
+import { getSystemPrompts, updateLlmProvider } from './services/systemPrompts';
+import { ApiError } from './services/api';
 
 const PROVIDERS: { value: string; labelKey?: string; label?: string }[] = [
   { value: '', labelKey: 'admin.provider.default' },
@@ -21,8 +21,7 @@ export default function AdminLLMPage() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    fetch(`${API}/v1/system-prompts`)
-      .then(r => r.ok ? r.json() : Promise.reject())
+    getSystemPrompts()
       .then((data) => setProvider(data.llm_provider ?? ''))
       .catch(() => setMessage(t('admin.load.error')));
   }, []);
@@ -30,21 +29,12 @@ export default function AdminLLMPage() {
   const handleProviderSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${API}/v1/system-prompts/provider`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: provider }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        const label = PROVIDERS.find(p => p.value === provider);
-        setMessage(`✓ LLM Provider changed to ${label?.label ?? provider ?? 'default'}`);
-        if (data.llm_provider !== undefined) setProvider(data.llm_provider);
-      } else {
-        setMessage(`✕ ${data.error || 'update failed'}`);
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'request failed';
+      const data = await updateLlmProvider(provider);
+      const label = PROVIDERS.find(p => p.value === provider);
+      setMessage(`✓ LLM Provider changed to ${label?.label ?? provider ?? 'default'}`);
+      if (data.llm_provider !== undefined) setProvider(data.llm_provider);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
       setMessage(`✕ ${msg}`);
     } finally {
       setSaving(false);

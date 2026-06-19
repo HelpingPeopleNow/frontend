@@ -40,6 +40,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'nav.admin': 'Admin',
     'nav.chat': 'Chat',
     'nav.find': 'Find a Pro',
+    'nav.inbox': 'Messages',
     'nav.back': '← Back',
 
     // Admin Page
@@ -234,6 +235,32 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.prompts.title': 'System Prompts Missing',
     'worker.card.years_exp': 'years exp.',
     'auth.placeholder.name': 'Your name',
+
+    // Direct Messages
+    'dm.inbox.title': 'Messages',
+    'dm.inbox.empty.title': 'No messages yet',
+    'dm.inbox.empty.desc': 'When you contact a professional or receive a message, it will appear here.',
+    'dm.thread.empty': 'No messages yet. Say hello!',
+    'dm.thread.unknown': 'User',
+    'dm.placeholder': 'Type a message...',
+    'dm.role.client': 'Client',
+    'dm.role.worker': 'Worker',
+    'dm.contact.loading': 'Opening conversation...',
+    'dm.contact.error': 'Could not start conversation',
+    'dm.contact.error.title': 'Something went wrong',
+    'dm.contact.back': 'Back to search',
+    'dm.block': 'Block',
+    'dm.block.title': 'Block this conversation?',
+    'dm.block.desc': 'You will no longer receive messages from this user.',
+    'dm.report': 'Report',
+    'dm.report.title': 'Report this conversation',
+    'dm.report.desc': 'This will be reviewed by our moderation team.',
+    'dm.archive': 'Archive',
+    'dm.rate.limited': 'Sending too fast — please wait a moment.',
+    'dm.status.open': 'Live',
+    'dm.status.connecting': 'Connecting…',
+    'dm.status.polling': 'Checking for messages',
+    'dm.status.disconnected': 'Offline',
   },
 
   es: {
@@ -269,6 +296,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'nav.admin': 'Admin',
     'nav.chat': 'Chat',
     'nav.find': 'Buscar Profesional',
+    'nav.inbox': 'Mensajes',
     'nav.back': '← Volver',
 
     // Admin Page
@@ -463,6 +491,32 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.prompts.title': 'Faltan Prompts del Sistema',
     'worker.card.years_exp': 'años de exp.',
     'auth.placeholder.name': 'Tu nombre',
+
+    // Direct Messages
+    'dm.inbox.title': 'Mensajes',
+    'dm.inbox.empty.title': 'No hay mensajes',
+    'dm.inbox.empty.desc': 'Cuando contactes con un profesional o recibas un mensaje, aparecerá aquí.',
+    'dm.thread.empty': 'No hay mensajes aún. ¡Saluda!',
+    'dm.thread.unknown': 'Usuario',
+    'dm.placeholder': 'Escribe un mensaje...',
+    'dm.role.client': 'Cliente',
+    'dm.role.worker': 'Profesional',
+    'dm.contact.loading': 'Abriendo conversación...',
+    'dm.contact.error': 'No se pudo iniciar la conversación',
+    'dm.contact.error.title': 'Algo salió mal',
+    'dm.contact.back': 'Volver a la búsqueda',
+    'dm.block': 'Bloquear',
+    'dm.block.title': '¿Bloquear esta conversación?',
+    'dm.block.desc': 'Ya no recibirás mensajes de este usuario.',
+    'dm.report': 'Reportar',
+    'dm.report.title': 'Reportar esta conversación',
+    'dm.report.desc': 'Será revisado por nuestro equipo de moderación.',
+    'dm.archive': 'Archivar',
+    'dm.rate.limited': 'Enviando demasiado rápido — espera un momento.',
+    'dm.status.open': 'En vivo',
+    'dm.status.connecting': 'Conectando…',
+    'dm.status.polling': 'Buscando mensajes',
+    'dm.status.disconnected': 'Desconectado',
   },
 };
 

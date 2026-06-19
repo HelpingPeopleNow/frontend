@@ -3,6 +3,7 @@ import { useState } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useAuth } from './AuthProvider';
 import { useLanguage, LangToggle } from './i18n';
+import { useDirectMessages } from './store/directMessages';
 
 interface AppShellProps {
   children: ComponentChildren;
@@ -14,10 +15,12 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
   const { session, logout } = useAuth();
   const { t } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const unreadTotal = useDirectMessages(s => s.unreadTotal);
 
   const navItems = [
     { path: '/chat', icon: '💬', label: t('nav.chat') },
     { path: '/find', icon: '🔍', label: t('nav.find') },
+    { path: '/inbox', icon: '✉️', label: t('nav.inbox'), badge: unreadTotal },
     { path: '/admin', icon: '⚙️', label: t('nav.admin') },
   ];
 
@@ -60,6 +63,9 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
             >
               <span class="icon">{item.icon}</span>
               <span class="label">{item.label}</span>
+              {('badge' in item ? (item.badge as number) : 0) > 0 && (
+                <span class="nav-badge">{item.badge as number}</span>
+              )}
             </button>
           ))}
         </nav>
