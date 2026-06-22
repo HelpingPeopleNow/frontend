@@ -14,7 +14,7 @@ const promptMeta = [
 
 export default function AdminPromptsPage() {
   const { t } = useLanguage();
-  document.title = `Admin - System Prompts | HelpingPeopleNow`;
+  document.title = `Admin - System Prompts | Helping People`;
   const [prompts, setPrompts] = useState<SystemPromptDTO | null>(null);
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<string | null>(null);

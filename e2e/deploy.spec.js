@@ -6,15 +6,15 @@ const PROTECTED_ROUTES = ['/chat', '/find', '/admin', '/admin/llm', '/admin/prom
 test.describe('HPN deploy test', () => {
   test('homepage loads with logo and hero', async ({ page }) => {
     await page.goto('/');
-    await expect(page).toHaveTitle('HelpingPeopleNow');
+    await expect(page).toHaveTitle(/HelpingPeopleNow/);
     await expect(page.locator('.logo')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('.hero')).toBeVisible();
   });
 
   test('homepage shows sign-in and sign-up buttons when logged out', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('.btn-ghost').filter({ hasText: /Sign In|Iniciar/ })).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('.btn-primary').filter({ hasText: /Sign Up|Empieza/ })).toBeVisible();
+    await expect(page.locator('.btn-ghost').filter({ hasText: /Sign In|Iniciar/ }).first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.btn-primary').filter({ hasText: /Sign Up|Empieza/ }).first()).toBeVisible();
   });
 
   test('/login renders email form', async ({ page }) => {

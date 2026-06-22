@@ -18,7 +18,7 @@ interface Props {
 
 export default function EntityListPage({ entity, title, columns, idKey = 'id', backTo = '/admin', labelFn, linkable = true }: Props) {
   const { t } = useLanguage();
-  document.title = `Admin - ${title.replace(/^[^\s]+\s/, '')} | HelpingPeopleNow`;
+  document.title = `Admin - ${title.replace(/^[^\s]+\s/, '')} | Helping People`;
   const [rows, setRows] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

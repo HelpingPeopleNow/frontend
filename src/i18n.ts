@@ -9,7 +9,7 @@ const STORAGE_KEY = 'hermes_lang';
 const translations: Record<Lang, Record<string, string>> = {
   en: {
     // App / Auth
-    'app.title': 'HelpingPeopleNow',
+    'app.title': 'Helping People',
     'auth.checking': 'Checking authentication...',
     'auth.loading': 'Loading...',
     'auth.signin': 'Sign In',
@@ -112,7 +112,7 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // Mode Chooser
     'chooser.title': 'What would you like to do?',
-    'chooser.desc': 'Choose how you want to use HelpingPeopleNow.',
+    'chooser.desc': 'Choose how you want to use Helping People.',
     'chooser.worker.label': 'I am a Worker',
     'chooser.worker.desc': 'Build your professional profile through a quick chat.',
     'chooser.client.label': 'I am a Client',
@@ -265,7 +265,7 @@ const translations: Record<Lang, Record<string, string>> = {
 
   es: {
     // App / Auth
-    'app.title': 'HelpingPeopleNow',
+    'app.title': 'Helping People',
     'auth.checking': 'Verificando autenticación...',
     'auth.loading': 'Cargando...',
     'auth.signin': 'Iniciar Sesión',
@@ -368,7 +368,7 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // Mode Chooser
     'chooser.title': '¿Qué te gustaría hacer?',
-    'chooser.desc': 'Elige cómo quieres usar HelpingPeopleNow.',
+    'chooser.desc': 'Elige cómo quieres usar Helping People.',
     'chooser.worker.label': 'Soy Trabajador',
     'chooser.worker.desc': 'Crea tu perfil profesional en una conversación rápida.',
     'chooser.client.label': 'Soy Cliente',

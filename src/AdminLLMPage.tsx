@@ -15,7 +15,7 @@ const PROVIDERS: { value: string; labelKey?: string; label?: string }[] = [
 
 export default function AdminLLMPage() {
   const { t } = useLanguage();
-  document.title = `Admin - LLM Provider | HelpingPeopleNow`;
+  document.title = `Admin - LLM Provider | Helping People`;
   const [provider, setProvider] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');

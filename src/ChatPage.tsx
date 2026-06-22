@@ -36,9 +36,9 @@ export default function ChatPage() {
   });
 
   useEffect(() => {
-    if (modeParam === 'worker_intake') document.title = `${t('worker.title')} | HelpingPeopleNow`;
-    else if (modeParam === 'client_intake') document.title = `${t('client.title')} | HelpingPeopleNow`;
-    else document.title = `HelpingPeopleNow`;
+    if (modeParam === 'worker_intake') document.title = `${t('worker.title')} | Helping People`;
+    else if (modeParam === 'client_intake') document.title = `${t('client.title')} | Helping People`;
+    else document.title = `Helping People`;
   }, [modeParam, t]);
 
   const pageHeading =

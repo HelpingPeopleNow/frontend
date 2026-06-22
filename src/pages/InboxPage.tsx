@@ -12,7 +12,7 @@ export default function InboxPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  document.title = `${t('dm.inbox.title')} | HelpingPeopleNow`;
+  document.title = `${t('dm.inbox.title')} | Helping People`;
 
   useEffect(() => {
     loadInbox()

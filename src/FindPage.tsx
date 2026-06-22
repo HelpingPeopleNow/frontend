@@ -23,7 +23,7 @@ export default function FindPage() {
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  document.title = `${t('find.title')} | HelpingPeopleNow`;
+  document.title = `${t('find.title')} | Helping People`;
 
   const { isSupported: micSupported, isListening, toggle: toggleRecording, transcript } = useSpeechRecognition();
 

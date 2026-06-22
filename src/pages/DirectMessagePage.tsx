@@ -26,7 +26,7 @@ export default function DirectMessagePage({ convId }: Props) {
   const otherName = conv?.other_party?.name || t('dm.thread.unknown');
   const isBlocked = conv?.status === 'blocked';
 
-  document.title = `${otherName} | HelpingPeopleNow`;
+  document.title = `${otherName} | Helping People`;
 
   useEffect(() => {
     loadMessages(convId);

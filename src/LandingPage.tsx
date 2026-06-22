@@ -10,7 +10,7 @@ export default function LandingPage() {
   const { session, loading } = useAuth();
 
   useEffect(() => {
-    document.title = `HelpingPeopleNow — Trusted Home Services`;
+    document.title = `Helping People — Trusted Home Services`;
   }, []);
 
   if (loading) {
@@ -24,7 +24,7 @@ export default function LandingPage() {
         <nav class="landing-nav">
           <div class="logo">
             <span class="logo-mark">H</span>
-            <span>HelpingPeopleNow</span>
+            <span>Helping People</span>
           </div>
         </nav>
         <ModeChooser />
@@ -39,7 +39,7 @@ export default function LandingPage() {
       <nav class="landing-nav">
         <div class="logo">
           <span class="logo-mark">H</span>
-          <span>HelpingPeopleNow</span>
+          <span>Helping People</span>
         </div>
         <div class="landing-nav-links">
           <button class="btn btn-ghost btn-sm" onClick={() => route('/login')}>
@@ -210,7 +210,7 @@ export default function LandingPage() {
       {/* ── CTA ──────────────────────────────────────── */}
       <section class="landing-cta">
         <h2>¿Listo para encontrar a tu próximo profesional?</h2>
-        <p>Únete a miles de propietarios y profesionales que ya usan HelpingPeopleNow.</p>
+        <p>Únete a miles de propietarios y profesionales que ya usan Helping People.</p>
         <div class="hero-actions" style={{ justifyContent: 'center' }}>
           <button class="btn btn-primary btn-lg" onClick={() => route('/signup')}>
             Empieza Gratis Hoy
@@ -223,7 +223,7 @@ export default function LandingPage() {
 
       {/* ── Footer ───────────────────────────────────── */}
       <footer class="landing-footer">
-        <p>© 2026 HelpingPeopleNow. Todos los derechos reservados.</p>
+        <p>© 2026 Helping People. Todos los derechos reservados.</p>
       </footer>
     </div>
   );

@@ -1,4 +1,4 @@
-# HelpingPeopleNow Frontend
+# Helping People Frontend
 
 Preact + Vite SPA served behind nginx. Dark-themed home-services platform where clients find workers and workers find jobs. Connects to the Go backend via API proxied through Traefik.
 

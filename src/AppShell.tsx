@@ -49,7 +49,7 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
         <div class="sidebar-header">
           <button class="sidebar-logo" onClick={() => handleNav('/')}>
             <span class="logo-mark">H</span>
-            <span>HelpingPeopleNow</span>
+            <span>Helping People</span>
           </button>
         </div>
 
@@ -90,7 +90,7 @@ export default function AppShell({ children, currentPath, title }: AppShellProps
       <header class="mobile-header">
         <button class="logo" onClick={() => handleNav('/')}>
           <span class="logo-mark">H</span>
-          <span>HelpingPeopleNow</span>
+          <span>Helping People</span>
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
           <button class="hamburger" onClick={() => setSidebarOpen(!sidebarOpen)}>

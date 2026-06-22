@@ -17,7 +17,7 @@ interface Props {
 
 export default function EntityDetailPage({ entity, title, id, backTo, editable = true }: Props) {
   const { t } = useLanguage();
-  document.title = `Admin - ${title.replace(/^[^\s]+\s/, '')} #${id} | HelpingPeopleNow`;
+  document.title = `Admin - ${title.replace(/^[^\s]+\s/, '')} #${id} | Helping People`;
   const [data, setData] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);

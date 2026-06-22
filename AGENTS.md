@@ -1,6 +1,6 @@
 # frontend
 
-Preact + Vite SPA served behind nginx. Dark-themed chat interface for the HelpingPeopleNow platform.
+Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helping People platform.
 
 ## Routes
 
