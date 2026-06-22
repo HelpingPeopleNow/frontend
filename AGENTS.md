@@ -30,7 +30,7 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 ## Auth flow
 
 - `/api/auth/get-session` — session check on mount & route change
-- `/api/auth/sign-in/magic-link` — POST with `{ email, name?, callbackURL: '/' }`
+- `/api/auth/sign-in/magic-link` — POST with `{ email, callbackURL: '/', metadata: { lang } }`
 - `/api/auth/sign-out` — POST (best-effort, credentials: include)
 - `ProtectedRoute` redirects to `/login` if no session; shows "Checking authentication..." while loading
 
@@ -42,6 +42,12 @@ npm run dev          # Vite HMR on :5173
 npm run build        # production → dist/
 npm run preview      # preview production build
 npm run typecheck    # tsc --noEmit
+npm run lint         # eslint src/ tests/
+npm run test         # vitest (watch)
+npm run test:coverage  # vitest run --coverage
+npm run test:unit    # vitest run tests/unit
+npm run test:integration  # vitest run tests/integration
+npm run test:e2e     # playwright test
 ```
 
 ## Docker
@@ -50,7 +56,7 @@ npm run typecheck    # tsc --noEmit
 docker build -t ghcr.io/helpingpeoplenow/frontend:latest .
 ```
 
-Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime. CI builds + pushes on push to `main`.
+Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime. CI pipeline (`.github/workflows/ci.yml`): lint → typecheck → vitest (unit + integration) → Playwright e2e → docker build/push to ghcr. Subsumes the old `docker.yml`.
 
 ## Direct Messaging
 
@@ -72,4 +78,8 @@ Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime. CI builds + push
 - `LandingPage` shows a welcome page with `ModeChooser` for logged-in users, hero section for visitors
 - AdminPage also has a link to Adminer (DB admin tool) at `/adminer`
 - `useLanguage()` hook returns `{ lang, setLang, t }`. Spanish is the default language. All chat requests include `lang` in body so the backend instructs AI to respond in the matching language.
-- nginx SPA fallback: `try_files $uri /index.html`
+- nginx SPA fallback: `try_files $uri $uri/ /index.html`
+- `src/services/profiles.ts` is dead code — no component imports its functions. Profile read/reset happens via the chat handlers. Slated for removal.
+- `useDirectMessages` exposes a `tallyUnread(convId)` action that is never called by any component. Slated for removal.
+- `@types/react` and `@types/react-dom` are in `devDependencies` but the project uses Preact, not React. Slated for removal.
+- `ErrorBoundary` wraps all `<ProtectedRoute>` chains in `App.tsx` — no functional tests cover the error path today.

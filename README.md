@@ -2,7 +2,7 @@
 
 Preact + Vite SPA served behind nginx. Dark-themed home-services platform where clients find workers and workers find jobs. Connects to the Go backend via API proxied through Traefik.
 
-**URL:** `http://51.49.54.24` | **Container:** `nginx-hi-hermy`
+**URL:** `https://helpingpeoplenow.goodbytes.net` | **Container:** `nginx-hi-hermy`
 
 ---
 
@@ -27,7 +27,7 @@ Preact + Vite SPA served behind nginx. Dark-themed home-services platform where 
 | `/signup` | `SignupPage.tsx` | No | Registration form |
 | `/chat` | `ChatPage.tsx` | Yes | AI chat — modes via `?mode=` param: `worker_intake`, `client_intake`, `search` |
 | `/find` | `FindPage.tsx` | Yes | Find professionals — worker card grid |
-| `/admin` | `AdminPage.tsx` | Yes | Admin panel — edit system prompts + switch LLM provider |
+| `/admin` | `AdminPage.tsx` | Yes | Admin menu — links to LLM provider, prompts, and entity CRUD pages |
 
 ---
 
@@ -65,11 +65,10 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 ### Auth Flow
 
 1. User visits `/login` → enters email → auth service sends a magic link
-2. Clicking the magic link creates a session cookie (`better-auth-session`)
+2. Clicking the magic link creates a session cookie (`better-auth.session_token`)
 3. `AuthProvider` checks the session on every route change
 4. `ProtectedRoute` wrapper redirects to `/login` if no valid session
-5. After login, user lands on LandingPage → navigates to `/chat`
-6. `ModeChooser` (shown when no `?mode=` query param) displays: 'I am a Worker', 'I am a Client', 'Find a Professional'
+5. After login, user lands on LandingPage → `ModeChooser` (or navigates to `/chat?mode=...`)
 
 ### Internationalization (i18n)
 
@@ -86,10 +85,12 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 |------|---------|
 | `src/main.tsx` | App entry point |
 | `src/App.tsx` | Root component — router config + `AuthProvider` + `ProtectedRoute` wrapper |
-| `src/AuthProvider.tsx` | Session context — loads user from `/api/auth/session`, exposes `useAuth()` hook |
-| `src/auth.ts` | Auth helpers — signup, login (magic link request), session check |
-| `src/ChatPage.tsx` | Chat UI — message list, input box, API integration with role detection |
-| `src/AdminPage.tsx` | System prompt editor — edit `helper_prompt` + switch `llm_provider` via dropdown |
+| `src/AuthProvider.tsx` | Session context — loads user from `/api/auth/get-session`, exposes `useAuth()` hook |
+| `src/auth.ts` | Barrel re-export of services/auth — getSession, sendMagicLink, logout |
+| `src/ChatPage.tsx` | Chat UI — message list, input, mode-based routing (worker_intake/client_intake), SSE streaming |
+| `src/AdminPage.tsx` | Admin menu — links to `/admin/llm`, `/admin/prompts`, and entity CRUD pages |
+| `src/AdminLLMPage.tsx` | LLM provider dropdown — calls `PUT /api/v1/system-prompts/provider` |
+| `src/AdminPromptsPage.tsx` | 4-prompt textarea editor — calls `PUT /api/v1/system-prompts/{column}` |
 | `src/LoginPage.tsx` | Magic-link login — email input, send link |
 | `src/SignupPage.tsx` | Registration form — name, email, submit |
 | `src/i18n.ts` | Internationalization — translations, language toggle |
@@ -98,55 +99,18 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 
 ---
 
-## Role Detection Flow
-
-```
-1. User chats with the AI ("I am a plumber looking for work")
-       │
-2. ChatPage sends POST /api/v1/chat
-       │
-3. Backend returns { answer, detected_role: "worker" }
-       │
-4. ChatPage checks detected_role:
-       ├─ If "worker" → disable input, show profile button
-       └─ If "client" → disable input, show profile button
-       │
-5. Backend updates auth service (PUT .../role) → session.user.role = "worker"
-       │
-6. Frontend can redirect to /worker or /client using the session role
-```
-
----
-
 ## Worker Profile Intake Chat
 
-The Worker Page (`/worker`) uses a two-column layout:
+The Worker intake mode is reached via `/chat?mode=worker_intake`. The chat is the only UI — no separate `/worker` page exists.
 
-### Chat Panel (left column)
+### Chat Panel
 
 - Users type naturally: *"I'm a plumber in Madrid with 12 years experience"*
-- The LLM (with the `worker_profile_prompt`) asks follow-up questions to gather all fields
-- Every response includes a `[FIELDS]{json}[/FIELDS]` block with ALL known fields (cumulative)
-- The frontend parses `detected_fields` from the API response and displays them in the profile cards
+- The LLM (with the `worker_profile_prompt`) asks follow-up questions to gather all 22 fields
+- The LLM emits a `[FIELDS]{json}[/FIELDS]` block; the backend parses it and merges into the worker profile via map-based upsert
 - Previous conversations are loaded on mount from `GET /api/v1/conversations?type=worker&limit=1`
 
-### Profile Cards (right column)
-
-Read-only profile display with 5 sections:
-
-| Section | Fields |
-|---------|--------|
-| **Core** | Profession, Business Name, Bio, Phone |
-| **Location** | City, Address, Service Radius |
-| **Pricing** | Hourly Rate, Minimum Charge, Free Estimate |
-| **Credentials** | Years Experience, Certifications, Has Insurance, Languages |
-| **Online** | Website, Social Links |
-
-- No manual forms — all data comes from the chat conversation
-- "Reset Profile" button calls `DELETE /api/v1/worker/profile` to clear the profile
-- "Reset Role" button calls `PUT /api/v1/user/reset-role` to clear the user role and redirect to chat
-
-### Worker Profile Fields
+### Profile Field Coverage
 
 | Field | JSON key | Type |
 |-------|----------|------|
@@ -166,39 +130,23 @@ Read-only profile display with 5 sections:
 | Languages | `languages` | string[] |
 | Emergency | `emergency_service` | boolean |
 | Website | `website` | string |
-| Instagram | `instagram` | string |
-| Facebook | `facebook` | string |
-| Twitter | `twitter` | string |
-| LinkedIn | `linkedin` | string |
-| TikTok | `tiktok` | string |
-| YouTube | `youtube` | string |
+| Social Links | `social_links` | `{platform,url}[]` |
+
+- "Reset Profile" calls `DELETE /api/v1/worker/profile` (no `PUT` endpoint — chat handlers do the saving)
+- Chat request body includes `mode: "worker_intake"` and `lang`
 
 ---
 
 ## Client Profile Intake Chat
 
-The Client Page (`/client`) uses the same two-column layout as the Worker Page:
+The Client intake mode is reached via `/chat?mode=client_intake`. The chat is the only UI — no separate `/client` page exists.
 
-### Chat Panel (left column)
+### Chat Panel
 
 - Users describe what they need: *"I need help fixing my bathroom"*
 - The LLM (with the `client_profile_prompt`) asks follow-up questions to gather profile fields
-- Every response includes a `[FIELDS]{json}[/FIELDS]` block with ALL known fields
-- The frontend parses `detected_fields` from the API response and displays them in the profile cards
+- The LLM emits a `[FIELDS]{json}[/FIELDS]` block; the backend parses it and merges into the client profile
 - Previous conversations are loaded on mount from `GET /api/v1/conversations?type=client&limit=1`
-
-### Profile Cards (right column)
-
-Read-only profile display with 3 sections:
-
-| Section | Fields |
-|---------|--------|
-| **Personal** | Full Name, Phone |
-| **Location** | City, Address |
-| **About** | Bio, Preferred Contact, Property Type, Notes |
-
-- No manual forms — all data comes from the chat conversation
-- "Reset Profile" button calls `DELETE /api/v1/client/profile` to clear the profile
 
 ### Client Profile Fields
 
@@ -213,6 +161,9 @@ Read-only profile display with 3 sections:
 | Property Type | `property_type` | string |
 | Notes | `notes` | string |
 
+- "Reset Profile" calls `DELETE /api/v1/client/profile`
+- Chat request body includes `mode: "client_intake"` and `lang`
+
 ---
 
 ## Admin Page Features
@@ -224,18 +175,25 @@ Dropdown at the top of the admin page:
 | Option | Value | Behaviour |
 |--------|-------|-----------|
 | Default (auto) | `""` | Falls back to helper's auto fallback chain (Mistral → OpenCode → Ollama) |
+| OpenCode 1 | `"opencode1"` | Forces first OpenCode endpoint |
+| OpenCode 2 | `"opencode2"` | Forces second OpenCode endpoint |
+| Ollama (local) | `"ollama"` | Forces local Ollama |
 | Mistral (cloud) | `"mistral"` | Forces Mistral API (requires `MISTRAL_API_KEY`) |
-| OpenCode (external) | `"opencode"` | Forces OpenCode API regardless of env |
-| Ollama (local) | `"ollama"` | Forces local Ollama regardless of env |
 
 Changes take effect immediately — no container restart needed.
 
 ### Prompt Editor
 
-Textareas to edit:
-- `helper_prompt` — the system prompt sent to the LLM on every main chat request
-- `worker_profile_prompt` — the system prompt for worker profile intake
-- `client_profile_prompt` — the system prompt for client profile intake
+Textareas to edit (one per column in the `system_prompts` table):
+
+| Column | i18n key | Purpose |
+|--------|----------|---------|
+| `worker_profile_prompt` | `admin.prompt.worker` | System prompt for worker profile intake chat |
+| `client_profile_prompt` | `admin.prompt.client` | System prompt for client profile intake chat |
+| `find_trader_search_prompt` | `admin.prompt.find_trader_search` | First-pass search-params extraction |
+| `find_trader_presentation_prompt` | `admin.prompt.find_trader_presentation` | Second-pass results-presentation |
+
+Each textarea has a per-column Save button that calls `PUT /api/v1/system-prompts/{column}`.
 
 ---
 
@@ -264,12 +222,13 @@ Browser console logging with component prefixes:
 
 | Prefix | Component | Events |
 |--------|-----------|--------|
-| `[Chat]` | ChatPage | Request timing, answer length, detected_role, errors |
-| `[Worker]` | WorkerPage | Chat send/response, detected_fields, field merging |
-| `[Client]` | ClientPage | Chat send/response, detected_fields, field merging |
-| `[Admin]` | AdminPage | Prompt load/save, provider switch, timing |
-| `[Nav]` | App router | Route changes, auth redirects |
+| `[Chat]` | ChatPage | Request timing, answer length, mode, errors |
+| `[Admin]` | AdminLLMPage / AdminPromptsPage | Prompt load/save, provider switch, timing |
 | `[Auth]` | AuthProvider | Session check, login/logout, redirect |
+| `[Nav]` | App router | Route changes, auth redirects |
+| `[ModeChooser]` | ModeChooser | Card click navigation |
+| `[SSE]` | DirectMessageSSE | Connect, disconnect, reconnect attempts, polling fallback |
+| `[ErrorBoundary]` | ErrorBoundary | Caught errors |
 
 Open browser DevTools (F12) → Console for debugging.
 
@@ -279,24 +238,66 @@ Open browser DevTools (F12) → Console for debugging.
 
 ```
 frontend/
-├── index.html                    # HTML shell
-├── nginx.conf                    # nginx static file serving
+├── index.html                    # HTML shell (imports /src/main.tsx)
+├── nginx.conf                    # nginx static file serving + SPA fallback + /health
 ├── Dockerfile                    # Multi-stage: node:20-alpine → nginx:alpine
 ├── package.json                  # Dependencies
-├── vite.config.js                # Vite config
+├── vite.config.js                # Vite config (Preact preset)
 ├── tsconfig.json                 # TypeScript config
+├── playwright.config.js          # Playwright e2e config
+├── e2e/
+│   └── deploy.spec.js            # Playwright deploy-smoke tests
 ├── src/
-│   ├── main.tsx                  # Entry point
-│   ├── App.tsx                   # Router + Auth + ProtectedRoute
+│   ├── main.tsx                  # Entry point — renders App with LanguageProvider
+│   ├── App.tsx                   # Router + AuthProvider + ProtectedRoute + ErrorBoundary
+│   ├── AppShell.tsx              # Sidebar + header layout
 │   ├── AuthProvider.tsx          # Session context + useAuth hook
-│   ├── auth.ts                   # Login, signup, session API calls
-│   ├── ChatPage.tsx              # Main chat interface
-│   ├── AdminPage.tsx             # System prompt + LLM provider admin
+│   ├── auth.ts                   # Barrel re-export of services/auth
+│   ├── i18n.ts                   # EN/ES translations + LanguageProvider + LangToggle
+│   ├── style.css                 # Shared design system
 │   ├── LoginPage.tsx             # Magic link login
-│   ├── SignupPage.tsx            # Registration
-│   ├── WorkerPage.tsx            # Worker dashboard — profile cards + intake chat
-│   ├── ClientPage.tsx            # Client dashboard — profile cards + intake chat
-│   ├── i18n.ts                   # Translations + language toggle
-│   └── style.css                 # Shared design system
+│   ├── SignupPage.tsx            # Magic link signup
+│   ├── LandingPage.tsx           # Marketing landing for visitors / ModeChooser for authed
+│   ├── ChatPage.tsx              # Worker/client intake chat (mode in query string)
+│   ├── FindPage.tsx              # Search/find professional chat
+│   ├── ModeChooser.tsx           # 3-card mode selector
+│   ├── AdminPage.tsx             # Admin menu
+│   ├── AdminLLMPage.tsx          # LLM provider dropdown
+│   ├── AdminPromptsPage.tsx      # 4-prompt textarea editor
+│   ├── UsersPage / UserDetailPage.tsx
+│   ├── WorkersPage / WorkerDetailPage.tsx
+│   ├── ClientsPage / ClientDetailPage.tsx
+│   ├── ConversationsPage / ConversationDetailPage.tsx
+│   ├── MessagesPage / MessageDetailPage.tsx
+│   ├── EntityListPage.tsx        # Generic admin CRUD list
+│   ├── EntityDetailPage.tsx      # Generic admin CRUD detail
+│   ├── components/
+│   │   ├── ErrorBoundary.tsx     # Catches render errors
+│   │   └── chat/
+│   │       ├── ChatInput.tsx     # Input bar with optional mic button
+│   │       ├── ChatMessages.tsx  # Bubble list with worker card grid
+│   │       ├── ChatWelcome.tsx   # First-message welcome card
+│   │       └── WorkerCard.tsx    # Clickable worker summary card
+│   ├── hooks/
+│   │   ├── useChat.ts            # Chat state + SSE streaming
+│   │   ├── useChatInit.ts        # Load most recent conversation
+│   │   └── useSpeechRecognition.ts  # Voice input via Web Speech API
+│   ├── lib/
+│   │   ├── directMessageApi.ts   # DM API client (contact, inbox, messages, etc.)
+│   │   └── sse.ts                # DirectMessageSSE class with reconnect + polling fallback
+│   ├── pages/
+│   │   ├── InboxPage.tsx         # DM inbox
+│   │   ├── DirectMessagePage.tsx # DM thread + actions
+│   │   └── WorkerContactPage.tsx # Intermediate redirect after clicking WorkerCard
+│   ├── services/
+│   │   ├── api.ts                # request() — generic fetch with credentials
+│   │   ├── auth.ts               # getSession, sendMagicLink, logout
+│   │   ├── chat.ts               # sendChat (raw fetch, SSE-aware)
+│   │   ├── conversations.ts      # list/get conversations
+│   │   ├── systemPrompts.ts      # GET/PUT system prompts
+│   │   ├── admin.ts              # list/get/update/delete admin entities
+│   │   └── profiles.ts           # (dead — see GOTCHA)
+│   └── store/
+│       └── directMessages.ts     # Zustand store
 └── dist/                         # Production build output
 ```

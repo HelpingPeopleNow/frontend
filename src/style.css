@@ -3,8 +3,6 @@
    Premium, mobile-first, professional marketplace
    ═══════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 /* ── Reset ──────────────────────────────────────────────── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -135,8 +133,7 @@ button { cursor: pointer; font-family: inherit; }
   --z-header: 90;
   --z-overlay: 200;
   --z-modal: 300;
-  --z-toast: 400;
-}
+  }
 
 /* ── Focus ring ────────────────────────────────────────── */
 :focus-visible {
@@ -190,11 +187,6 @@ button { cursor: pointer; font-family: inherit; }
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
 }
 
 @keyframes float {
@@ -459,16 +451,7 @@ button { cursor: pointer; font-family: inherit; }
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
-}
-
-.skeleton {
-  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-raised) 50%, var(--surface) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--r-sm);
-}
-
-/* ═══════════════════════════════════════════════════════════
+}/* ═══════════════════════════════════════════════════════════
    Landing Page
    ═══════════════════════════════════════════════════════════ */
 
@@ -1517,45 +1500,9 @@ button { cursor: pointer; font-family: inherit; }
   50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
 }
 
-/* ── Profile CTA (role detected) ───────────────────────── */
-.role-detected-cta {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  width: 100%;
-  padding: var(--sp-4) var(--sp-5);
-  background: var(--gradient-primary);
-  color: #fff;
-  border: none;
-  border-radius: var(--r-lg);
-  font-family: inherit;
-  font-size: var(--text-base);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--duration) var(--ease);
-  animation: scaleIn var(--duration-slow) var(--ease-spring) both;
-}
-
-.role-detected-cta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(37,99,235,0.4);
-}
-
-.role-detected-cta .icon {
-  font-size: 1.25rem;
-}
-
-/* ═══════════════════════════════════════════════════════════
+/* ── Profile CTA (role detected) ───────────────────────── *//* ═══════════════════════════════════════════════════════════
    Profile Card (read-only)
-   ═══════════════════════════════════════════════════════════ */
-
-.profile-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-6);
-}
-
-.profile-progress {
+   ═══════════════════════════════════════════════════════════ */.profile-progress {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
@@ -2101,25 +2048,6 @@ button { cursor: pointer; font-family: inherit; }
 /* ═══════════════════════════════════════════════════════════
    Toast / Notifications
    ═══════════════════════════════════════════════════════════ */
-
-.toast {
-  position: fixed;
-  bottom: var(--sp-6);
-  right: var(--sp-6);
-  padding: var(--sp-3) var(--sp-5);
-  background: var(--surface-raised);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--r-md);
-  font-size: var(--text-sm);
-  color: var(--text);
-  box-shadow: var(--shadow-lg);
-  z-index: var(--z-toast);
-  animation: fadeInUp 300ms var(--ease) both;
-}
-
-.toast-success { border-color: var(--success); }
-.toast-error { border-color: var(--error); }
-
 /* ═══════════════════════════════════════════════════════════
    Direct Messages — Inbox
    ═══════════════════════════════════════════════════════════ */
@@ -2585,26 +2513,7 @@ button { cursor: pointer; font-family: inherit; }
 
 /* ═══════════════════════════════════════════════════════════
    Two-Column Layout (Worker / Client)
-   ═══════════════════════════════════════════════════════════ */
-
-.two-col {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--sp-6);
-  height: 100%;
-}
-
-.two-col-chat {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.two-col-profile {
-  overflow-y: auto;
-}
-
-/* ═══════════════════════════════════════════════════════════
+   ═══════════════════════════════════════════════════════════ *//* ═══════════════════════════════════════════════════════════
    Responsive — Mobile First
    ═══════════════════════════════════════════════════════════ */
 
@@ -2622,11 +2531,7 @@ button { cursor: pointer; font-family: inherit; }
     gap: var(--sp-6);
   }
 
-  .two-col {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .worker-card-grid {
+    .worker-card-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -2641,10 +2546,7 @@ button { cursor: pointer; font-family: inherit; }
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .two-col {
-    grid-template-columns: 400px 1fr;
   }
-}
 
 /* Sidebar visible on desktop */
 @media (min-width: 768px) {
