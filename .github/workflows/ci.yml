@@ -157,7 +157,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: HelpingPeopleNow
-          password: ${{ secrets.PAT_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata
         id: meta
