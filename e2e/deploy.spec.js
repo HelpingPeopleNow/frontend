@@ -6,7 +6,7 @@ const PROTECTED_ROUTES = ['/chat', '/find', '/admin', '/admin/llm', '/admin/prom
 test.describe('HPN deploy test', () => {
   test('homepage loads with logo and hero', async ({ page }) => {
     await page.goto('/');
-    await expect(page).toHaveTitle(/HelpingPeopleNow/);
+    await expect(page).toHaveTitle(/Helping People/);
     await expect(page.locator('.logo')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('.hero')).toBeVisible();
   });
