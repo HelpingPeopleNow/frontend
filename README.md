@@ -2,7 +2,7 @@
 
 Preact + Vite SPA served behind nginx. Dark-themed home-services platform where clients find workers and workers find jobs. Connects to the Go backend via API proxied through Traefik.
 
-**URL:** `https://helpingpeoplenow.goodbytes.net` | **Container:** `nginx-hi-hermy`
+**URL:** `https://helpingpeople.cloud` | **Container:** `nginx-hi-hermy`
 
 ---
 
