@@ -8,13 +8,25 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 |------|-----------|:----:|
 | `/login` | LoginPage | No |
 | `/signup` | SignupPage | No |
-| `/` | LandingPage | No (redirects to `/chat` if logged in) |
-| `/chat` | ChatPage | Yes |
-| `/find` | FindPage | Yes |
+| `/` | LandingPage | No (renders `ModeChooser` if logged in, hero if not) |
+| `/chat` | ChatPage | Yes (renders `ModeChooser` when no `?mode=` query param; otherwise shows intake chat) |
+| `/find` | FindPage | Yes (always `mode: search`) |
+| `/inbox` | InboxPage | Yes (DM thread list) |
+| `/inbox/:convId` | DirectMessagePage | Yes (DM thread + actions) |
+| `/workers/:workerId` | WorkerContactPage | Yes (creates/resumes DM conversation with worker, redirects to `/inbox/:convId`) |
 | `/admin` | AdminPage | Yes |
-| `/inbox` | InboxPage | Yes |
-| `/inbox/:convId` | DirectMessagePage | Yes |
-| `/workers/:workerId` | WorkerContactPage | Yes |
+| `/admin/llm` | AdminLLMPage | Yes (LLM provider dropdown) |
+| `/admin/prompts` | AdminPromptsPage | Yes (4-prompt textarea editor) |
+| `/admin/users` | UsersPage | Yes (admin) |
+| `/admin/users/:id` | UserDetailPage | Yes (admin) |
+| `/admin/worker-profiles` | WorkersPage | Yes (admin) |
+| `/admin/worker-profiles/:id` | WorkerDetailPage | Yes (admin) |
+| `/admin/client-profiles` | ClientsPage | Yes (admin) |
+| `/admin/client-profiles/:id` | ClientDetailPage | Yes (admin) |
+| `/admin/conversations` | ConversationsPage | Yes (admin) |
+| `/admin/conversations/:id` | ConversationDetailPage | Yes (admin) |
+| `/admin/messages` | MessagesPage | Yes (admin) |
+| `/admin/messages/:id` | MessageDetailPage | Yes (admin) |
 
 ## Conventions
 
@@ -25,7 +37,7 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 - CSS-in-JS via `<style>` tags in each component; `src/style.css` is the shared design system
 - Worker profile stores arrays as JSON fields (certifications, languages, social_links)
 - `index.html` imports `/src/main.tsx`
-- Session cookie name: `better-auth.session_token` (expected by backend's `extractUserIDFromRequest`)
+- Session cookie name: `better-auth.session_token` (set by Better Auth over HTTP in dev). In production (HTTPS), Better Auth sets the `__Secure-better-auth.session_token` variant. Backend's `AuthMiddleware` accepts both forms.
 
 ## Auth flow
 
