@@ -9,6 +9,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   NODE_VERSION: "20"
   REGISTRY: ghcr.io
@@ -127,7 +131,7 @@ jobs:
             | Metric | Threshold | Status |
             |--------|-----------|--------|
             | Lines | 75% | ${{ job.status == 'success' && '✅' || '❌' }} |
-            | Branches | 70% | ${{ job.status == 'success' && '✅' || '❌' }} |
+            | Branches | 75% | ${{ job.status == 'success' && '✅' || '❌' }} |
             | Functions | 78% | ${{ job.status == 'success' && '✅' || '❌' }} |
             | Statements | 75% | ${{ job.status == 'success' && '✅' || '❌' }} |
 
@@ -156,7 +160,7 @@ jobs:
         uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
-          username: HelpingPeopleNow
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata
@@ -165,7 +169,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest
+            type=raw,value=latest,enable={{is_default_branch}}
             type=sha
             type=ref,event=branch
 
