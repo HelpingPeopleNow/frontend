@@ -1,6 +1,7 @@
 import { h } from 'preact';
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
+import { log, logError } from '../lib/logger';
 import { useLanguage } from '../i18n';
 import { useDirectMessages } from '../store/directMessages';
 import { archiveConversation, blockConversation, reportConversation } from '../lib/directMessageApi';
@@ -29,6 +30,7 @@ export default function DirectMessagePage({ convId }: Props) {
   document.title = `${otherName} | Helping People`;
 
   useEffect(() => {
+    log('thread', `loading thread conv=${convId}`);
     loadMessages(convId);
     markRead(convId);
   }, [convId]);
@@ -50,39 +52,46 @@ export default function DirectMessagePage({ convId }: Props) {
     setSending(true);
     setError('');
     try {
+      log('thread', `sending message conv=${convId}`);
       await sendMessage(convId, body);
-    } catch {
-      // error handled via rateLimited state in store
+    } catch (e) {
+      logError('thread', `send failed conv=${convId}: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setSending(false);
     }
   };
 
   const handleBlock = async () => {
+    log('thread', `blocking conv=${convId}`);
     try {
       await blockConversation(convId);
       setConfirmAction(null);
       setShowActionMenu(false);
-    } catch {
+    } catch (e) {
+      logError('thread', `block failed conv=${convId}: ${e instanceof Error ? e.message : String(e)}`);
       setError(t('dm.contact.error'));
     }
   };
 
   const handleReport = async () => {
+    log('thread', `reporting conv=${convId}`);
     try {
       await reportConversation(convId);
       setConfirmAction(null);
       setShowActionMenu(false);
-    } catch {
+    } catch (e) {
+      logError('thread', `report failed conv=${convId}: ${e instanceof Error ? e.message : String(e)}`);
       setError(t('dm.contact.error'));
     }
   };
 
   const handleArchive = async () => {
+    log('thread', `archiving conv=${convId}`);
     try {
       await archiveConversation(convId);
       route('/inbox', false);
-    } catch {
+    } catch (e) {
+      logError('thread', `archive failed conv=${convId}: ${e instanceof Error ? e.message : String(e)}`);
       setError(t('dm.contact.error'));
     }
   };

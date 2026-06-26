@@ -1,6 +1,7 @@
 import { h } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
+import { logError } from '../lib/logger';
 import { useLanguage } from '../i18n';
 import { getContact } from '../lib/directMessageApi';
 
@@ -21,6 +22,7 @@ export default function WorkerContactPage({ workerId }: Props) {
         }
       })
       .catch(err => {
+        logError('dm', `getContact ${workerId} failed: ${err?.message || String(err)}`);
         if (!cancelled) setError(err.message || t('dm.contact.error'));
       });
     return () => { cancelled = true; };

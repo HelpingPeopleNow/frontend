@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
+import { logError } from './lib/logger';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
 import { getSystemPrompts, updateLlmProvider } from './services/systemPrompts';
@@ -23,7 +24,10 @@ export default function AdminLLMPage() {
   useEffect(() => {
     getSystemPrompts()
       .then((data) => setProvider(data.llm_provider ?? ''))
-      .catch(() => setMessage(t('admin.load.error')));
+      .catch((e) => {
+        logError('admin', `load provider failed: ${e instanceof Error ? e.message : String(e)}`);
+        setMessage(t('admin.load.error'));
+      });
   }, []);
 
   const handleProviderSave = async () => {
@@ -35,6 +39,7 @@ export default function AdminLLMPage() {
       if (data.llm_provider !== undefined) setProvider(data.llm_provider);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
+      logError('admin', `save provider failed: ${msg}`);
       setMessage(`✕ ${msg}`);
     } finally {
       setSaving(false);

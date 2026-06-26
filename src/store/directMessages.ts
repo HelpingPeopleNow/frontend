@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { log, logError, logWarn } from '../lib/logger';
 import {
   DMConversationItem,
   DMMessage,
@@ -46,27 +47,32 @@ export const useDirectMessages = create<DMState>((set, get) => ({
   rateLimited: false,
 
   loadInbox: async () => {
+    log('dm', 'loading inbox');
     try {
       const data = await listConversations({ limit: 50 });
       const total = data.conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
       set({ conversations: data.conversations, unreadTotal: total });
-    } catch {
-      // silent
+      log('dm', `inbox loaded: ${data.conversations.length} conversations, ${total} unread`);
+    } catch (e) {
+      logError('dm', `loadInbox failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   },
 
   loadMessages: async (convId: string) => {
+    log('dm', `loading messages for conv=${convId}`);
     try {
       const data = await getMessages(convId, { limit: 50 });
       set(s => ({
         messagesByConv: { ...s.messagesByConv, [convId]: data.messages },
       }));
-    } catch {
-      // silent
+      log('dm', `loaded ${data.messages.length} messages for conv=${convId}`);
+    } catch (e) {
+      logError('dm', `loadMessages ${convId} failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   },
 
   sendMessage: async (convId: string, body: string) => {
+    log('dm', `sending message conv=${convId} body_len=${body.length}`);
     try {
       const msg = await apiSend(convId, body);
       set(s => ({
@@ -76,17 +82,22 @@ export const useDirectMessages = create<DMState>((set, get) => ({
         },
         rateLimited: false,
       }));
+      log('dm', `message sent conv=${convId} msg_id=${msg.id}`);
       return msg;
     } catch (err: any) {
       if (err?.message?.includes('rate_limited') || err?.message?.includes('429')) {
+        logWarn('dm', `rate limited conv=${convId}`);
         set({ rateLimited: true });
         setTimeout(() => get().clearRateLimited(), 5000);
+      } else {
+        logError('dm', `sendMessage ${convId} failed: ${err?.message || String(err)}`);
       }
       throw err;
     }
   },
 
   markRead: (convId: string) => {
+    log('dm', `marking read conv=${convId}`);
     set(s => {
       const convs = s.conversations.map(c =>
         c.id === convId ? { ...c, unread_count: 0 } : c,
@@ -94,7 +105,9 @@ export const useDirectMessages = create<DMState>((set, get) => ({
       const total = convs.reduce((sum, c) => sum + (c.unread_count || 0), 0);
       return { conversations: convs, unreadTotal: total };
     });
-    apiMarkRead(convId).catch(() => {});
+    apiMarkRead(convId).catch((e) => {
+      logError('dm', `markRead ${convId} failed: ${e instanceof Error ? e.message : String(e)}`);
+    });
   },
 
   addMessage: (convId: string, msg: DMMessage) => {
@@ -142,31 +155,32 @@ export const useDirectMessages = create<DMState>((set, get) => ({
   connect: () => {
     if (connected) return;
     connected = true;
+    log('dm', 'connecting SSE');
     set({ sseStatus: 'connecting' });
 
     getSSE().connect((event: SSEEvent) => {
       switch (event.type) {
         case 'message': {
           const msg = event.data as DMMessage;
+          log('dm', `SSE message received conv=${msg.conversation_id} msg_id=${msg.id}`);
           get().addMessage(msg.conversation_id, msg);
 
-          // Update sseStatus on first successful message delivery
           if (get().sseStatus === 'connecting') {
             set({ sseStatus: 'open' });
           }
           break;
         }
         case 'read': {
-          // Reload inbox to update unread counts across conversations
+          log('dm', 'SSE read event received');
           get().loadInbox();
           break;
         }
       }
     });
 
-    // Transition to polling after a delay if SSE hasn't connected
     setTimeout(() => {
       if (get().sseStatus === 'connecting') {
+        logWarn('dm', 'SSE not connected after 8s, switching to polling');
         set({ sseStatus: 'polling' });
       }
     }, 8000);
@@ -174,7 +188,10 @@ export const useDirectMessages = create<DMState>((set, get) => ({
 
   disconnect: () => {
     connected = false;
+    log('dm', 'disconnecting SSE');
     getSSE().disconnect();
     set({ sseStatus: 'disconnected' });
   },
+
+
 }));

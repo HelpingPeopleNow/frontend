@@ -1,3 +1,5 @@
+import { log } from '../lib/logger';
+
 export interface ChatHistoryItem {
   role: 'user' | 'assistant';
   content: string;
@@ -34,6 +36,7 @@ export interface ChatResponse {
 }
 
 export function sendChat(req: ChatRequest): Promise<Response> {
+  log('chat', `sending message mode=${req.mode} msg_len=${req.message.length} conv=${req.conversation_id || 'new'} lang=${req.lang}`);
   return fetch('/api/v1/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -41,4 +44,3 @@ export function sendChat(req: ChatRequest): Promise<Response> {
     body: JSON.stringify(req),
   });
 }
-

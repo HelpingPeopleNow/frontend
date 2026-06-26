@@ -1,6 +1,7 @@
 import { h } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
+import { log, logError } from '../lib/logger';
 import { useLanguage } from '../i18n';
 import { useDirectMessages } from '../store/directMessages';
 import AppShell from '../AppShell';
@@ -15,8 +16,12 @@ export default function InboxPage() {
   document.title = `${t('dm.inbox.title')} | Helping People`;
 
   useEffect(() => {
+    log('inbox', 'loading inbox');
     loadInbox()
-      .catch(() => setError(t('dm.contact.error')))
+      .catch((e) => {
+        logError('inbox', `load failed: ${e instanceof Error ? e.message : String(e)}`);
+        setError(t('dm.contact.error'));
+      })
       .finally(() => setLoading(false));
     connect();
     return () => disconnect();

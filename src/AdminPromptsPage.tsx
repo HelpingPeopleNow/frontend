@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
+import { logError } from './lib/logger';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
 import { getSystemPrompts, updateSystemPromptColumn, SystemPromptDTO } from './services/systemPrompts';
@@ -31,7 +32,10 @@ export default function AdminPromptsPage() {
           find_trader_presentation_prompt: data.find_trader_presentation_prompt || '',
         });
       })
-      .catch(() => setMessage(t('admin.load.error')));
+      .catch((e) => {
+        logError('admin', `load prompts failed: ${e instanceof Error ? e.message : String(e)}`);
+        setMessage(t('admin.load.error'));
+      });
   }, []);
 
   const handleSave = async (col: string) => {
@@ -41,6 +45,7 @@ export default function AdminPromptsPage() {
       setMessage(`✓ ${t(labelFor(col))} updated`);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
+      logError('admin', `save prompt ${col} failed: ${msg}`);
       setMessage(`✕ ${msg}`);
     } finally {
       setSaving(null);

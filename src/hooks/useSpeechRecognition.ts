@@ -28,6 +28,8 @@ interface SpeechRecognitionLike {
   stop: () => void;
 }
 
+import { logError } from '../lib/logger';
+
 interface UseSpeechRecognitionReturn {
   isSupported: boolean;
   isListening: boolean;
@@ -65,7 +67,8 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
       setTranscript(text);
       setIsListening(false);
     };
-    recognition.onerror = () => {
+    recognition.onerror = (event) => {
+      logError('speech', `recognition error: ${event.error}`);
       setIsListening(false);
     };
     recognition.onend = () => {

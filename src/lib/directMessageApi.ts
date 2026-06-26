@@ -1,6 +1,9 @@
+import { log, logError } from './logger';
+
 const BASE = '/api/v1';
 
 async function fetchJSON(path: string, options: RequestInit = {}) {
+  log('dm', `${options.method || 'GET'} ${path}`);
   const res = await fetch(`${BASE}${path}`, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...options.headers },
@@ -8,8 +11,13 @@ async function fetchJSON(path: string, options: RequestInit = {}) {
   });
   if (res.status === 204) return undefined;
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `Request failed (${res.status})`);
+    const errBody = await res.json().catch(() => {
+      logError('dm', `failed to parse error body for ${res.status} ${options.method || 'GET'} ${path}`);
+      return {};
+    });
+    const errMsg = errBody.error || `Request failed (${res.status})`;
+    logError('dm', `${res.status} ${options.method || 'GET'} ${path}: ${errMsg}`);
+    throw new Error(errMsg);
   }
   return res.json();
 }

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'preact/hooks';
+import { log, logError, logWarn } from '../lib/logger';
 import { sendChat } from '../services/chat';
 import { ChatMsg } from '../components/chat/ChatMessages';
 
@@ -66,6 +67,7 @@ export function useChat({ mode, lang, initialMessages, initialConversationId, er
     const currentConvId = conversationIdRef.current;
     const currentErrorMsg = errorRef.current;
 
+    log('chat', `sending message text_len=${text.length} conv=${currentConvId || 'new'} mode=${currentMode}`);
     try {
       const history = currentMessages.slice(0, -1).map((m) => ({
         role: m.role,
@@ -79,6 +81,7 @@ export function useChat({ mode, lang, initialMessages, initialConversationId, er
         lang: currentLang,
       });
       if (!res.ok) {
+        logError('chat', `chat API returned ${res.status}`);
         setMessages((m) => [...m, { role: 'assistant', text: `Error ${res.status}` }]);
         return;
       }
@@ -91,6 +94,7 @@ export function useChat({ mode, lang, initialMessages, initialConversationId, er
       setIsStreaming(true);
 
       if (res.headers.get('content-type')?.includes('text/event-stream')) {
+        log('chat', 'streaming SSE response');
         const reader = res.body?.getReader();
         if (!reader) return;
         const decoder = new TextDecoder();
@@ -101,7 +105,10 @@ export function useChat({ mode, lang, initialMessages, initialConversationId, er
           const lines = chunk.split('\n').filter((l) => l.startsWith('data: '));
           for (const line of lines) {
             const data = line.slice(6);
-            if (data === '[DONE]') break;
+            if (data === '[DONE]') {
+              log('chat', 'SSE stream done');
+              break;
+            }
             try {
               const parsed = JSON.parse(data);
               const content = parsed.choices?.[0]?.delta?.content || '';
@@ -115,19 +122,21 @@ export function useChat({ mode, lang, initialMessages, initialConversationId, er
                 }
                 return newM;
               });
-            } catch {
-              // ignore malformed SSE chunk
+            } catch (parseErr) {
+              logWarn('chat', `malformed SSE chunk: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
             }
           }
         }
       } else {
         const data = await res.json();
+        log('chat', `received JSON response conv=${data.conversation_id || currentConvId}`);
         responseText = data.answer || data.response || data.text || JSON.stringify(data);
         const workers = data.workers || undefined;
         setMessages((m) => [...m, { role: 'assistant', text: responseText, workers }]);
         if (data.conversation_id) setConversationId(data.conversation_id);
       }
-    } catch {
+    } catch (e) {
+      logError('chat', `send failed: ${e instanceof Error ? e.message : String(e)}`);
       setMessages((m) => [...m, { role: 'assistant', text: currentErrorMsg }]);
     } finally {
       isLoadingRef.current = false;

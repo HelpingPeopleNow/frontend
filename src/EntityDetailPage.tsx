@@ -1,6 +1,7 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
+import { logError } from './lib/logger';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
 import { getEntity, updateEntity, deleteEntity } from './services/admin';
@@ -32,6 +33,7 @@ export default function EntityDetailPage({ entity, title, id, backTo, editable =
       .then(d => { setData(d); setForm(d); setLoading(false); })
       .catch(err => {
         const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
+        logError('admin', `get ${entity}/${id} failed: ${msg}`);
         setError(msg); setLoading(false);
       });
   }, [entity, id]);
@@ -44,6 +46,7 @@ export default function EntityDetailPage({ entity, title, id, backTo, editable =
       setEditing(false);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
+      logError('admin', `save ${entity}/${id} failed: ${msg}`);
       alert(`Save failed: ${msg}`);
     } finally {
       setSaving(false);
@@ -57,6 +60,7 @@ export default function EntityDetailPage({ entity, title, id, backTo, editable =
       route(listPath);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
+      logError('admin', `delete ${entity}/${id} failed: ${msg}`);
       alert(`Delete failed: ${msg}`);
     }
   };

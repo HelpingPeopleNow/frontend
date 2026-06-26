@@ -1,5 +1,6 @@
 import { h, createContext } from 'preact';
 import { useState, useEffect, useContext } from 'preact/hooks';
+import { log, logError } from './lib/logger';
 import { getSession, sendMagicLink, logout, Session } from './auth';
 import { useLanguage } from './i18n';
 
@@ -24,15 +25,20 @@ export function AuthProvider({ children }: { children: h.JSX.Element }) {
   const [loading, setLoading] = useState(true);
   const { lang } = useLanguage();
 
-  // On mount and after magic link redirect, check session
   useEffect(() => {
+    log('auth', 'checking session on mount');
     getSession().then((s) => {
+      log('auth', `session ${s ? 'found' : 'not found'}${s ? ' user=' + s.user.id : ''}`);
       setSession(s);
+      setLoading(false);
+    }).catch((e) => {
+      logError('auth', `session check failed: ${e instanceof Error ? e.message : String(e)}`);
       setLoading(false);
     });
   }, []);
 
   const logoutFn = async () => {
+    log('auth', 'logout initiated');
     await logout();
     setSession(null);
   };
@@ -43,6 +49,7 @@ export function AuthProvider({ children }: { children: h.JSX.Element }) {
   };
 
   const refreshSessionFn = async () => {
+    log('auth', 'refreshing session');
     const s = await getSession();
     setSession(s);
     return s;

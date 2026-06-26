@@ -1,6 +1,7 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
+import { logError } from './lib/logger';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
 import { listEntities, deleteEntity } from './services/admin';
@@ -28,6 +29,7 @@ export default function EntityListPage({ entity, title, columns, idKey = 'id', b
       .then(data => { setRows(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(err => {
         const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
+        logError('admin', `list ${entity} failed: ${msg}`);
         setError(msg); setLoading(false);
       });
   }, [entity]);
@@ -44,6 +46,7 @@ export default function EntityListPage({ entity, title, columns, idKey = 'id', b
       setRows(prev => prev.filter(r => String(r[idKey]) !== String(id)));
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
+      logError('admin', `delete ${entity}/${id} failed: ${msg}`);
       alert(`Delete failed: ${msg}`);
     }
   };

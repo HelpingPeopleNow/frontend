@@ -1,3 +1,4 @@
+import { log, logError } from '../lib/logger';
 import { request } from './api';
 
 export interface ConversationDTO {
@@ -27,9 +28,11 @@ export function listConversations(type?: string, limit = 20, offset = 0): Promis
   if (type) params.set('type', type);
   params.set('limit', String(limit));
   params.set('offset', String(offset));
-  return request(`/api/v1/conversations?${params.toString()}`);
+  log('chat', `listing conversations type=${type || 'all'} limit=${limit} offset=${offset}`);
+  return request<ConversationListResponse>(`/api/v1/conversations?${params.toString()}`);
 }
 
 export function getConversation(id: string): Promise<ConversationDTO> {
-  return request(`/api/v1/conversations/${id}`);
+  log('chat', `getting conversation ${id}`);
+  return request<ConversationDTO>(`/api/v1/conversations/${id}`);
 }

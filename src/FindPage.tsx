@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import { useState, useRef, useEffect } from 'preact/hooks';
+import { logError } from './lib/logger';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
 import { sendChat, WorkerCard as WorkerCardData } from './services/chat';
@@ -76,7 +77,8 @@ export default function FindPage() {
       if (data.conversation_id) {
         setConversationId(data.conversation_id);
       }
-    } catch {
+    } catch (e) {
+      logError('chat', `find search failed: ${e instanceof Error ? e.message : String(e)}`);
       setMessages(m => [...m, { role: 'assistant', text: t('chat.error.network') }]);
     } finally {
       setLoading(false);
