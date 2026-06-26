@@ -36,23 +36,24 @@ Preact + Vite SPA served behind nginx. Dark-themed home-services platform where 
 ```
 Browser ──► Traefik (:80)
               │
-              ├── /api/v1/*      ──► Backend (:8081)
-              │                       ├── /worker/chat
-              │                       ├── /worker/profile
-              │                       ├── /client/chat
-              │                       ├── /client/profile
-              │                       ├── /client/find-chat
-              │                       ├── /system-prompts
-              │                       ├── /user/reset-role
-              │                       └── /conversations
+              ├── /api/v1/*           ──► Backend (:8081)
+              │                          (unified POST /api/v1/chat with mode in body,
+              │                           GET/DELETE /api/v1/{worker,client}/profile,
+              │                           GET/PUT /api/v1/system-prompts/,
+              │                           GET /api/v1/conversations,
+              │                           GET/POST/PATCH /api/v1/direct-messages/,
+              │                           GET /api/v1/workers/:id/contact,
+              │                           GET/PUT/DELETE /api/v1/admin/{entity}/)
               │
-              ├── /api/auth/*    ──► Auth Service (:8083)
+              ├── /api/auth/*         ──► Auth Service (:8083) — magic-link + sessions
               │
-              └── /*             ──► Frontend nginx → SPA (index.html)
-              └── /health        ──► Frontend nginx → 200 "ok"
+              ├── /adminer, /grafana, /prometheus — observability / DB UI
+              │
+              └── /*                  ──► Frontend nginx → SPA (index.html)
+                 /health              ──► Frontend nginx → 200 "ok"
 ```
 
-The SPA uses client-side routing via `preact-router`. API calls use relative URLs (`/api/v1/...`) which Traefik proxies to the appropriate backend service.
+The SPA uses client-side routing via `preact-router`. API calls use relative URLs (`/api/v1/...`, `/api/auth/...`) which Traefik proxies to the appropriate backend service.
 
 ### Health Check
 
@@ -201,9 +202,23 @@ Each textarea has a per-column Save button that calls `PUT /api/v1/system-prompt
 
 ```bash
 npm install          # Install dependencies
-npm run dev          # Vite dev server with HMR
+npm run dev          # Vite dev server with HMR on :5173
 npm run build        # Production build → dist/
+npm run preview      # vite preview (serves built dist/)
+npm run typecheck    # tsc --noEmit
+npm run lint         # eslint src/
 ```
+
+### Tests
+
+```bash
+npm run test:coverage       # vitest run --coverage (unit + integration)
+npm run test:e2e            # playwright test (uses built dist/)
+```
+
+Coverage thresholds (enforced in `vitest.config.ts`): lines 75%, branches 75%, functions 78%, statements 75%. The CI pipeline (`.github/workflows/ci.yml`) runs: lint → typecheck → vitest (unit + integration) → Playwright e2e → Docker build/push to `ghcr.io/helpingpeoplenow/frontend`.
+
+> Note: the `package.json` only exposes `test:coverage` and `test:e2e` — there is no plain `npm test` (vitest watch) script. Use `npx vitest` for watch mode locally.
 
 ### Docker Build
 

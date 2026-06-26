@@ -9,7 +9,7 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 | `/login` | LoginPage | No |
 | `/signup` | SignupPage | No |
 | `/` | LandingPage | No (renders `ModeChooser` if logged in, hero if not) |
-| `/chat` | ChatPage | Yes (renders `ModeChooser` when no `?mode=` query param; otherwise shows intake chat) |
+| `/chat` | ChatPage | Yes (renders `ModeChooser` when no `?mode=` query param; otherwise shows intake chat for `worker_intake` or `client_intake`) |
 | `/find` | FindPage | Yes (always `mode: search`) |
 | `/inbox` | InboxPage | Yes (DM thread list) |
 | `/inbox/:convId` | DirectMessagePage | Yes (DM thread + actions) |
@@ -41,7 +41,7 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 
 ## Auth flow
 
-- `/api/auth/get-session` — session check on mount & route change
+- `/api/auth/get-session` — session check on mount & route change (Better Auth default endpoint)
 - `/api/auth/sign-in/magic-link` — POST with `{ email, callbackURL: '/', metadata: { lang } }`
 - `/api/auth/sign-out` — POST (best-effort, credentials: include)
 - `ProtectedRoute` redirects to `/login` if no session; shows "Checking authentication..." while loading
@@ -52,15 +52,22 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 npm install
 npm run dev          # Vite HMR on :5173
 npm run build        # production → dist/
-npm run preview      # preview production build
+npm run preview      # vite preview (serves built dist/)
 npm run typecheck    # tsc --noEmit
-npm run lint         # eslint src/ tests/
-npm run test         # vitest (watch)
-npm run test:coverage  # vitest run --coverage
-npm run test:unit    # vitest run tests/unit
-npm run test:integration  # vitest run tests/integration
-npm run test:e2e     # playwright test
+npm run lint         # eslint src/
 ```
+
+## Tests
+
+```bash
+npm run test:coverage  # vitest run --coverage (unit + integration; jsdom env)
+npm run test:e2e       # playwright test (uses built dist/)
+npx vitest             # vitest watch (no npm script for plain `test`)
+```
+
+Vitest is configured in `vitest.config.ts` (jsdom env, `tests/**/*.test.{ts,tsx}` glob, v8 coverage excluding `src/main.tsx` and `*.d.ts`). Coverage thresholds: lines 75%, branches 75%, functions 78%, statements 75%.
+
+Playwright config in `playwright.config.js`; only `e2e/deploy.spec.js` exists (deploy-smoke).
 
 ## Docker
 
@@ -68,7 +75,7 @@ npm run test:e2e     # playwright test
 docker build -t ghcr.io/helpingpeoplenow/frontend:latest .
 ```
 
-Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime. CI pipeline (`.github/workflows/ci.yml`): lint → typecheck → vitest (unit + integration) → Playwright e2e → docker build/push to ghcr. Subsumes the old `docker.yml`.
+Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime (image name `nginx-hi-hermy` in compose). CI pipeline (`.github/workflows/ci.yml`): lint → typecheck → vitest (unit + integration) → Playwright e2e → docker build/push to ghcr.
 
 ## Direct Messaging
 
@@ -83,7 +90,7 @@ Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime. CI pipeline (`.g
 
 ## Gotchas
 
-- `ChatPage` reads `mode` from `window.location.search` (`?mode=worker_intake`, `?mode=client_intake`, `?mode=search`)
+- `ChatPage` reads `mode` from `window.location.search` (`?mode=worker_intake`, `?mode=client_intake`) — does NOT accept `?mode=search` (search is the dedicated `/find` route)
 - `ChatPage` shows `ModeChooser` when no `?mode=` query param is present
 - `FindPage` hardcodes `mode: 'search'` and renders worker cards grid
 - `ModeChooser` shows three buttons for authenticated users: "I am a Worker" / "Soy Trabajador", "I am a Client" / "Soy Cliente", "Find a Professional"
@@ -95,3 +102,4 @@ Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime. CI pipeline (`.g
 - `useDirectMessages` exposes a `tallyUnread(convId)` action that is never called by any component. Slated for removal.
 - `@types/react` and `@types/react-dom` are in `devDependencies` but the project uses Preact, not React. Slated for removal.
 - `ErrorBoundary` wraps all `<ProtectedRoute>` chains in `App.tsx` — no functional tests cover the error path today.
+- `tests/placeholder.test.ts` is the only vitest test (single `expect(1 + 1).toBe(2)`); the integration paths the README hints at (chat, conversations, etc.) are not yet implemented.
