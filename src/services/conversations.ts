@@ -1,5 +1,6 @@
 import { log, logError } from '../lib/logger';
 import { request } from './api';
+import { WorkerCard } from './chat';
 
 export interface ConversationDTO {
   id: string;
@@ -14,6 +15,7 @@ export interface ConversationDTO {
 export interface ConversationMessageDTO {
   role: 'user' | 'assistant';
   content: string;
+  workers?: WorkerCard[];
 }
 
 export interface ConversationListResponse {
