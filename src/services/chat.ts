@@ -6,7 +6,7 @@ export interface ChatHistoryItem {
 }
 
 export interface WorkerCard {
-  id: number;
+  id: string;
   profession: string;
   business_name: string;
   bio: string;
@@ -17,6 +17,7 @@ export interface WorkerCard {
   certifications: string[];
   has_insurance: boolean;
   emergency_service: boolean;
+  slug?: string;
 }
 
 export interface ChatRequest {

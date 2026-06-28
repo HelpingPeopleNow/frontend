@@ -261,6 +261,20 @@ const translations: Record<Lang, Record<string, string>> = {
     'dm.status.connecting': 'Connecting…',
     'dm.status.polling': 'Checking for messages',
     'dm.status.disconnected': 'Offline',
+
+    // Public Profile
+    'profile.contact': 'Contact this professional',
+    'profile.not_found': 'Professional profile not found',
+    'profile.years_experience': 'years experience',
+    'profile.hourly_rate': 'hourly rate',
+    'profile.minimum_charge': 'minimum charge',
+    'profile.free_estimate': 'Free estimate',
+    'profile.has_insurance': 'Insured',
+    'profile.emergency_service': 'Emergency service',
+    'profile.latest_professionals': 'Latest Professionals',
+    'profile.view_profile': 'View Profile',
+    'profile.chat_now': 'Chat',
+    'profile.view_all': 'View all',
   },
 
   es: {
@@ -517,6 +531,20 @@ const translations: Record<Lang, Record<string, string>> = {
     'dm.status.connecting': 'Conectando…',
     'dm.status.polling': 'Buscando mensajes',
     'dm.status.disconnected': 'Desconectado',
+
+    // Public Profile
+    'profile.contact': 'Contactar a este profesional',
+    'profile.not_found': 'Perfil profesional no encontrado',
+    'profile.years_experience': 'años de experiencia',
+    'profile.hourly_rate': 'tarifa por hora',
+    'profile.minimum_charge': 'cargo mínimo',
+    'profile.free_estimate': 'Presupuesto gratuito',
+    'profile.has_insurance': 'Asegurado',
+    'profile.emergency_service': 'Servicio de emergencia',
+    'profile.latest_professionals': 'Últimos profesionales',
+    'profile.view_profile': 'Ver perfil',
+    'profile.chat_now': 'Chat',
+    'profile.view_all': 'Ver todos',
   },
 };
 

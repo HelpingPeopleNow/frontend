@@ -24,6 +24,22 @@ export default function WorkerCard({ worker }: Props) {
         {worker.emergency_service && <span class="worker-badge worker-badge-emergency">⚡ {t('client.find.badge.emergency')}</span>}
         {worker.free_estimate && <span class="worker-badge worker-badge-estimate">📋 {t('client.find.badge.free_estimate')}</span>}
       </div>
+      <div class="worker-card-actions">
+        <button
+          class="worker-card-btn-primary"
+          onClick={(e) => { e.stopPropagation(); route(`/workers/${worker.id}`, false); }}
+        >
+          💬 {t('profile.chat_now')}
+        </button>
+        {worker.slug && (
+          <button
+            class="worker-card-btn-secondary"
+            onClick={(e) => { e.stopPropagation(); route(`/profile/${worker.slug}`, false); }}
+          >
+            👁 {t('profile.view_profile')}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

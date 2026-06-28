@@ -11,6 +11,8 @@ const PREFIXES = {
   thread: '[Thread]',
   speech: '[Speech]',
   app: '[App]',
+  profile: '[Profile]',
+  landing: '[Landing]',
 } as const;
 
 type LoggerCategory = keyof typeof PREFIXES;

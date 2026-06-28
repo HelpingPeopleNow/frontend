@@ -1,16 +1,25 @@
 import { h } from 'preact';
-import { useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useLanguage } from './i18n';
 import { useAuth } from './AuthProvider';
 import ModeChooser from './ModeChooser';
+import { fetchLatestProfiles, WorkerPublicProfile } from './lib/publicProfileApi';
+import { logError } from './lib/logger';
 
 export default function LandingPage() {
   const { t } = useLanguage();
   const { session, loading } = useAuth();
+  const [latestProfiles, setLatestProfiles] = useState<WorkerPublicProfile[]>([]);
 
   useEffect(() => {
     document.title = `Helping People — Trusted Home Services`;
+  }, []);
+
+  useEffect(() => {
+    fetchLatestProfiles(6).then(setLatestProfiles).catch(err => {
+      logError('landing', `fetchLatestProfiles failed: ${err?.message || String(err)}`);
+    });
   }, []);
 
   if (loading) {
@@ -86,6 +95,30 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Latest Professionals ────────────────────── */}
+      {latestProfiles.length > 0 && (
+        <section class="landing-section">
+          <div class="section-header">
+            <h2>{t('profile.latest_professionals')}</h2>
+            <p>Profesionales verificados listos para ayudarte.</p>
+          </div>
+          <div class="profile-card-grid">
+            {latestProfiles.map(p => (
+              <a href={`/profile/${p.slug}`} class="profile-card" key={p.id}>
+                <span class="profile-card-name">{p.business_name}</span>
+                <span class="profile-card-profession">{p.profession}</span>
+                {p.city && <span class="profile-card-city">📍 {p.city}</span>}
+              </a>
+            ))}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 'var(--sp-4)' }}>
+            <button class="btn btn-ghost btn-lg" onClick={() => route('/signup')}>
+              {t('profile.view_all')} →
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* ── Features ─────────────────────────────────── */}
       <section class="landing-section">

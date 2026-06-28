@@ -24,6 +24,7 @@ import SignupPage from './SignupPage';
 import WorkerContactPage from './pages/WorkerContactPage';
 import InboxPage from './pages/InboxPage';
 import DirectMessagePage from './pages/DirectMessagePage';
+import PublicProfilePage from './pages/PublicProfilePage';
 
 function ProtectedRoute({ component: Component, ...props }: any) {
   const { session, loading } = useAuth();
@@ -56,6 +57,7 @@ function AppRouter() {
       <Route path="/inbox" component={() => <ErrorBoundary><ProtectedRoute component={InboxPage} /></ErrorBoundary>} />
       <Route path="/inbox/:convId" component={({ convId }: { convId: string }) => <ErrorBoundary><ProtectedRoute component={DirectMessagePage} convId={convId} /></ErrorBoundary>} />
       <Route path="/workers/:workerId" component={({ workerId }: { workerId: string }) => <ErrorBoundary><ProtectedRoute component={WorkerContactPage} workerId={workerId} /></ErrorBoundary>} />
+      <Route path="/profile/:slug" component={({ slug }: { slug: string }) => <ErrorBoundary><PublicProfilePage slug={slug} /></ErrorBoundary>} />
 
       {/* Admin */}
       <Route path="/admin" component={() => <ErrorBoundary><ProtectedRoute component={AdminPage} /></ErrorBoundary>} />
