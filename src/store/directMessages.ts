@@ -160,14 +160,14 @@ export const useDirectMessages = create<DMState>((set, get) => ({
 
     getSSE().connect((event: SSEEvent) => {
       switch (event.type) {
+        case 'open':
+          set({ sseStatus: 'open' });
+          break;
+
         case 'message': {
           const msg = event.data as DMMessage;
           log('dm', `SSE message received conv=${msg.conversation_id} msg_id=${msg.id}`);
           get().addMessage(msg.conversation_id, msg);
-
-          if (get().sseStatus === 'connecting') {
-            set({ sseStatus: 'open' });
-          }
           break;
         }
         case 'read': {
@@ -177,13 +177,6 @@ export const useDirectMessages = create<DMState>((set, get) => ({
         }
       }
     });
-
-    setTimeout(() => {
-      if (get().sseStatus === 'connecting') {
-        logWarn('dm', 'SSE not connected after 8s, switching to polling');
-        set({ sseStatus: 'polling' });
-      }
-    }, 8000);
   },
 
   disconnect: () => {

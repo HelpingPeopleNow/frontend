@@ -1,5 +1,5 @@
 export interface SSEEvent {
-  type: 'message' | 'read' | 'heartbeat';
+  type: 'message' | 'read' | 'open';
   data: any;
 }
 
@@ -59,9 +59,13 @@ export class DirectMessageSSE {
       this.callback?.({ type: 'read', data: JSON.parse(e.data) });
     });
 
+    // Heartbeat also signals connection is alive
+    this.es.addEventListener('heartbeat', () => {
+      this.callback?.({ type: 'open', data: {} });
+    });
+
     this.es.onopen = () => {
       this.reconnectAttempts = 0;
-      this.stopPolling();
       console.log('[SSE] connected');
     };
 
