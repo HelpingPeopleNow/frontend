@@ -33,6 +33,20 @@ export function useChatInit(convType: string): UseChatInitReturn {
           text: m.content,
           workers: m.workers && m.workers.length > 0 ? m.workers : undefined,
         }));
+
+        // For search conversations: if no assistant message has workers,
+        // this is a stale pre-migration conversation — skip it so the user
+        // gets a fresh search that will show cards.
+        if (convType === 'client-find') {
+          const hasWorkers = msgs.some(m => m.role === 'assistant' && m.workers && m.workers.length > 0);
+          if (!hasWorkers && msgs.length > 0) {
+            log('chat', `skipping stale search conversation ${first.id} (no persisted workers)`);
+            setInitialMessages([]);
+            setInitialConversationId(null);
+            return;
+          }
+        }
+
         setInitialMessages(msgs);
         setInitialConversationId(detail.id);
       } else {
