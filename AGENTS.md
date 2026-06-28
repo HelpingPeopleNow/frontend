@@ -9,6 +9,7 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 | `/login` | LoginPage | No |
 | `/signup` | SignupPage | No |
 | `/` | LandingPage | No (renders `ModeChooser` if logged in, hero if not) |
+| `/profile/:slug` | PublicProfilePage | No (public worker profile page with hero, stats, bio, links, CTA) |
 | `/chat` | ChatPage | Yes (renders `ModeChooser` when no `?mode=` query param; otherwise shows intake chat for `worker_intake` or `client_intake`) |
 | `/find` | FindPage | Yes (always `mode: search`) |
 | `/inbox` | InboxPage | Yes (DM thread list) |
@@ -34,6 +35,7 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 - `AuthProvider` context wraps app → exposes `useAuth()`: `session`, `loading`, `sendMagicLink`, `logout`, `refreshSession`
 - API calls use relative URLs (`/api/v1/...`, `/api/auth/...`) — proxied by Traefik; no Vite proxy config needed
 - Console logging with component prefixes: `[Chat]`, `[Admin]`, `[Auth]`, `[Nav]`, `[ModeChooser]`
+- Public profile API client: `src/lib/publicProfileApi.ts` — `fetchPublicProfile(slug)` + `fetchLatestProfiles(limit)`, types `WorkerPublicProfile` and `SocialLink`
 - CSS-in-JS via `<style>` tags in each component; `src/style.css` is the shared design system
 - Worker profile stores arrays as JSON fields (certifications, languages, social_links)
 - `index.html` imports `/src/main.tsx`
@@ -95,6 +97,8 @@ Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime (image name `ngin
 - `FindPage` hardcodes `mode: 'search'` and renders worker cards grid
 - `ModeChooser` shows three buttons for authenticated users: "I am a Worker" / "Soy Trabajador", "I am a Client" / "Soy Cliente", "Find a Professional"
 - `LandingPage` shows a welcome page with `ModeChooser` for logged-in users, hero section for visitors
+- `LandingPage` also fetches and displays a "Latest Professionals" grid below the hero for unauthenticated visitors (calls `GET /api/v1/workers/public/latest`)
+- `WorkerCard` now has dual-action buttons: 💬 Chat + 👁 View Profile (with `stopPropagation` to prevent chat route). `WorkerCard.id` is typed as `string` (UUID). `slug?: string` is optional.
 - AdminPage also has a link to Adminer (DB admin tool) at `/adminer`
 - `useLanguage()` hook returns `{ lang, setLang, t }`. Spanish is the default language. All chat requests include `lang` in body so the backend instructs AI to respond in the matching language.
 - nginx SPA fallback: `try_files $uri $uri/ /index.html`
