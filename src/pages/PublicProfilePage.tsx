@@ -29,23 +29,16 @@ export default function PublicProfilePage({ slug }: Props) {
     fetchPublicProfile(slug)
       .then(data => {
         if (!cancelled) {
-          if (data === null) {
-            setState({ status: 'not_found' });
-          } else {
-            setState({ status: 'loaded', profile: data });
-          }
+          setState(data === null ? { status: 'not_found' } : { status: 'loaded', profile: data });
         }
       })
       .catch(err => {
         logError('profile', `fetchPublicProfile failed: ${String(err)}`);
-        if (!cancelled) {
-          setState({ status: 'error', message: String(err) });
-        }
+        if (!cancelled) setState({ status: 'error', message: String(err) });
       });
     return () => { cancelled = true; };
   }, [slug]);
 
-  // SEO: set document title
   useEffect(() => {
     if (state.status === 'loaded') {
       document.title = `${state.profile.business_name} | HelpingPeopleNow`;
@@ -64,16 +57,13 @@ export default function PublicProfilePage({ slug }: Props) {
     setContactLoading(true);
     try {
       const data = await getContact(state.profile.id);
-      if (data.conversation_id) {
-        route(`/inbox/${data.conversation_id}`, true);
-      }
+      if (data.conversation_id) route(`/inbox/${data.conversation_id}`, true);
     } catch (err) {
       logError('profile', `contact failed: ${String(err)}`);
       setContactLoading(false);
     }
   };
 
-  // ── Loading state ──────────────────────────────────────────────────────────
   if (state.status === 'loading' || authLoading) {
     return (
       <div class="loading" style={{ minHeight: '100vh' }}>
@@ -82,7 +72,6 @@ export default function PublicProfilePage({ slug }: Props) {
     );
   }
 
-  // ── Error state ────────────────────────────────────────────────────────────
   if (state.status === 'error') {
     return (
       <div class="profile-page">
@@ -98,7 +87,6 @@ export default function PublicProfilePage({ slug }: Props) {
     );
   }
 
-  // ── 404 state ──────────────────────────────────────────────────────────────
   if (state.status === 'not_found') {
     return (
       <div class="profile-page">
@@ -118,7 +106,6 @@ export default function PublicProfilePage({ slug }: Props) {
     );
   }
 
-  // ── Profile page ───────────────────────────────────────────────────────────
   const profile = state.profile;
   log('profile', `rendering public profile for slug=${slug}`);
 
@@ -132,19 +119,19 @@ export default function PublicProfilePage({ slug }: Props) {
         </div>
       </nav>
 
-      <div class="profile-container">
-        {/* ── Hero ──────────────────────────────────── */}
-        <section class="profile-hero">
-          <div class="profile-avatar">
-            {profile.business_name.charAt(0).toUpperCase()}
-          </div>
-          <h1 class="profile-name">{profile.business_name}</h1>
-          <p class="profile-profession">{profile.profession}</p>
-          {profile.city && (
-            <p class="profile-location">📍 {profile.city}</p>
-          )}
-        </section>
+      {/* ── Hero ──────────────────────────────────── */}
+      <section class="profile-hero">
+        <div class="profile-avatar">
+          {profile.business_name.charAt(0).toUpperCase()}
+        </div>
+        <h1 class="profile-name">{profile.business_name}</h1>
+        <p class="profile-profession">{profile.profession}</p>
+        {profile.city && (
+          <p class="profile-location">📍 {profile.city}</p>
+        )}
+      </section>
 
+      <div class="profile-container">
         {/* ── Stats Row ─────────────────────────────── */}
         <section class="profile-stats">
           {profile.years_experience > 0 && (
@@ -155,13 +142,13 @@ export default function PublicProfilePage({ slug }: Props) {
           )}
           {profile.hourly_rate > 0 && (
             <div class="profile-stat-item">
-              <span class="profile-stat-value">€{profile.hourly_rate.toFixed(2)}</span>
+              <span class="profile-stat-value">€{profile.hourly_rate.toFixed(0)}</span>
               <span class="profile-stat-label">{t('profile.hourly_rate')}</span>
             </div>
           )}
           {profile.minimum_charge > 0 && (
             <div class="profile-stat-item">
-              <span class="profile-stat-value">€{profile.minimum_charge.toFixed(2)}</span>
+              <span class="profile-stat-value">€{profile.minimum_charge.toFixed(0)}</span>
               <span class="profile-stat-label">{t('profile.minimum_charge')}</span>
             </div>
           )}
