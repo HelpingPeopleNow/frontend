@@ -175,6 +175,26 @@ export const useDirectMessages = create<DMState>((set, get) => ({
           get().loadInbox();
           break;
         }
+        case 'archive': {
+          const payload = event.data as { conversation_id: string };
+          log('dm', `SSE archive received conv=${payload.conversation_id}`);
+          // Remove conversation from list
+          set(s => ({
+            conversations: s.conversations.filter(c => c.id !== payload.conversation_id),
+          }));
+          break;
+        }
+        case 'block': {
+          const payload = event.data as { conversation_id: string };
+          log('dm', `SSE block received conv=${payload.conversation_id}`);
+          // Update status to blocked
+          set(s => ({
+            conversations: s.conversations.map(c =>
+              c.id === payload.conversation_id ? { ...c, status: 'blocked' } : c
+            ),
+          }));
+          break;
+        }
       }
     });
   },
