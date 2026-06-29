@@ -105,7 +105,7 @@ export default function LandingPage() {
           </div>
           <div class="profile-card-grid">
             {latestProfiles.map(p => (
-              <a href={`/profile/${p.slug}`} class="profile-card" key={p.id}>
+              <a href={`/profile/${p.slug || p.id}`} class="profile-card" key={p.id}>
                 <span class="profile-card-name">{p.business_name}</span>
                 <span class="profile-card-profession">{p.profession}</span>
                 {p.city && <span class="profile-card-city">📍 {p.city}</span>}

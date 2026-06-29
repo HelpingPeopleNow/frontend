@@ -17,7 +17,7 @@ export interface WorkerCard {
   certifications: string[];
   has_insurance: boolean;
   emergency_service: boolean;
-  slug?: string;
+  slug: string;
 }
 
 export interface ChatRequest {

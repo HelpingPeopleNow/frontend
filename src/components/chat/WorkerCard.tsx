@@ -31,14 +31,12 @@ export default function WorkerCard({ worker }: Props) {
         >
           💬 {t('profile.chat_now')}
         </button>
-        {worker.slug && (
-          <button
-            class="worker-card-btn-secondary"
-            onClick={(e) => { e.stopPropagation(); route(`/profile/${worker.slug}`, false); }}
-          >
-            👁 {t('profile.view_profile')}
-          </button>
-        )}
+        <button
+          class="worker-card-btn-secondary"
+          onClick={(e) => { e.stopPropagation(); route(`/profile/${worker.slug}`, false); }}
+        >
+          👁 {t('profile.view_profile')}
+        </button>
       </div>
     </div>
   );
