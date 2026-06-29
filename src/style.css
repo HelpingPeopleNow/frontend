@@ -508,6 +508,206 @@ button { cursor: pointer; font-family: inherit; }
   gap: var(--sp-3);
 }
 
+/* ── Full landing nav (with primary links + user menu) ── */
+.landing-nav-full {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-header);
+  padding: var(--sp-3) var(--sp-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background var(--duration) var(--ease),
+              border-color var(--duration) var(--ease),
+              box-shadow var(--duration) var(--ease);
+}
+
+.landing-nav-full.is-scrolled {
+  background: rgba(6, 9, 15, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom-color: var(--border);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.landing-nav-left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  flex: 1;
+  min-width: 0;
+}
+
+.landing-nav-primary {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  transition: color var(--duration) var(--ease),
+              background var(--duration) var(--ease);
+  text-decoration: none;
+  position: relative;
+}
+
+.nav-link:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-link-external {
+  /* Anchor variant — same look as button variant */
+}
+
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: 2px;
+}
+
+.landing-nav-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-shrink: 0;
+}
+
+.landing-nav-user {
+  position: relative;
+}
+
+.avatar-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--duration) var(--ease),
+              border-color var(--duration) var(--ease);
+}
+
+.avatar-btn:hover {
+  transform: scale(1.05);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.avatar-btn[aria-expanded="true"] {
+  border-color: var(--primary-hover);
+}
+
+.user-menu {
+  position: absolute;
+  top: calc(100% + var(--sp-2));
+  right: 0;
+  min-width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  padding: var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: var(--z-header);
+}
+
+.user-menu-header {
+  padding: var(--sp-3);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--sp-2);
+}
+
+.user-menu-name {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text);
+  word-break: break-all;
+  line-height: 1.3;
+}
+
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-3);
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  transition: background var(--duration) var(--ease);
+}
+
+.user-menu-item:hover {
+  background: var(--surface-hover, rgba(255, 255, 255, 0.06));
+}
+
+.user-menu-logout {
+  color: var(--danger, #ef4444);
+}
+
+.user-menu-logout:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.user-menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--sp-2) 0;
+}
+
+/* ── Mobile: collapse primary nav, hide language toggle label ── */
+@media (max-width: 768px) {
+  .landing-nav-primary {
+    display: none;
+  }
+  .landing-nav-full {
+    padding: var(--sp-3) var(--sp-4);
+  }
+  .landing-nav-left {
+    gap: var(--sp-3);
+  }
+}
+
 /* ── Hero ──────────────────────────────────────────────── */
 .hero {
   position: relative;

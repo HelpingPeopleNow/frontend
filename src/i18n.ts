@@ -32,6 +32,9 @@ const translations: Record<Lang, Record<string, string>> = {
     'auth.email.required': 'Email is required',
     'auth.name.email.required': 'Name and email are required',
 
+    // Landing nav
+    'landing.nav.how_it_works': 'How it works',
+
     // Navigation
     'nav.admin': 'Admin',
     'nav.chat': 'Chat',
@@ -298,6 +301,9 @@ const translations: Record<Lang, Record<string, string>> = {
     'auth.name': 'Nombre',
     'auth.email.required': 'El email es obligatorio',
     'auth.name.email.required': 'Nombre y email son obligatorios',
+
+    // Landing nav
+    'landing.nav.how_it_works': 'Cómo funciona',
 
     // Navigation
     'nav.admin': 'Admin',

@@ -4,6 +4,7 @@ import { route } from 'preact-router';
 import { useLanguage } from './i18n';
 import { useAuth } from './AuthProvider';
 import ModeChooser from './ModeChooser';
+import LandingNavBar from './LandingNavBar';
 import { fetchLatestProfiles, WorkerPublicProfile } from './lib/publicProfileApi';
 import { logError } from './lib/logger';
 
@@ -30,12 +31,7 @@ export default function LandingPage() {
   if (session) {
     return (
       <div class="landing" style={{ justifyContent: 'center', alignItems: 'center' }}>
-        <nav class="landing-nav">
-          <a href="/" class="logo" onClick={(e) => { e.preventDefault(); route('/', false); }} style={{ cursor: 'pointer' }}>
-            <span class="logo-mark">H</span>
-            <span>Helping People</span>
-          </a>
-        </nav>
+        <LandingNavBar />
         <ModeChooser />
       </div>
     );
@@ -45,20 +41,7 @@ export default function LandingPage() {
   return (
     <div class="landing">
       {/* ── Nav ──────────────────────────────────────── */}
-      <nav class="landing-nav">
-        <a href="/" class="logo" onClick={(e) => { e.preventDefault(); route('/', false); }} style={{ cursor: 'pointer' }}>
-          <span class="logo-mark">H</span>
-          <span>Helping People</span>
-        </a>
-        <div class="landing-nav-links">
-          <button class="btn btn-ghost btn-sm" onClick={() => route('/login')}>
-            {t('auth.signin')}
-          </button>
-          <button class="btn btn-primary btn-sm" onClick={() => route('/login')}>
-            {t('auth.signin')}
-          </button>
-        </div>
-      </nav>
+      <LandingNavBar />
 
       {/* ── Hero ─────────────────────────────────────── */}
       <section class="hero">
