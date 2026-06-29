@@ -32,10 +32,10 @@ export default function SignupPage({ onNavigate }: { onNavigate: (path: string) 
         <div class="auth-panel">
           <div class="auth-card">
             <div class="auth-card-header">
-              <div class="logo">
+              <a href="/" class="logo" onClick={(e) => { e.preventDefault(); onNavigate('/'); }} style={{ cursor: 'pointer' }}>
                 <span class="logo-mark">H</span>
                 <span>Helping People</span>
-              </div>
+              </a>
             </div>
             <div class="auth-sent">
               <div class="auth-sent-icon">✉️</div>
@@ -62,10 +62,10 @@ export default function SignupPage({ onNavigate }: { onNavigate: (path: string) 
       <div class="auth-panel">
         <div class="auth-card">
           <div class="auth-card-header">
-            <div class="logo">
+            <a href="/" class="logo" onClick={(e) => { e.preventDefault(); onNavigate('/'); }} style={{ cursor: 'pointer' }}>
               <span class="logo-mark">H</span>
               <span>Helping People</span>
-            </div>
+            </a>
             <h1>{t('auth.signup')}</h1>
             <p>{t('auth.signup.desc')}</p>
           </div>

@@ -31,10 +31,10 @@ export default function LandingPage() {
     return (
       <div class="landing" style={{ justifyContent: 'center', alignItems: 'center' }}>
         <nav class="landing-nav">
-          <div class="logo">
+          <a href="/" class="logo" onClick={(e) => { e.preventDefault(); route('/', false); }} style={{ cursor: 'pointer' }}>
             <span class="logo-mark">H</span>
             <span>Helping People</span>
-          </div>
+          </a>
         </nav>
         <ModeChooser />
       </div>
@@ -46,10 +46,10 @@ export default function LandingPage() {
     <div class="landing">
       {/* ── Nav ──────────────────────────────────────── */}
       <nav class="landing-nav">
-        <div class="logo">
+        <a href="/" class="logo" onClick={(e) => { e.preventDefault(); route('/', false); }} style={{ cursor: 'pointer' }}>
           <span class="logo-mark">H</span>
           <span>Helping People</span>
-        </div>
+        </a>
         <div class="landing-nav-links">
           <button class="btn btn-ghost btn-sm" onClick={() => route('/login')}>
             {t('auth.signin')}
