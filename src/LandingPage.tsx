@@ -17,7 +17,7 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    fetchLatestProfiles(6).then(setLatestProfiles).catch(err => {
+    fetchLatestProfiles(10).then(setLatestProfiles).catch(err => {
       logError('landing', `fetchLatestProfiles failed: ${err?.message || String(err)}`);
     });
   }, []);
