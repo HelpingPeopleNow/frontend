@@ -212,10 +212,10 @@ describe('store/directMessages', () => {
   });
 
   describe('SSE dispatch via connect()', () => {
-    it('updates sseStatus to "open" on heartbeat', async () => {
+    it('updates sseStatus to "open" on onopen', async () => {
       const { useDirectMessages } = await importFreshStore();
       useDirectMessages.getState().connect();
-      MockEventSource.instances[0].triggerHeartbeat();
+      MockEventSource.instances[0].triggerOpen();
       expect(useDirectMessages.getState().sseStatus).toBe('open');
     });
 

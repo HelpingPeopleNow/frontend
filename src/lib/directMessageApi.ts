@@ -26,7 +26,7 @@ async function fetchJSON(path: string, options: RequestInit = {}) {
 
 export interface DMConversationItem {
   id: string;
-  other_party: { id: string; name: string; role: string };
+  other_party: { id: string; name: string; type: string };
   last_message?: { preview: string; at: string };
   unread_count: number;
   status: string;
@@ -36,7 +36,6 @@ export interface DMMessage {
   id: string;
   conversation_id: string;
   sender_id: string;
-  sender_role: string;
   body: string;
   created_at: string;
   read_at: string | null;

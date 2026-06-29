@@ -49,7 +49,4 @@ export class MockEventSource {
     this.listeners[type]?.forEach(l => l(event));
   }
 
-  triggerHeartbeat() {
-    this.listeners["heartbeat"]?.forEach(l => l(new MessageEvent("heartbeat")));
-  }
 }

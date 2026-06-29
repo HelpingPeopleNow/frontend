@@ -195,6 +195,15 @@ export const useDirectMessages = create<DMState>((set, get) => ({
           }));
           break;
         }
+        case 'report': {
+          const payload = event.data as { conversation_id: string };
+          log('dm', `SSE report received conv=${payload.conversation_id}`);
+          // Remove conversation from list (conversation ended)
+          set(s => ({
+            conversations: s.conversations.filter(c => c.id !== payload.conversation_id),
+          }));
+          break;
+        }
       }
     });
   },

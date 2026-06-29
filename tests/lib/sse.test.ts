@@ -63,12 +63,12 @@ describe('lib/sse — DirectMessageSSE', () => {
     expect(cb).toHaveBeenCalledWith({ type: 'block', data: { conversation_id: 'conv-1' } });
   });
 
-  it('dispatches an "open" event when the heartbeat fires', async () => {
+  it('dispatches an "open" event when onopen fires', async () => {
     const { DirectMessageSSE } = await importFreshSse();
     const cb = vi.fn();
     const sse = new DirectMessageSSE();
     sse.connect(cb);
-    MockEventSource.instances[0].triggerHeartbeat();
+    MockEventSource.instances[0].triggerOpen();
     expect(cb).toHaveBeenCalledWith({ type: 'open', data: {} });
   });
 

@@ -71,7 +71,7 @@ export default function InboxPage() {
                 <div class="dm-conv-body">
                   <div class="dm-conv-name">
                     {c.other_party.name}
-                    <span class="dm-conv-role">{t(`dm.role.${c.other_party.role}`)}</span>
+                    <span class="dm-conv-role">{t(`dm.type.${c.other_party.type}`)}</span>
                   </div>
                   {c.last_message && (
                     <div class="dm-conv-preview">{c.last_message.preview}</div>

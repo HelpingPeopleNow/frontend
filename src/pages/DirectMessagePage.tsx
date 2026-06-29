@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { log, logError } from '../lib/logger';
 import { useLanguage } from '../i18n';
+import { useAuth } from '../AuthProvider';
 import { useDirectMessages } from '../store/directMessages';
 import { archiveConversation, blockConversation, reportConversation } from '../lib/directMessageApi';
 import AppShell from '../AppShell';
@@ -13,7 +14,9 @@ interface Props {
 
 export default function DirectMessagePage({ convId }: Props) {
   const { t } = useLanguage();
-  const { messagesByConv, loadMessages, sendMessage, markRead, conversations, rateLimited } =
+  const { session } = useAuth();
+  const currentUserId = session?.user?.id;
+  const { messagesByConv, loadMessages, loadInbox, sendMessage, markRead, conversations, rateLimited, connect, disconnect } =
     useDirectMessages();
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -32,6 +35,7 @@ export default function DirectMessagePage({ convId }: Props) {
   useEffect(() => {
     log('thread', `loading thread conv=${convId}`);
     loadMessages(convId);
+    loadInbox();
     markRead(convId);
   }, [convId]);
 
@@ -42,6 +46,11 @@ export default function DirectMessagePage({ convId }: Props) {
   useEffect(() => {
     inputRef.current?.focus();
   }, [convId]);
+
+  useEffect(() => {
+    connect();
+    return () => disconnect();
+  }, []);
 
   const msgs = messagesByConv[convId] || [];
 
@@ -201,7 +210,7 @@ export default function DirectMessagePage({ convId }: Props) {
             msgs.map(m => (
               <div
                 key={m.id}
-                class={`dm-msg ${m.sender_role === 'client' ? 'dm-msg-sent' : 'dm-msg-recv'}`}
+                class={`dm-msg ${m.sender_id === currentUserId ? 'dm-msg-sent' : 'dm-msg-recv'}`}
               >
                 <div class="dm-msg-body">{m.body}</div>
                 <div class="dm-msg-time">
