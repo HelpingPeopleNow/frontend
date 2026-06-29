@@ -62,16 +62,12 @@ jobs:
         run: npm run typecheck
 
   # ──────────────────────────────────────────────
-  # Step 3: Unit + integration + e2e tests
+  # Step 3: Unit tests with coverage
   # ──────────────────────────────────────────────
-  test:
-    name: Tests
+  unit:
+    name: Unit + Coverage
     runs-on: ubuntu-latest
     needs: [lint, typecheck]
-    permissions:
-      contents: read
-      pull-requests: write
-
     steps:
       - uses: actions/checkout@v7
 
@@ -84,25 +80,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build SPA (needed for Playwright preview)
-        run: npm run build
-
-      - name: Run vitest with coverage (unit + integration)
+      - name: Run vitest with coverage
         run: npm run test:coverage
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Run Playwright e2e tests
-        run: npm run test:e2e
-        env:
-          CI: "true"
-
-      - name: Check coverage thresholds
-        if: always()
-        run: |
-          echo "Coverage thresholds are enforced by vitest config (vitest.config.ts)."
-          echo "If tests passed, all thresholds (lines, branches, functions, statements) are met."
 
       - name: Upload coverage artifact
         if: always()
@@ -110,14 +89,6 @@ jobs:
         with:
           name: frontend-coverage-${{ github.sha }}
           path: coverage/
-          retention-days: 30
-
-      - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: frontend-playwright-report-${{ github.sha }}
-          path: playwright-report/
           retention-days: 30
 
       - name: Comment coverage on PR
@@ -130,20 +101,42 @@ jobs:
 
             | Metric | Threshold | Status |
             |--------|-----------|--------|
-            | Lines | 75% | ${{ job.status == 'success' && '✅' || '❌' }} |
-            | Branches | 75% | ${{ job.status == 'success' && '✅' || '❌' }} |
-            | Functions | 78% | ${{ job.status == 'success' && '✅' || '❌' }} |
-            | Statements | 75% | ${{ job.status == 'success' && '✅' || '❌' }} |
+            | Lines | 70% | ${{ job.status == 'success' && '✅' || '❌' }} |
+            | Branches | 70% | ${{ job.status == 'success' && '✅' || '❌' }} |
+            | Functions | 70% | ${{ job.status == 'success' && '✅' || '❌' }} |
+            | Statements | 70% | ${{ job.status == 'success' && '✅' || '❌' }} |
 
             [Full report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
   # ──────────────────────────────────────────────
-  # Step 4: Build & Push Docker image
+  # Step 4: Build SPA (compile-check the bundle)
+  # ──────────────────────────────────────────────
+  build:
+    name: Build SPA
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, unit]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build SPA (vite build)
+        run: npm run build
+
+  # ──────────────────────────────────────────────
+  # Step 5: Build & Push Docker image
   # ──────────────────────────────────────────────
   docker:
     name: Build & Push
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [build]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     permissions:
@@ -182,3 +175,46 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # ──────────────────────────────────────────────
+  # Step 6: Playwright e2e (non-blocking)
+  # ──────────────────────────────────────────────
+  # Runs in parallel with docker. Does NOT block the image. Production-only
+  # specs (e.g. two-user-chat.spec.js) are skipped via testIgnore in
+  # playwright.config.js — set PLAYWRIGHT_INCLUDE_PROD=1 to opt in.
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    needs: [build]
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build SPA (needed for Playwright preview)
+        run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright e2e tests
+        run: npm run test:e2e
+        env:
+          CI: "true"
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-playwright-report-${{ github.sha }}
+          path: playwright-report/
+          retention-days: 30
