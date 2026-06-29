@@ -8,6 +8,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      run_e2e:
+        description: 'Run Playwright e2e (production-only, opt-in)'
+        type: boolean
+        default: false
 
 concurrency:
   group: frontend-ci-${{ github.ref }}
@@ -177,15 +182,17 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ──────────────────────────────────────────────
-  # Step 6: Playwright e2e (non-blocking)
+  # Step 6: Playwright e2e (non-blocking, opt-in)
   # ──────────────────────────────────────────────
-  # Runs in parallel with docker. Does NOT block the image. Production-only
-  # specs (e.g. two-user-chat.spec.js) are skipped via testIgnore in
-  # playwright.config.js — set PLAYWRIGHT_INCLUDE_PROD=1 to opt in.
+  # Disabled by default. The existing Playwright specs (deploy.spec.js,
+  # two-user-chat.spec.js) target the production deployment with hardcoded
+  # cookies — they don't make sense against a local vite preview in CI.
+  # Enable via the "run_e2e" workflow_dispatch input.
   e2e:
     name: Playwright E2E
     runs-on: ubuntu-latest
     needs: [build]
+    if: github.event_name == 'workflow_dispatch' && inputs.run_e2e == true
     continue-on-error: true
 
     steps:
