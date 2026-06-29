@@ -1,5 +1,5 @@
 export interface SSEEvent {
-  type: 'message' | 'read' | 'open';
+  type: 'message' | 'read' | 'open' | 'archive' | 'block';
   data: any;
 }
 
@@ -57,6 +57,14 @@ export class DirectMessageSSE {
 
     this.es.addEventListener('read', (e: MessageEvent) => {
       this.callback?.({ type: 'read', data: JSON.parse(e.data) });
+    });
+
+    this.es.addEventListener('archive', (e: MessageEvent) => {
+      this.callback?.({ type: 'archive', data: JSON.parse(e.data) });
+    });
+
+    this.es.addEventListener('block', (e: MessageEvent) => {
+      this.callback?.({ type: 'block', data: JSON.parse(e.data) });
     });
 
     // Heartbeat also signals connection is alive
