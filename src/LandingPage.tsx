@@ -239,6 +239,11 @@ export default function LandingPage() {
 
       {/* ── Footer ───────────────────────────────────── */}
       <footer class="landing-footer">
+        <div class="landing-footer-links">
+          <a href="/terms">Términos y Condiciones</a>
+          <a href="/privacy">Política de Privacidad</a>
+          <a href="/cookies">Política de Cookies</a>
+        </div>
         <p>© 2026 Helping People. Todos los derechos reservados.</p>
       </footer>
     </div>

@@ -24,6 +24,9 @@ import WorkerContactPage from './pages/WorkerContactPage';
 import InboxPage from './pages/InboxPage';
 import DirectMessagePage from './pages/DirectMessagePage';
 import PublicProfilePage from './pages/PublicProfilePage';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
+import CookiesPage from './pages/CookiesPage';
 
 function ProtectedRoute({ component: Component, ...props }: any) {
   const { session, loading } = useAuth();
@@ -48,6 +51,9 @@ function AppRouter() {
     <Router>
       <Route path="/" component={LandingPage} />
       <Route path="/login" component={LoginPage} onNavigate={(p: string) => route(p)} />
+      <Route path="/terms" component={TermsPage} />
+      <Route path="/privacy" component={PrivacyPage} />
+      <Route path="/cookies" component={CookiesPage} />
       <Route path="/chat" component={() => <ErrorBoundary><ProtectedRoute component={ChatPage} /></ErrorBoundary>} />
       <Route path="/find" component={() => <ErrorBoundary><ProtectedRoute component={FindPage} /></ErrorBoundary>} />
 

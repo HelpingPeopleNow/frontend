@@ -275,6 +275,11 @@ const translations: Record<Lang, Record<string, string>> = {
     'profile.view_profile': 'View Profile',
     'profile.chat_now': 'Chat',
     'profile.view_all': 'View all',
+
+    // Legal pages
+    'legal.terms': 'Terms &amp; Conditions',
+    'legal.privacy': 'Privacy Policy',
+    'legal.cookies': 'Cookie Policy',
   },
 
   es: {
@@ -545,6 +550,11 @@ const translations: Record<Lang, Record<string, string>> = {
     'profile.view_profile': 'Ver perfil',
     'profile.chat_now': 'Chat',
     'profile.view_all': 'Ver todos',
+
+    // Legal pages
+    'legal.terms': 'Términos y Condiciones',
+    'legal.privacy': 'Política de Privacidad',
+    'legal.cookies': 'Política de Cookies',
   },
 };
 

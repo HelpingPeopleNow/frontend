@@ -92,6 +92,11 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
 
           <div class="auth-footer">
             <p class="auth-footer-note">{t('auth.no.password')}</p>
+            <div class="auth-footer-legal">
+              <a href="/terms">{t('legal.terms')}</a>
+              <a href="/privacy">{t('legal.privacy')}</a>
+              <a href="/cookies">{t('legal.cookies')}</a>
+            </div>
           </div>
         </div>
       </div>

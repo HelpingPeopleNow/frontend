@@ -242,6 +242,11 @@ export default function PublicProfilePage({ slug }: Props) {
 
       {/* ── Footer ───────────────────────────────────── */}
       <footer class="landing-footer">
+        <div class="landing-footer-links">
+          <a href="/terms">{lang === 'es' ? 'Términos y Condiciones' : 'Terms &amp; Conditions'}</a>
+          <a href="/privacy">{lang === 'es' ? 'Política de Privacidad' : 'Privacy Policy'}</a>
+          <a href="/cookies">{lang === 'es' ? 'Política de Cookies' : 'Cookie Policy'}</a>
+        </div>
         <p>© 2026 Helping People. {lang === 'es' ? 'Todos los derechos reservados.' : 'All rights reserved.'}</p>
       </footer>
     </div>
