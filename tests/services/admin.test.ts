@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   listEntities,
   getEntity,
@@ -12,10 +12,6 @@ describe('services/admin', () => {
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(globalThis, 'fetch');
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   describe('listEntities', () => {

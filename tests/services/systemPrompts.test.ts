@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   getSystemPrompts,
   updateSystemPromptColumn,
@@ -11,10 +11,6 @@ describe('services/systemPrompts', () => {
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(globalThis, 'fetch');
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it('getSystemPrompts GETs /api/v1/system-prompts', async () => {

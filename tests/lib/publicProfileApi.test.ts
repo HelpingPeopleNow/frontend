@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fetchPublicProfile, fetchLatestProfiles } from '../../src/lib/publicProfileApi';
 import { jsonResponse } from '../helpers/fetch';
 
@@ -7,10 +7,6 @@ describe('lib/publicProfileApi', () => {
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(globalThis, 'fetch');
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   describe('fetchPublicProfile', () => {

@@ -4,46 +4,8 @@ import {
   DMMessage,
 } from '../../src/lib/directMessageApi';
 import { jsonResponse } from '../helpers/fetch';
+import { MockEventSource } from '../helpers/eventsource';
 import { makeDMConversationItem, makeDMMessage } from '../fixtures/dm';
-
-// ── EventSource mock (mirror sse.test.ts) ────────────────────────────────────
-
-type Listener = (e: MessageEvent) => void;
-
-class MockEventSource {
-  static instances: MockEventSource[] = [];
-  url: string;
-  withCredentials: boolean | undefined;
-  readyState = 0;
-  private listeners: Record<string, Listener[]> = {};
-  onopen: ((e: Event) => void) | null = null;
-  onerror: ((e: Event) => void) | null = null;
-
-  constructor(url: string, opts?: { withCredentials?: boolean }) {
-    this.url = url;
-    this.withCredentials = opts?.withCredentials;
-    MockEventSource.instances.push(this);
-  }
-  addEventListener(type: string, cb: Listener) {
-    (this.listeners[type] ||= []).push(cb);
-  }
-  removeEventListener(type: string, cb: Listener) {
-    this.listeners[type] = (this.listeners[type] || []).filter(l => l !== cb);
-  }
-  close() { this.readyState = 2; }
-  triggerError() { this.onerror?.(new Event('error')); }
-  triggerNamed(type: string, data: unknown) {
-    const event = { data: JSON.stringify(data) } as MessageEvent;
-    this.listeners[type]?.forEach(l => l(event));
-  }
-  triggerMessage(data: unknown) {
-    const event = { data: JSON.stringify(data) } as MessageEvent;
-    this.listeners['message']?.forEach(l => l(event));
-  }
-  triggerHeartbeat() {
-    this.listeners['heartbeat']?.forEach(l => l(new MessageEvent('heartbeat')));
-  }
-}
 
 async function importFreshStore() {
   vi.resetModules();
@@ -64,7 +26,6 @@ describe('store/directMessages', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
     vi.useRealTimers();
   });
 

@@ -17,7 +17,6 @@ describe('lib/logger', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
     vi.unstubAllEnvs();
   });
 

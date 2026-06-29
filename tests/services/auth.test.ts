@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getSession, sendMagicLink, logout } from '../../src/services/auth';
 import { jsonResponse } from '../helpers/fetch';
 
@@ -9,10 +9,6 @@ describe('services/auth', () => {
   beforeEach(() => {
     fetchSpy = vi.spyOn(globalThis, 'fetch');
     errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   describe('getSession', () => {

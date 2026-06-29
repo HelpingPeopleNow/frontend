@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { sendChat } from '../../src/services/chat';
 import { jsonResponse } from '../helpers/fetch';
 
@@ -7,10 +7,6 @@ describe('services/chat', () => {
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(globalThis, 'fetch');
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it('POSTs to /api/v1/chat with the request body JSON-stringified', async () => {

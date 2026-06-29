@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { h } from 'preact';
 import { renderHook, act } from '@testing-library/preact';
 import { LanguageProvider, useLanguage } from '../src/i18n';
@@ -17,10 +17,6 @@ describe('i18n — useLanguage / LanguageProvider', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.useRealTimers();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it('defaults to "es" when no lang is stored', () => {

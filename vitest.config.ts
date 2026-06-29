@@ -15,6 +15,7 @@ export default defineConfig({
   test: {
     include: ["tests/**/*.test.{ts,tsx}"],
     environment: "jsdom",
+    setupFiles: ["tests/setup.ts"],
     server: {
       deps: {
         // Pre-bundle zustand so its react import resolves through the alias.

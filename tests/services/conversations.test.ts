@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { listConversations, getConversation } from '../../src/services/conversations';
 import { jsonResponse } from '../helpers/fetch';
 
@@ -7,10 +7,6 @@ describe('services/conversations', () => {
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(globalThis, 'fetch');
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   describe('listConversations', () => {
