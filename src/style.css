@@ -948,6 +948,12 @@ button { cursor: pointer; font-family: inherit; }
   color: var(--text-muted);
 }
 
+.auth-footer-note {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
 .auth-footer a,
 .auth-footer button {
   color: var(--primary-hover);

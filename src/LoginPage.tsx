@@ -66,7 +66,7 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
               <span class="logo-mark">H</span>
               <span>Helping People</span>
             </a>
-            <h1>{t('auth.signin')}</h1>
+            <h1>{t('auth.signin.or_create')}</h1>
             <p>{t('auth.signin.desc')}</p>
           </div>
 
@@ -91,8 +91,7 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
           </form>
 
           <div class="auth-footer">
-            {t('auth.no.account')}{' '}
-            <button onClick={() => onNavigate('/signup')}>{t('auth.signup.link')}</button>
+            <p class="auth-footer-note">{t('auth.no.password')}</p>
           </div>
         </div>
       </div>

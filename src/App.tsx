@@ -20,7 +20,6 @@ import ConversationDetailPage from './ConversationDetailPage';
 import MessagesPage from './MessagesPage';
 import MessageDetailPage from './MessageDetailPage';
 import LoginPage from './LoginPage';
-import SignupPage from './SignupPage';
 import WorkerContactPage from './pages/WorkerContactPage';
 import InboxPage from './pages/InboxPage';
 import DirectMessagePage from './pages/DirectMessagePage';
@@ -49,7 +48,6 @@ function AppRouter() {
     <Router>
       <Route path="/" component={LandingPage} />
       <Route path="/login" component={LoginPage} onNavigate={(p: string) => route(p)} />
-      <Route path="/signup" component={SignupPage} onNavigate={(p: string) => route(p)} />
       <Route path="/chat" component={() => <ErrorBoundary><ProtectedRoute component={ChatPage} /></ErrorBoundary>} />
       <Route path="/find" component={() => <ErrorBoundary><ProtectedRoute component={FindPage} /></ErrorBoundary>} />
 

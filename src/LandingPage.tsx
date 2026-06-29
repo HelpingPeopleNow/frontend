@@ -54,8 +54,8 @@ export default function LandingPage() {
           <button class="btn btn-ghost btn-sm" onClick={() => route('/login')}>
             {t('auth.signin')}
           </button>
-          <button class="btn btn-primary btn-sm" onClick={() => route('/signup')}>
-            {t('auth.signup')}
+          <button class="btn btn-primary btn-sm" onClick={() => route('/login')}>
+            {t('auth.signin')}
           </button>
         </div>
       </nav>
@@ -71,7 +71,7 @@ export default function LandingPage() {
           Conectamos con profesionales locales verificados y asegurados para todo tipo de servicios del hogar — fontanería, electricidad, limpieza y más.
         </p>
         <div class="hero-actions">
-          <button class="btn btn-primary btn-lg" onClick={() => route('/signup')}>
+          <button class="btn btn-primary btn-lg" onClick={() => route('/login')}>
             Empieza Gratis
           </button>
           <button class="btn btn-secondary btn-lg" onClick={() => route('/login')}>
@@ -113,7 +113,7 @@ export default function LandingPage() {
             ))}
           </div>
           <div style={{ textAlign: 'center', marginTop: 'var(--sp-4)' }}>
-            <button class="btn btn-ghost btn-lg" onClick={() => route('/signup')}>
+            <button class="btn btn-ghost btn-lg" onClick={() => route('/find')}>
               {t('profile.view_all')} →
             </button>
           </div>
@@ -245,7 +245,7 @@ export default function LandingPage() {
         <h2>¿Listo para encontrar a tu próximo profesional?</h2>
         <p>Únete a miles de propietarios y profesionales que ya usan Helping People.</p>
         <div class="hero-actions" style={{ justifyContent: 'center' }}>
-          <button class="btn btn-primary btn-lg" onClick={() => route('/signup')}>
+          <button class="btn btn-primary btn-lg" onClick={() => route('/login')}>
             Empieza Gratis Hoy
           </button>
           <button class="btn btn-ghost btn-lg" onClick={() => route('/login')}>
