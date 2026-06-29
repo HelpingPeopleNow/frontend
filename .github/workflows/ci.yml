@@ -106,10 +106,10 @@ jobs:
 
             | Metric | Threshold | Status |
             |--------|-----------|--------|
-            | Lines | 70% | ${{ job.status == 'success' && '✅' || '❌' }} |
-            | Branches | 70% | ${{ job.status == 'success' && '✅' || '❌' }} |
-            | Functions | 70% | ${{ job.status == 'success' && '✅' || '❌' }} |
-            | Statements | 70% | ${{ job.status == 'success' && '✅' || '❌' }} |
+            | Lines | 75% | ${{ job.status == 'success' && '✅' || '❌' }} |
+            | Branches | 75% | ${{ job.status == 'success' && '✅' || '❌' }} |
+            | Functions | 78% | ${{ job.status == 'success' && '✅' || '❌' }} |
+            | Statements | 75% | ${{ job.status == 'success' && '✅' || '❌' }} |
 
             [Full report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
