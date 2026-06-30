@@ -276,6 +276,69 @@ const translations: Record<Lang, Record<string, string>> = {
     'profile.chat_now': 'Chat',
     'profile.view_all': 'View all',
 
+    // Landing Page — hero
+    'landing.hero.badge': 'Trusted by homeowners and professionals',
+    'landing.hero.heading.before': 'Your home deserves',
+    'landing.hero.heading.highlight': 'the best professionals',
+    'landing.hero.desc': 'We connect you with verified, insured local professionals for all kinds of home services — plumbing, electrical, cleaning and more.',
+    'landing.hero.cta.start': 'Start Free',
+    'landing.hero.cta.signin': 'Sign In',
+
+    // Landing Page — stats
+    'landing.stats.professionals': 'Verified Professionals',
+    'landing.stats.jobs_done': 'Jobs Completed',
+    'landing.stats.rating': 'Average Rating',
+
+    // Landing Page — latest professionals
+    'landing.profiles.subtitle': 'Verified professionals ready to help you.',
+
+    // Landing Page — features
+    'landing.features.title': 'Why professionals choose us',
+    'landing.features.subtitle': 'A platform built for trust, quality and hassle-free connections.',
+    'landing.features.verified.title': 'Verified Professionals',
+    'landing.features.verified.desc': 'Every worker goes through insurance checks, background verification and credential validation.',
+    'landing.features.ai.title': 'AI Matching',
+    'landing.features.ai.desc': 'Our intelligent assistant understands your needs and connects you with the perfect professional.',
+    'landing.features.instant.title': 'Instant Response',
+    'landing.features.instant.desc': 'Connect with available professionals in minutes, not days. Emergency services available.',
+    'landing.features.pricing.title': 'Transparent Pricing',
+    'landing.features.pricing.desc': 'Check hourly rates, minimum charges and free estimates upfront. No hidden costs.',
+    'landing.features.multilingual.title': 'Multilingual Support',
+    'landing.features.multilingual.desc': 'Communicate in your preferred language. Our platform supports English and Spanish.',
+    'landing.features.mobile.title': 'Mobile First',
+    'landing.features.mobile.desc': 'Manage your services from anywhere. Full functionality on any device.',
+
+    // Landing Page — how it works
+    'landing.how.title': 'How it works',
+    'landing.how.subtitle': 'Three simple steps to get help in your home.',
+    'landing.how.step1.title': 'Tell us what you need',
+    'landing.how.step1.desc': 'Describe your home service request in a quick chat with our AI assistant. No forms.',
+    'landing.how.step2.title': 'Instant matching',
+    'landing.how.step2.desc': 'Our system finds verified professionals in your area that match your requirements.',
+    'landing.how.step3.title': 'Hire with confidence',
+    'landing.how.step3.desc': 'Review profiles, compare rates and hire trusted professionals. All backed by our quality guarantee.',
+
+    // Landing Page — testimonials
+    'landing.testimonials.title': 'Trusted by homeowners',
+    'landing.testimonials.subtitle': 'See what our community says.',
+    'landing.testimonials.1.text': '"Found a plumber in 10 minutes. The AI understood exactly what I needed and connected me with a verified pro. Amazing service."',
+    'landing.testimonials.1.name': 'María García',
+    'landing.testimonials.1.role': 'Homeowner, Madrid',
+    'landing.testimonials.2.text': '"As an electrician, this platform has transformed my business. I get quality clients and the profile builder was so easy — just a conversation."',
+    'landing.testimonials.2.name': 'Juan Rodríguez',
+    'landing.testimonials.2.role': 'Certified Electrician',
+    'landing.testimonials.3.text': '"Transparency is what sold me. I could see rates, certifications and insurance status before hiring. No surprises."',
+    'landing.testimonials.3.name': 'Ana López',
+    'landing.testimonials.3.role': 'Property Manager',
+
+    // Landing Page — CTA
+    'landing.cta.title': 'Ready to find your next professional?',
+    'landing.cta.desc': 'Join thousands of homeowners and professionals already using Helping People.',
+    'landing.cta.start': 'Start Free Today',
+
+    // Landing Page — footer
+    'landing.footer.copyright': '© 2026 Helping People. All rights reserved.',
+
     // Legal pages
     'legal.terms': 'Terms &amp; Conditions',
     'legal.privacy': 'Privacy Policy',
@@ -550,6 +613,69 @@ const translations: Record<Lang, Record<string, string>> = {
     'profile.view_profile': 'Ver perfil',
     'profile.chat_now': 'Chat',
     'profile.view_all': 'Ver todos',
+
+    // Landing Page — hero
+    'landing.hero.badge': 'De confianza para propietarios y profesionales',
+    'landing.hero.heading.before': 'Tu hogar merece',
+    'landing.hero.heading.highlight': 'a los mejores profesionales',
+    'landing.hero.desc': 'Conectamos con profesionales locales verificados y asegurados para todo tipo de servicios del hogar — fontanería, electricidad, limpieza y más.',
+    'landing.hero.cta.start': 'Empieza Gratis',
+    'landing.hero.cta.signin': 'Iniciar Sesión',
+
+    // Landing Page — stats
+    'landing.stats.professionals': 'Profesionales Verificados',
+    'landing.stats.jobs_done': 'Trabajos Realizados',
+    'landing.stats.rating': 'Valoración Media',
+
+    // Landing Page — latest professionals
+    'landing.profiles.subtitle': 'Profesionales verificados listos para ayudarte.',
+
+    // Landing Page — features
+    'landing.features.title': 'Por qué los profesionales nos eligen',
+    'landing.features.subtitle': 'Una plataforma creada para la confianza, la calidad y conexiones sin complicaciones.',
+    'landing.features.verified.title': 'Profesionales Verificados',
+    'landing.features.verified.desc': 'Cada trabajador pasa por comprobaciones de seguro, verificación de antecedentes y validación de credenciales.',
+    'landing.features.ai.title': 'Emparejamiento con IA',
+    'landing.features.ai.desc': 'Nuestro asistente inteligente entiende tus necesidades y te conecta con el profesional perfecto.',
+    'landing.features.instant.title': 'Respuesta Instantánea',
+    'landing.features.instant.desc': 'Conecta con profesionales disponibles en minutos, no en días. Servicios de emergencia disponibles.',
+    'landing.features.pricing.title': 'Precios Transparentes',
+    'landing.features.pricing.desc': 'Consulta tarifas por hora, cargos mínimos y presupuestos gratuitos de antemano. Sin costes ocultos.',
+    'landing.features.multilingual.title': 'Soporte Multilingüe',
+    'landing.features.multilingual.desc': 'Comunícate en tu idioma preferido. Nuestra plataforma soporta inglés y español.',
+    'landing.features.mobile.title': 'Móvil Primero',
+    'landing.features.mobile.desc': 'Gestiona tus servicios desde cualquier lugar. Funcionalidad completa en cualquier dispositivo.',
+
+    // Landing Page — how it works
+    'landing.how.title': 'Cómo funciona',
+    'landing.how.subtitle': 'Tres sencillos pasos para que te atiendan en tu hogar.',
+    'landing.how.step1.title': 'Cuéntanos qué necesitas',
+    'landing.how.step1.desc': 'Describe tu solicitud de servicio del hogar en una conversación rápida con nuestro asistente IA. Sin formularios.',
+    'landing.how.step2.title': 'Emparejamiento instantáneo',
+    'landing.how.step2.desc': 'Nuestro sistema encuentra profesionales verificados en tu zona que se ajustan a tus requisitos.',
+    'landing.how.step3.title': 'Contrata con confianza',
+    'landing.how.step3.desc': 'Revisa perfiles, compara tarifas y contrata profesionales de confianza. Todo respaldado por nuestra garantía de calidad.',
+
+    // Landing Page — testimonials
+    'landing.testimonials.title': 'La confianza de los propietarios',
+    'landing.testimonials.subtitle': 'Mira lo que dice nuestra comunidad.',
+    'landing.testimonials.1.text': '"Encontré un fontanero en 10 minutos. La IA entendió exactamente lo que necesitaba y me conectó con un profesional verificado. Increíble servicio."',
+    'landing.testimonials.1.name': 'María García',
+    'landing.testimonials.1.role': 'Propietaria, Madrid',
+    'landing.testimonials.2.text': '"Como electricista, esta plataforma ha transformado mi negocio. Consigo clientes cualificados y el creador de perfil fue muy fácil — solo una conversación."',
+    'landing.testimonials.2.name': 'Juan Rodríguez',
+    'landing.testimonials.2.role': 'Electricista Certificado',
+    'landing.testimonials.3.text': '"La transparencia fue lo que me convenció. Pude ver tarifas, certificaciones y estado del seguro antes de contratar. Sin sorpresas."',
+    'landing.testimonials.3.name': 'Ana López',
+    'landing.testimonials.3.role': 'Gestora de Propiedades',
+
+    // Landing Page — CTA
+    'landing.cta.title': '¿Listo para encontrar a tu próximo profesional?',
+    'landing.cta.desc': 'Únete a miles de propietarios y profesionales que ya usan Helping People.',
+    'landing.cta.start': 'Empieza Gratis Hoy',
+
+    // Landing Page — footer
+    'landing.footer.copyright': '© 2026 Helping People. Todos los derechos reservados.',
 
     // Legal pages
     'legal.terms': 'Términos y Condiciones',

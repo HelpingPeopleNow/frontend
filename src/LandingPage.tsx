@@ -14,7 +14,7 @@ export default function LandingPage() {
   const [latestProfiles, setLatestProfiles] = useState<WorkerPublicProfile[]>([]);
 
   useEffect(() => {
-    document.title = `Helping People — Trusted Home Services`;
+    document.title = `Helping People — ${t('landing.hero.badge')}`;
   }, []);
 
   useEffect(() => {
@@ -45,20 +45,20 @@ export default function LandingPage() {
 
       {/* ── Hero ─────────────────────────────────────── */}
       <section class="hero">
-        <div class="hero-badge">De confianza para propietarios y profesionales</div>
+        <div class="hero-badge">{t('landing.hero.badge')}</div>
         <h1>
-          Tu hogar merece<br />
-          <span class="gradient-text">a los mejores profesionales</span>
+          {t('landing.hero.heading.before')}<br />
+          <span class="gradient-text">{t('landing.hero.heading.highlight')}</span>
         </h1>
         <p class="hero-desc">
-          Conectamos con profesionales locales verificados y asegurados para todo tipo de servicios del hogar — fontanería, electricidad, limpieza y más.
+          {t('landing.hero.desc')}
         </p>
         <div class="hero-actions">
           <button class="btn btn-primary btn-lg" onClick={() => route('/login')}>
-            Empieza Gratis
+            {t('landing.hero.cta.start')}
           </button>
           <button class="btn btn-secondary btn-lg" onClick={() => route('/login')}>
-            Iniciar Sesión
+            {t('landing.hero.cta.signin')}
           </button>
         </div>
 
@@ -66,15 +66,15 @@ export default function LandingPage() {
         <div class="stats-bar">
           <div class="stat-item">
             <div class="stat-value">500+</div>
-            <div class="stat-label">Profesionales Verificados</div>
+            <div class="stat-label">{t('landing.stats.professionals')}</div>
           </div>
           <div class="stat-item">
             <div class="stat-value">2,400+</div>
-            <div class="stat-label">Trabajos Realizados</div>
+            <div class="stat-label">{t('landing.stats.jobs_done')}</div>
           </div>
           <div class="stat-item">
             <div class="stat-value">4.9</div>
-            <div class="stat-label">Valoración Media</div>
+            <div class="stat-label">{t('landing.stats.rating')}</div>
           </div>
         </div>
       </section>
@@ -84,7 +84,7 @@ export default function LandingPage() {
         <section class="landing-section">
           <div class="section-header">
             <h2>{t('profile.latest_professionals')}</h2>
-            <p>Profesionales verificados listos para ayudarte.</p>
+            <p>{t('landing.profiles.subtitle')}</p>
           </div>
           <div class="profile-card-grid">
             {latestProfiles.map(p => (
@@ -106,39 +106,39 @@ export default function LandingPage() {
       {/* ── Features ─────────────────────────────────── */}
       <section class="landing-section">
         <div class="section-header">
-          <h2>Por qué los profesionales nos eligen</h2>
-          <p>Una plataforma creada para la confianza, la calidad y conexiones sin complicaciones.</p>
+          <h2>{t('landing.features.title')}</h2>
+          <p>{t('landing.features.subtitle')}</p>
         </div>
         <div class="features-grid">
           <div class="feature-card animate-in">
             <div class="feature-icon blue">🔒</div>
-            <h3>Profesionales Verificados</h3>
-            <p>Cada trabajador pasa por comprobaciones de seguro, verificación de antecedentes y validación de credenciales.</p>
+            <h3>{t('landing.features.verified.title')}</h3>
+            <p>{t('landing.features.verified.desc')}</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-1">
             <div class="feature-icon teal">💬</div>
-            <h3>Emparejamiento con IA</h3>
-            <p>Nuestro asistente inteligente entiende tus necesidades y te conecta con el profesional perfecto.</p>
+            <h3>{t('landing.features.ai.title')}</h3>
+            <p>{t('landing.features.ai.desc')}</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-2">
             <div class="feature-icon green">⚡</div>
-            <h3>Respuesta Instantánea</h3>
-            <p>Conecta con profesionales disponibles en minutos, no en días. Servicios de emergencia disponibles.</p>
+            <h3>{t('landing.features.instant.title')}</h3>
+            <p>{t('landing.features.instant.desc')}</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-3">
             <div class="feature-icon orange">📊</div>
-            <h3>Precios Transparentes</h3>
-            <p>Consulta tarifas por hora, cargos mínimos y presupuestos gratuitos de antemano. Sin costes ocultos.</p>
+            <h3>{t('landing.features.pricing.title')}</h3>
+            <p>{t('landing.features.pricing.desc')}</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-4">
             <div class="feature-icon blue">🌍</div>
-            <h3>Soporte Multilingüe</h3>
-            <p>Comunícate en tu idioma preferido. Nuestra plataforma soporta inglés y español.</p>
+            <h3>{t('landing.features.multilingual.title')}</h3>
+            <p>{t('landing.features.multilingual.desc')}</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-4">
             <div class="feature-icon green">📱</div>
-            <h3>Móvil Primero</h3>
-            <p>Gestiona tus servicios desde cualquier lugar. Funcionalidad completa en cualquier dispositivo.</p>
+            <h3>{t('landing.features.mobile.title')}</h3>
+            <p>{t('landing.features.mobile.desc')}</p>
           </div>
         </div>
       </section>
@@ -146,29 +146,29 @@ export default function LandingPage() {
       {/* ── How It Works ─────────────────────────────── */}
       <section class="landing-section">
         <div class="section-header">
-          <h2>Cómo funciona</h2>
-          <p>Tres sencillos pasos para que te atiendan en tu hogar.</p>
+          <h2>{t('landing.how.title')}</h2>
+          <p>{t('landing.how.subtitle')}</p>
         </div>
         <div class="steps">
           <div class="step animate-in">
             <div class="step-number">1</div>
             <div class="step-content">
-              <h3>Cuéntanos qué necesitas</h3>
-              <p>Describe tu solicitud de servicio del hogar en una conversación rápida con nuestro asistente IA. Sin formularios.</p>
+              <h3>{t('landing.how.step1.title')}</h3>
+              <p>{t('landing.how.step1.desc')}</p>
             </div>
           </div>
           <div class="step animate-in animate-in-delay-1">
             <div class="step-number">2</div>
             <div class="step-content">
-              <h3>Emparejamiento instantáneo</h3>
-              <p>Nuestro sistema encuentra profesionales verificados en tu zona que se ajustan a tus requisitos.</p>
+              <h3>{t('landing.how.step2.title')}</h3>
+              <p>{t('landing.how.step2.desc')}</p>
             </div>
           </div>
           <div class="step animate-in animate-in-delay-2">
             <div class="step-number">3</div>
             <div class="step-content">
-              <h3>Contrata con confianza</h3>
-              <p>Revisa perfiles, compara tarifas y contrata profesionales de confianza. Todo respaldado por nuestra garantía de calidad.</p>
+              <h3>{t('landing.how.step3.title')}</h3>
+              <p>{t('landing.how.step3.desc')}</p>
             </div>
           </div>
         </div>
@@ -177,46 +177,46 @@ export default function LandingPage() {
       {/* ── Testimonials ─────────────────────────────── */}
       <section class="landing-section">
         <div class="section-header">
-          <h2>La confianza de los propietarios</h2>
-          <p>Mira lo que dice nuestra comunidad.</p>
+          <h2>{t('landing.testimonials.title')}</h2>
+          <p>{t('landing.testimonials.subtitle')}</p>
         </div>
         <div class="testimonials-grid">
           <div class="testimonial-card animate-in">
             <div class="testimonial-stars">★★★★★</div>
             <p class="testimonial-text">
-              "Encontré un fontanero en 10 minutos. La IA entendió exactamente lo que necesitaba y me conectó con un profesional verificado. Increíble servicio."
+              {t('landing.testimonials.1.text')}
             </p>
             <div class="testimonial-author">
               <div class="testimonial-avatar">MG</div>
               <div>
-                <div class="testimonial-name">María García</div>
-                <div class="testimonial-role">Propietaria, Madrid</div>
+                <div class="testimonial-name">{t('landing.testimonials.1.name')}</div>
+                <div class="testimonial-role">{t('landing.testimonials.1.role')}</div>
               </div>
             </div>
           </div>
           <div class="testimonial-card animate-in animate-in-delay-1">
             <div class="testimonial-stars">★★★★★</div>
             <p class="testimonial-text">
-              "Como electricista, esta plataforma ha transformado mi negocio. Consigo clientes cualificados y el creador de perfil fue muy fácil — solo una conversación."
+              {t('landing.testimonials.2.text')}
             </p>
             <div class="testimonial-author">
               <div class="testimonial-avatar">JR</div>
               <div>
-                <div class="testimonial-name">Juan Rodríguez</div>
-                <div class="testimonial-role">Electricista Certificado</div>
+                <div class="testimonial-name">{t('landing.testimonials.2.name')}</div>
+                <div class="testimonial-role">{t('landing.testimonials.2.role')}</div>
               </div>
             </div>
           </div>
           <div class="testimonial-card animate-in animate-in-delay-2">
             <div class="testimonial-stars">★★★★★</div>
             <p class="testimonial-text">
-              "La transparencia fue lo que me convenció. Pude ver tarifas, certificaciones y estado del seguro antes de contratar. Sin sorpresas."
+              {t('landing.testimonials.3.text')}
             </p>
             <div class="testimonial-author">
               <div class="testimonial-avatar">AL</div>
               <div>
-                <div class="testimonial-name">Ana López</div>
-                <div class="testimonial-role">Gestora de Propiedades</div>
+                <div class="testimonial-name">{t('landing.testimonials.3.name')}</div>
+                <div class="testimonial-role">{t('landing.testimonials.3.role')}</div>
               </div>
             </div>
           </div>
@@ -225,14 +225,14 @@ export default function LandingPage() {
 
       {/* ── CTA ──────────────────────────────────────── */}
       <section class="landing-cta">
-        <h2>¿Listo para encontrar a tu próximo profesional?</h2>
-        <p>Únete a miles de propietarios y profesionales que ya usan Helping People.</p>
+        <h2>{t('landing.cta.title')}</h2>
+        <p>{t('landing.cta.desc')}</p>
         <div class="hero-actions" style={{ justifyContent: 'center' }}>
           <button class="btn btn-primary btn-lg" onClick={() => route('/login')}>
-            Empieza Gratis Hoy
+            {t('landing.cta.start')}
           </button>
           <button class="btn btn-ghost btn-lg" onClick={() => route('/login')}>
-            Iniciar Sesión
+            {t('landing.hero.cta.signin')}
           </button>
         </div>
       </section>
@@ -240,11 +240,11 @@ export default function LandingPage() {
       {/* ── Footer ───────────────────────────────────── */}
       <footer class="landing-footer">
         <div class="landing-footer-links">
-          <a href="/terms">Términos y Condiciones</a>
-          <a href="/privacy">Política de Privacidad</a>
-          <a href="/cookies">Política de Cookies</a>
+          <a href="/terms">{t('legal.terms')}</a>
+          <a href="/privacy">{t('legal.privacy')}</a>
+          <a href="/cookies">{t('legal.cookies')}</a>
         </div>
-        <p>© 2026 Helping People. Todos los derechos reservados.</p>
+        <p>{t('landing.footer.copyright')}</p>
       </footer>
     </div>
   );
