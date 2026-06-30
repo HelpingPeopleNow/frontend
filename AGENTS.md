@@ -6,9 +6,11 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 
 | Path | Component | Auth |
 |------|-----------|:----:|
-| `/login` | LoginPage | No |
-| `/signup` | SignupPage | No |
-| `/` | LandingPage | No (renders `ModeChooser` if logged in, hero if not) |
+| `/login` | LoginPage | No (magic-link login + signup) |
+| `/terms` | TermsPage | No (bilingual EN/ES terms and conditions) |
+| `/privacy` | PrivacyPage | No (bilingual EN/ES privacy policy) |
+| `/cookies` | CookiesPage | No (bilingual EN/ES cookie policy) |
+| `/` | LandingPage | No (renders `ModeChooser` if logged in, hero + latest professionals if not) |
 | `/profile/:slug` | PublicProfilePage | No (public worker profile page with hero, stats, bio, links, CTA) |
 | `/chat` | ChatPage | Yes (renders `ModeChooser` when no `?mode=` query param; otherwise shows intake chat for `worker_intake` or `client_intake`) |
 | `/find` | FindPage | Yes (always `mode: search`) |
@@ -77,7 +79,7 @@ Playwright config in `playwright.config.js`; only `e2e/deploy.spec.js` exists (d
 docker build -t ghcr.io/helpingpeoplenow/frontend:latest .
 ```
 
-Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime (image name `nginx-hi-hermy` in compose). CI pipeline (`.github/workflows/ci.yml`): lint → typecheck → vitest (unit + integration) → Playwright e2e → docker build/push to ghcr.
+Multi-stage: `node:22-alpine` build → `nginx:alpine` runtime (container name `helpingpeoplenow-frontend` in compose). CI pipeline (`.github/workflows/ci.yml`): lint → typecheck → vitest (unit + integration) → Playwright e2e → docker build/push to ghcr.
 
 ## Direct Messaging
 

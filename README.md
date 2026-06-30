@@ -2,7 +2,7 @@
 
 Preact + Vite SPA served behind nginx. Dark-themed home-services platform where clients find workers and workers find jobs. Connects to the Go backend via API proxied through Traefik.
 
-**URL:** `https://helpingpeople.cloud` | **Container:** `nginx-hi-hermy`
+**URL:** `https://helpingpeople.cloud` | **Container:** `helpingpeoplenow-frontend`
 
 ---
 
@@ -23,10 +23,16 @@ Preact + Vite SPA served behind nginx. Dark-themed home-services platform where 
 | Route | Component | Auth Required | Description |
 |-------|-----------|:---:|-------------|
 | `/` | `LandingPage.tsx` | No | Landing page — redirects to `/chat` if logged in |
-| `/login` | `LoginPage.tsx` | No | Magic-link login form |
-| `/signup` | `SignupPage.tsx` | No | Registration form |
+| `/login` | `LoginPage.tsx` | No | Magic-link login + signup form |
+| `/terms` | `TermsPage.tsx` | No | Terms and conditions (bilingual EN/ES) |
+| `/privacy` | `PrivacyPage.tsx` | No | Privacy policy (bilingual EN/ES) |
+| `/cookies` | `CookiesPage.tsx` | No | Cookie policy (bilingual EN/ES) |
+| `/profile/:slug` | `PublicProfilePage.tsx` | No | Public worker profile with hero, stats, bio, links, CTA |
 | `/chat` | `ChatPage.tsx` | Yes | AI chat — modes via `?mode=` param: `worker_intake`, `client_intake`, `search` |
 | `/find` | `FindPage.tsx` | Yes | Find professionals — worker card grid |
+| `/inbox` | `InboxPage.tsx` | Yes | DM inbox with status indicators |
+| `/inbox/:convId` | `DirectMessagePage.tsx` | Yes | DM thread with send, block, report, archive |
+| `/workers/:workerId` | `WorkerContactPage.tsx` | Yes | Create/resume DM with a worker, redirects to inbox |
 | `/admin` | `AdminPage.tsx` | Yes | Admin menu — links to LLM provider, prompts, and entity CRUD pages |
 
 ---
@@ -53,7 +59,9 @@ Browser ──► Traefik (:80)
                  /health              ──► Frontend nginx → 200 "ok"
 ```
 
-The SPA uses client-side routing via `preact-router`. API calls use relative URLs (`/api/v1/...`, `/api/auth/...`) which Traefik proxies to the appropriate backend service.
+The SPA uses client-side routing via `preact-router`. Public routes (`/`, `/login`, `/terms`, `/privacy`, `/cookies`, `/profile/:slug`) require no auth. All other routes are wrapped in `ProtectedRoute` which redirects to `/login` if no valid session.
+
+API calls use relative URLs (`/api/v1/...`, `/api/auth/...`) which Traefik proxies to the appropriate backend service.
 
 ### Health Check
 
@@ -65,7 +73,7 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 
 ### Auth Flow
 
-1. User visits `/login` → enters email → auth service sends a magic link
+1. User visits `/login` → enters email (or name + email for new accounts) → auth service sends a magic link
 2. Clicking the magic link creates a session cookie (`better-auth.session_token`)
 3. `AuthProvider` checks the session on every route change
 4. `ProtectedRoute` wrapper redirects to `/login` if no valid session
@@ -92,11 +100,10 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 | `src/AdminPage.tsx` | Admin menu — links to `/admin/llm`, `/admin/prompts`, and entity CRUD pages |
 | `src/AdminLLMPage.tsx` | LLM provider dropdown — calls `PUT /api/v1/system-prompts/provider` |
 | `src/AdminPromptsPage.tsx` | 4-prompt textarea editor — calls `PUT /api/v1/system-prompts/{column}` |
-| `src/LoginPage.tsx` | Magic-link login — email input, send link |
-| `src/SignupPage.tsx` | Registration form — name, email, submit |
+| `src/LoginPage.tsx` | Magic-link login + signup — email input, send link |
 | `src/i18n.ts` | Internationalization — translations, language toggle |
 | `nginx.conf` | Static file serving + SPA fallback (`try_files $uri /index.html`) |
-| `Dockerfile` | Multi-stage: `node:20-alpine` build → `nginx:alpine` runtime |
+| `Dockerfile` | Multi-stage: `node:22-alpine` build → `nginx:alpine` runtime |
 
 ---
 
@@ -175,9 +182,10 @@ Dropdown at the top of the admin page:
 
 | Option | Value | Behaviour |
 |--------|-------|-----------|
-| Default (auto) | `""` | Falls back to helper's auto fallback chain (Mistral → OpenCode → Ollama) |
-| OpenCode 1 | `"opencode1"` | Forces first OpenCode endpoint |
-| OpenCode 2 | `"opencode2"` | Forces second OpenCode endpoint |
+| Default (auto) | `""` | Falls back to helper's auto fallback chain (Mistral → OpenCode 0 → OpenCode 1 → OpenCode 2 → Ollama) |
+| OpenCode 0 (Big Pickle) | `"opencode0"` | Forces big-pickle model |
+| OpenCode 1 | `"opencode1"` | Forces first OpenCode endpoint (`deepseek-v4-flash-free`) |
+| OpenCode 2 | `"opencode2"` | Forces second OpenCode endpoint (`mimo-v2.5-free`) |
 | Ollama (local) | `"ollama"` | Forces local Ollama |
 | Mistral (cloud) | `"mistral"` | Forces Mistral API (requires `MISTRAL_API_KEY`) |
 
@@ -255,7 +263,7 @@ Open browser DevTools (F12) → Console for debugging.
 frontend/
 ├── index.html                    # HTML shell (imports /src/main.tsx)
 ├── nginx.conf                    # nginx static file serving + SPA fallback + /health
-├── Dockerfile                    # Multi-stage: node:20-alpine → nginx:alpine
+├── Dockerfile                    # Multi-stage: node:22-alpine → nginx:alpine
 ├── package.json                  # Dependencies
 ├── vite.config.js                # Vite config (Preact preset)
 ├── tsconfig.json                 # TypeScript config
@@ -270,8 +278,7 @@ frontend/
 │   ├── auth.ts                   # Barrel re-export of services/auth
 │   ├── i18n.ts                   # EN/ES translations + LanguageProvider + LangToggle
 │   ├── style.css                 # Shared design system
-│   ├── LoginPage.tsx             # Magic link login
-│   ├── SignupPage.tsx            # Magic link signup
+│   ├── LoginPage.tsx             # Magic link login + signup
 │   ├── LandingPage.tsx           # Marketing landing for visitors / ModeChooser for authed
 │   ├── ChatPage.tsx              # Worker/client intake chat (mode in query string)
 │   ├── FindPage.tsx              # Search/find professional chat
