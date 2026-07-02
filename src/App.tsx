@@ -27,6 +27,7 @@ import PublicProfilePage from './pages/PublicProfilePage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import CookiesPage from './pages/CookiesPage';
+import CookieConsent from './components/CookieConsent';
 
 function ProtectedRoute({ component: Component, ...props }: any) {
   const { session, loading } = useAuth();
@@ -94,7 +95,10 @@ function AppRouter() {
 export default function App() {
   return (
     <AuthProvider>
+      <>
       <AppRouter />
+      <CookieConsent />
+      </>
     </AuthProvider>
   );
 }
