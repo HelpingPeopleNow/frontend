@@ -1,4 +1,4 @@
-import { h } from 'preact';
+import { h, Fragment } from 'preact';
 import { Router, Route, route } from 'preact-router';
 import { useEffect } from 'preact/hooks';
 import { AuthProvider, useAuth } from './AuthProvider';
