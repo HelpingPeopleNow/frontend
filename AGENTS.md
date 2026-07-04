@@ -92,6 +92,17 @@ Multi-stage: `node:22-alpine` build → `nginx:alpine` runtime (container name `
 - **Block/Report**: DirectMessagePage has ⋯ action menu with Archive, Block, Report. Block shows confirmation dialog in red, report in warning. Archive navigates to /inbox.
 - **WorkerCard**: Made clickable in Phase 2 — `onClick` calls `route('/workers/:id', false)` (pushState for back button support)
 
+## GPS Geolocation
+
+- **Hook**: `src/hooks/useGeolocation.ts` — wraps the browser `navigator.geolocation` API. Returns `{ latitude, longitude, loading, permissionDenied, error }`. Uses `maximumAge: 300000` (5 min cache) so the browser reuses recent fixes. Falls back gracefully: if `navigator.geolocation` is unsupported or permission is denied, `permissionDenied` / `error` are set; pages degrade to showing results without distance ranking.
+- **Types**: `ChatRequest` in `src/services/chat.ts` now accepts optional `latitude?: number` and `longitude?: number`. `WorkerCard` interface gains optional `latitude?: number`, `longitude?: number`, and `distance_km?: number` — the backend computes distance and returns it with worker search results.
+- **useChat**: `src/hooks/useChat.ts` accepts `latitude` and `longitude` in `UseChatOptions` and conditionally spreads them into the `sendChat()` POST body (only when both are non-null).
+- **ChatPage**: Calls `useGeolocation()` on mount. Passes `geo.latitude` / `geo.longitude` to `useChat()`. When `geo.permissionDenied` is true, renders a `<div class="location-banner">` with a 📍-prefixed message using `t('chat.location.denied')`.
+- **FindPage**: Also calls `useGeolocation()`. In its `send()` function, spreads `{ latitude, longitude }` into the `sendChat()` call (mode `'search'`) when coords are available. Shows the same `.location-banner` when permission is denied.
+- **WorkerCard display**: `src/components/chat/WorkerCard.tsx` renders ` · 📍 X.X km` inline when `worker.distance_km != null`. Values <1 km show as `<1 km`. The distance segment is wrapped in a `span.worker-card-distance`.
+- **CSS**: `.location-banner` in `src/style.css` — blue gradient background (`#1e3a5f → #2d5a88`), centered white text, `padding: var(--sp-3) var(--sp-4)`, `border-radius: var(--sp-2)`. `.location-banner-text` applies `opacity: 0.95`.
+- **i18n**: Key `chat.location.denied` exists in both EN and ES translations in `src/i18n.ts`. EN: *"Location access helps us find the closest traders near you. You can enable it in your browser settings."* ES: *"El acceso a la ubicación nos ayuda a encontrar los trabajadores más cercanos. Puedes activarlo en la configuración de tu navegador."*
+
 ## Gotchas
 
 - `ChatPage` reads `mode` from `window.location.search` (`?mode=worker_intake`, `?mode=client_intake`) — does NOT accept `?mode=search` (search is the dedicated `/find` route)
