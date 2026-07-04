@@ -6,6 +6,8 @@ import { ChatMsg } from '../components/chat/ChatMessages';
 interface UseChatOptions {
   mode: string;
   lang: string;
+  latitude?: number | null;
+  longitude?: number | null;
   initialMessages: ChatMsg[];
   initialConversationId: string | null;
   errorMessage: string;
@@ -19,7 +21,7 @@ interface UseChatReturn {
   listRef: { current: HTMLDivElement | null };
 }
 
-export function useChat({ mode, lang, initialMessages, initialConversationId, errorMessage }: UseChatOptions): UseChatReturn {
+export function useChat({ mode, lang, latitude, longitude, initialMessages, initialConversationId, errorMessage }: UseChatOptions): UseChatReturn {
   const [messages, setMessages] = useState<ChatMsg[]>(initialMessages);
   const [conversationId, setConversationId] = useState<string | null>(initialConversationId);
   const [isLoading, setIsLoading] = useState(false);
@@ -79,6 +81,7 @@ export function useChat({ mode, lang, initialMessages, initialConversationId, er
         history,
         conversation_id: currentConvId || undefined,
         lang: currentLang,
+        ...(latitude != null && longitude != null ? { latitude, longitude } : {}),
       });
       if (!res.ok) {
         logError('chat', `chat API returned ${res.status}`);

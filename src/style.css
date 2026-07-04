@@ -1687,6 +1687,19 @@ button { cursor: pointer; font-family: inherit; }
   height: 100%;
 }
 
+.location-banner {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d5a88 100%);
+  color: var(--text-primary, #ffffff);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: var(--fs-sm, 0.875rem);
+  text-align: center;
+}
+
+.location-banner-text {
+  opacity: 0.95;
+}
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;

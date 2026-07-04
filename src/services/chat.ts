@@ -18,6 +18,9 @@ export interface WorkerCard {
   has_insurance: boolean;
   emergency_service: boolean;
   slug: string;
+  latitude?: number;
+  longitude?: number;
+  distance_km?: number;
 }
 
 export interface ChatRequest {
@@ -26,6 +29,8 @@ export interface ChatRequest {
   lang: string;
   history?: ChatHistoryItem[];
   conversation_id?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface ChatResponse {

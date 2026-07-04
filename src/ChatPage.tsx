@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import { useEffect } from 'preact/hooks';
+import { useGeolocation } from './hooks/useGeolocation';
 import { useAuth } from './AuthProvider';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
@@ -21,7 +22,7 @@ function getModeParam(): ChatMode | null {
 export default function ChatPage() {
   useAuth();
   const { t, lang } = useLanguage();
-
+  const geo = useGeolocation();
   const modeParam = getModeParam();
   const convType = modeParam === 'worker_intake' ? 'worker' : 'client';
 
@@ -30,6 +31,8 @@ export default function ChatPage() {
   const { messages, isLoading, isStreaming, sendMessage, listRef } = useChat({
     mode: modeParam || '',
     lang,
+    latitude: geo.latitude,
+    longitude: geo.longitude,
     initialMessages,
     initialConversationId,
     errorMessage: t('chat.error.network'),
@@ -59,6 +62,13 @@ export default function ChatPage() {
   return (
     <AppShell currentPath="/" title={pageHeading}>
       <div class="chat-container">
+        {!geo.loading && geo.permissionDenied && (
+          <div class="location-banner">
+            <span class="location-banner-text">
+              📍 {t('chat.location.denied')}
+            </span>
+          </div>
+        )}
         {messages.length === 0 && !initialLoading ? (
           <ChatWelcome mode={modeParam!} />
         ) : (

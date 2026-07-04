@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import { useState, useRef, useEffect } from 'preact/hooks';
+import { useGeolocation } from './hooks/useGeolocation';
 import { logError } from './lib/logger';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
@@ -16,6 +17,7 @@ interface ChatMsg {
 
 export default function FindPage() {
   const { t, lang } = useLanguage();
+  const geo = useGeolocation();
   const { initialMessages, initialConversationId, loading: initialLoading } = useChatInit('client-find');
   const [messages, setMessages] = useState<ChatMsg[]>(initialMessages);
   const [conversationId, setConversationId] = useState<string | null>(initialConversationId);
@@ -65,6 +67,7 @@ export default function FindPage() {
         history,
         conversation_id: conversationId || undefined,
         lang,
+        ...(geo.latitude != null && geo.longitude != null ? { latitude: geo.latitude, longitude: geo.longitude } : {}),
       });
       if (!res.ok) {
         setMessages(m => [...m, { role: 'assistant', text: `Error ${res.status}` }]);
@@ -88,6 +91,13 @@ export default function FindPage() {
   return (
     <AppShell currentPath="/find" title={t('find.title')}>
       <div class="chat-container">
+        {!geo.loading && geo.permissionDenied && (
+          <div class="location-banner">
+            <span class="location-banner-text">
+              📍 {t('chat.location.denied')}
+            </span>
+          </div>
+        )}
         <div class="chat-messages" ref={listRef}>
           {messages.length === 0 && !initialLoading ? (
             <div class="chat-welcome">

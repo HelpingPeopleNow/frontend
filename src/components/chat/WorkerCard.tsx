@@ -17,6 +17,9 @@ export default function WorkerCard({ worker }: Props) {
       </div>
       <div class="worker-card-meta">
         {worker.profession} · {worker.city} · {worker.years_experience} {t('worker.card.years_exp')}
+        {worker.distance_km != null && (
+          <span class="worker-card-distance"> · 📍 {worker.distance_km < 1 ? '<1' : worker.distance_km.toFixed(1)} km</span>
+        )}
       </div>
       {worker.bio && <div class="worker-card-bio">{worker.bio}</div>}
       <div class="worker-card-badges">
