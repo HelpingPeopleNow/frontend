@@ -43,7 +43,7 @@ Preact + Vite SPA served behind nginx. Dark-themed home-services platform where 
 Browser ──► Traefik (:80)
               │
               ├── /api/v1/*           ──► Backend (:8081)
-              │                          (unified POST /api/v1/chat with mode in body,
+              │                          (unified POST /api/v1/chat with mode + optional GPS coordinates in body,
               │                           GET/DELETE /api/v1/{worker,client}/profile,
               │                           GET/PUT /api/v1/system-prompts/,
               │                           GET /api/v1/conversations,
@@ -86,6 +86,13 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 - All UI text uses `t()` from `useLanguage()` for translated strings
 - Chat requests include a `lang` parameter so the AI responds in the matching language
 
+### GPS Geolocation
+
+- `useGeolocation()` hook wraps `navigator.geolocation` with 5-min cache (`maximumAge: 300000`)
+- Chat and Find pages pass `latitude`/`longitude` in the `POST /api/v1/chat` body when available
+- Backend computes distance; `WorkerCard` renders `· 📍 X.X km` inline (values <1 km show as `<1 km`)
+- When location permission is denied, a blue banner (`.location-banner`) shows with `t('chat.location.denied')` guiding users to enable it in browser settings
+
 ---
 
 ## Key Files
@@ -102,6 +109,7 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 | `src/AdminPromptsPage.tsx` | 4-prompt textarea editor — calls `PUT /api/v1/system-prompts/{column}` |
 | `src/LoginPage.tsx` | Magic-link login + signup — email input, send link |
 | `src/i18n.ts` | Internationalization — translations, language toggle |
+| `src/hooks/useGeolocation.ts` | GPS geolocation — wraps `navigator.geolocation`, returns `{ latitude, longitude, loading, permissionDenied, error }` |
 | `nginx.conf` | Static file serving + SPA fallback (`try_files $uri /index.html`) |
 | `Dockerfile` | Multi-stage: `node:22-alpine` build → `nginx:alpine` runtime |
 
@@ -299,10 +307,11 @@ frontend/
 │   │       ├── ChatInput.tsx     # Input bar with optional mic button
 │   │       ├── ChatMessages.tsx  # Bubble list with worker card grid
 │   │       ├── ChatWelcome.tsx   # First-message welcome card
-│   │       └── WorkerCard.tsx    # Clickable worker summary card
+│   │       └── WorkerCard.tsx    # Clickable worker summary card (shows distance_km when available)
 │   ├── hooks/
 │   │   ├── useChat.ts            # Chat state + SSE streaming
 │   │   ├── useChatInit.ts        # Load most recent conversation
+│   │   ├── useGeolocation.ts     # GPS geolocation (latitude, longitude, permissionDenied)
 │   │   └── useSpeechRecognition.ts  # Voice input via Web Speech API
 │   ├── lib/
 │   │   ├── directMessageApi.ts   # DM API client (contact, inbox, messages, etc.)
