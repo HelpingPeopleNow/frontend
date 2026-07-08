@@ -190,7 +190,7 @@ Dropdown at the top of the admin page:
 
 | Option | Value | Behaviour |
 |--------|-------|-----------|
-| Default (auto) | `""` | Falls back to helper's auto fallback chain (Mistral → OpenCode 0 → OpenCode 1 → OpenCode 2 → Ollama) |
+| Default (auto) | `""` | Falls back to helper's auto fallback chain (OpenCode 0 → OpenCode 1 → OpenCode 2 → Mistral → Ollama, cheap-first R5) |
 | OpenCode 0 (Big Pickle) | `"opencode0"` | Forces big-pickle model |
 | OpenCode 1 | `"opencode1"` | Forces first OpenCode endpoint (`deepseek-v4-flash-free`) |
 | OpenCode 2 | `"opencode2"` | Forces second OpenCode endpoint (`mimo-v2.5-free`) |
