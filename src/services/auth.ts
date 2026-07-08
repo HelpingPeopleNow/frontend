@@ -6,6 +6,7 @@ export interface Session {
     id: string;
     email: string;
     name?: string;
+    is_admin?: boolean;
   };
   token: string;
 }
@@ -28,6 +29,7 @@ export async function getSession(): Promise<Session | null> {
         id: data.user.id,
         email: data.user.email,
         name: data.user.name,
+        is_admin: data.user.is_admin,
       },
       token: data.session.token,
     };

@@ -1,10 +1,14 @@
 import { h } from 'preact';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
+import { useAuth } from './AuthProvider';
 
 export default function AdminPage() {
   const { t } = useLanguage();
+  const { session } = useAuth();
   document.title = `Admin | Helping People`;
+
+  const isAdmin = (session as any)?.user?.is_admin === true;
 
   return (
     <AppShell currentPath="/admin" title="Admin">
@@ -73,7 +77,15 @@ export default function AdminPage() {
             </div>
           </a>
 
-          {/* Adminer hidden from UI — direct URL remains available in dev only */}
+          {isAdmin && (
+            <a href="/adminer" target="_blank" rel="noopener noreferrer" class="admin-menu-card">
+              <div class="admin-menu-icon">🗄</div>
+              <div>
+                <div class="admin-menu-title">{t('admin.db')}</div>
+                <div class="admin-menu-desc">{t('admin.menu.db.desc')}</div>
+              </div>
+            </a>
+          )}
         </div>
       </div>
     </AppShell>
