@@ -73,14 +73,7 @@ export default function AdminPage() {
             </div>
           </a>
 
-          {/* Tools */}
-          <a href="/adminer" target="_blank" rel="noopener noreferrer" class="admin-menu-card">
-            <div class="admin-menu-icon">🗄</div>
-            <div>
-              <div class="admin-menu-title">{t('admin.db')}</div>
-              <div class="admin-menu-desc">{t('admin.menu.db.desc')}</div>
-            </div>
-          </a>
+          {/* Adminer hidden from UI — direct URL remains available in dev only */}
         </div>
       </div>
     </AppShell>
