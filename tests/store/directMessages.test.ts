@@ -298,5 +298,31 @@ describe('store/directMessages', () => {
       useDirectMessages.getState().connect();
       expect(MockEventSource.instances).toHaveLength(1);
     });
+
+    it('removes a conversation from the list on "report" event', async () => {
+      const { useDirectMessages } = await importFreshStore();
+      useDirectMessages.setState({
+        conversations: [
+          makeDMConversationItem({ id: 'c-1' }),
+          makeDMConversationItem({ id: 'c-2' }),
+        ],
+      });
+      useDirectMessages.getState().connect();
+      MockEventSource.instances[0].triggerNamed('report', { conversation_id: 'c-1' });
+      const s = useDirectMessages.getState();
+      expect(s.conversations.map(c => c.id)).toEqual(['c-2']);
+    });
+
+    it('disconnect() sets sseStatus to disconnected and allows reconnect', async () => {
+      const { useDirectMessages } = await importFreshStore();
+      useDirectMessages.getState().connect();
+      MockEventSource.instances[0].triggerOpen();
+      expect(useDirectMessages.getState().sseStatus).toBe('open');
+      useDirectMessages.getState().disconnect();
+      expect(useDirectMessages.getState().sseStatus).toBe('disconnected');
+      // Reconnecting opens a new EventSource (connected flag was reset)
+      useDirectMessages.getState().connect();
+      expect(MockEventSource.instances).toHaveLength(2);
+    });
   });
 });

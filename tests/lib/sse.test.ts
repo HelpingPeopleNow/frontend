@@ -188,6 +188,43 @@ describe('lib/sse — DirectMessageSSE', () => {
     expect(fetchSpy.mock.calls.length).toBe(pollCallsBefore);
   });
 
+  it('dispatches a "report" event with parsed JSON data', async () => {
+    const { DirectMessageSSE } = await importFreshSse();
+    const cb = vi.fn();
+    const sse = new DirectMessageSSE();
+    sse.connect(cb);
+    MockEventSource.instances[0].triggerNamed('report', { conversation_id: 'conv-1' });
+    expect(cb).toHaveBeenCalledWith({ type: 'report', data: { conversation_id: 'conv-1' } });
+  });
+
+  it('disconnect stops polling and no new polling fetches occur', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ messages: [], server_time: 'now' }),
+    } as Response);
+
+    const { DirectMessageSSE } = await importFreshSse();
+    const sse = new DirectMessageSSE();
+
+    // Simulate EventSource unavailable — starts polling immediately
+    (globalThis as unknown as { EventSource: undefined }).EventSource = undefined;
+    sse.connect(() => {});
+    await vi.runOnlyPendingTimersAsync();
+    expect(fetchSpy).toHaveBeenCalled();
+
+    const callsBefore = fetchSpy.mock.calls.length;
+
+    // Disconnect — must stop polling
+    sse.disconnect();
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(fetchSpy.mock.calls.length).toBe(callsBefore);
+    fetchSpy.mockRestore();
+    // Restore EventSource for subsequent tests
+    const { MockEventSource } = await import('../helpers/eventsource');
+    (globalThis as unknown as { EventSource: typeof MockEventSource }).EventSource = MockEventSource;
+  });
+
   it('starts polling immediately when EventSource is unavailable', async () => {
     (globalThis as unknown as { EventSource: undefined }).EventSource = undefined;
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({

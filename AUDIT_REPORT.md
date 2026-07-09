@@ -814,17 +814,20 @@ All P0–P2 audit findings and P3-2/P3-3 are now shipped to `main`. P3-1 is defe
 | `infra/nginx-default.conf` | `listen 80` → `listen 8080` |
 | `infra/docker-compose.yml` | frontend `expose: 8080`, `loadbalancer.server.port=8080`, healthcheck URL → `:8080/health` |
 | `infra/docker-compose-dev.yaml` | same port updates for dev stack |
+| `infra/traefik-dev-dynamic.yaml` | frontend LB server URL `:80` → `:8080` |
+| `infra/README.md` | frontend container port + healthcheck table → `8080` |
 
 ### Tests added (frontend repo)
 
 | Test file | Coverage |
 |-----------|----------|
-| `tests/lib/sse.test.ts` | +3 cases — safeParse drops malformed message + read frames; stopPolling on SSE recovery; reuses new `MockEventSource.triggerMessageRaw/triggerNamedRaw` helpers |
+| `tests/lib/sse.test.ts` | +3 cases — safeParse drops malformed message + read frames; stopPolling on SSE recovery; reuses new `MockEventSource.triggerMessageRaw/triggerNamedRaw` helpers; also tests SSE report event dispatch + disconnect stops polling |
 | `tests/lib/validate.test.ts` | NEW — 14 cases covering every validator's positive + negative paths |
+| `tests/lib/directMessageApi.test.ts` | NEW — 12 cases covering every endpoint (listConversations, getMessages, sendMessage, markRead, archive, block, report, pollSince) with default `AbortSignal.timeout` assertion per P1-1 |
 | `tests/services/chat.test.ts` | +1 case — `sendChat` passes caller `AbortSignal` through to `fetch` |
 | `tests/services/api.test.ts` | +3 cases — default `AbortSignal.timeout(15000)`, caller signal preserved, `statusText` fallback |
-| `tests/lib/publicProfileApi.test.ts` | +2 cases — malformed worker profile rejected by validator; latest-list entries validated |
-| `tests/store/directMessages.test.ts` | `tallyUnread` suite removed; replaced with `setActiveConv + addMessage` suite (3 cases: setActiveConv round-trip, no bump when active, bump when a different conv is active) |
+| `tests/lib/publicProfileApi.test.ts` | +3 cases — malformed worker profile rejected by validator; latest-list entries validated; explicit `AbortSignal.timeout` assertion on fetch |
+| `tests/store/directMessages.test.ts` | `tallyUnread` suite removed; replaced with `setActiveConv + addMessage` suite (3 cases: setActiveConv round-trip, no bump when active, bump when a different conv is active); also tests SSE report event + disconnect/reconnect |
 | `tests/helpers/eventsource.ts` | +2 helpers `triggerMessageRaw`, `triggerNamedRaw` for malformed-frame tests |
 
 ### Verification

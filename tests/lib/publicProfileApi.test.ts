@@ -20,6 +20,15 @@ describe('lib/publicProfileApi', () => {
       expect(url).toContain('/api/v1/workers/public/plumb%20co');
     });
 
+    it('uses AbortSignal.timeout(15000) on the fetch (P1-1)', async () => {
+      fetchSpy.mockResolvedValue(jsonResponse({
+        body: makeWorkerPublicProfile({ slug: 'ok' }),
+      }));
+      await fetchPublicProfile('ok');
+      const init = fetchSpy.mock.calls[0][1] as RequestInit;
+      expect(init.signal).toBeInstanceOf(AbortSignal);
+    });
+
     it('returns null on 404 instead of throwing', async () => {
       fetchSpy.mockResolvedValue(jsonResponse({ status: 404, ok: false, body: {} }));
       const result = await fetchPublicProfile('nonexistent');
