@@ -53,7 +53,7 @@ Browser ──► Traefik (:80)
               │
               ├── /api/auth/*         ──► Auth Service (:8083) — magic-link + sessions
               │
-              ├── /adminer, /grafana, /prometheus — observability / DB UI
+              ├── adminer.helpingpeople.cloud, grafana.helpingpeople.cloud, prometheus.helpingpeople.cloud — observability / DB UI
               │
               └── /*                  ──► Frontend nginx → SPA (index.html)
                  /health              ──► Frontend nginx → 200 "ok"
