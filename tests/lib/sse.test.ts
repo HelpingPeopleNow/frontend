@@ -131,6 +131,63 @@ describe('lib/sse — DirectMessageSSE', () => {
     expect(MockEventSource.instances).toHaveLength(1);
   });
 
+  it('drops malformed SSE frames instead of throwing (safeParse)', async () => {
+    const { DirectMessageSSE } = await importFreshSse();
+    const cb = vi.fn();
+    const sse = new DirectMessageSSE();
+    sse.connect(cb);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // Malformed message frame — must not throw, must not call callback
+    MockEventSource.instances[0].triggerMessageRaw('not-json');
+    expect(cb).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalled();
+    // Subsequent valid frames still flow (stream not killed)
+    MockEventSource.instances[0].triggerMessage({ id: 'ok' });
+    expect(cb).toHaveBeenCalledWith({ type: 'message', data: { id: 'ok' } });
+    warn.mockRestore();
+  });
+
+  it('drops malformed named-event frames (e.g. "read") without killing the stream', async () => {
+    const { DirectMessageSSE } = await importFreshSse();
+    const cb = vi.fn();
+    const sse = new DirectMessageSSE();
+    sse.connect(cb);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    MockEventSource.instances[0].triggerNamedRaw('read', '<<garbage>>');
+    expect(cb).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalled();
+    // Subsequent valid "read" frames still flow
+    MockEventSource.instances[0].triggerNamed('read', { conversation_id: 'c-1' });
+    expect(cb).toHaveBeenCalledWith({ type: 'read', data: { conversation_id: 'c-1' } });
+    warn.mockRestore();
+  });
+
+  it('stopPolling on SSE recovery: polling stops when onopen fires after fallback', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ messages: [], server_time: 'now' }),
+    } as Response);
+
+    const { DirectMessageSSE } = await importFreshSse();
+    const sse = new DirectMessageSSE();
+    sse.connect(() => {});
+
+    // Force 4 reconnect failures → polling engages
+    for (let i = 0; i < 4; i++) {
+      MockEventSource.instances[MockEventSource.instances.length - 1].triggerError();
+      await vi.runOnlyPendingTimersAsync();
+    }
+    expect(fetchSpy).toHaveBeenCalled(); // polling started
+    const pollCallsBefore = fetchSpy.mock.calls.length;
+
+    // Trigger SSE recovery — onopen must stop polling
+    MockEventSource.instances[MockEventSource.instances.length - 1].triggerOpen();
+    // Advance past the polling interval — no new polling fetches should occur
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(fetchSpy.mock.calls.length).toBe(pollCallsBefore);
+  });
+
   it('starts polling immediately when EventSource is unavailable', async () => {
     (globalThis as unknown as { EventSource: undefined }).EventSource = undefined;
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({

@@ -45,6 +45,14 @@ describe('services/chat', () => {
     expect(body.conversation_id).toBe('conv-1');
   });
 
+  it('passes an AbortSignal through to fetch unchanged (P0-2)', async () => {
+    fetchSpy.mockResolvedValue(jsonResponse({ body: { answer: 'ok' } }));
+    const ac = new AbortController();
+    await sendChat({ mode: 'search', message: 'plumber', lang: 'en' }, ac.signal);
+    const init = fetchSpy.mock.calls[0][1] as RequestInit;
+    expect(init.signal).toBe(ac.signal);
+  });
+
   it('returns the raw fetch Response for the caller to consume', async () => {
     const upstream = jsonResponse({ body: { answer: 'hi' } });
     fetchSpy.mockResolvedValue(upstream);

@@ -38,15 +38,26 @@ export class MockEventSource {
     this.onerror?.(new Event("error"));
   }
 
-  triggerMessage(data: unknown) {
-    const event = { data: JSON.stringify(data) } as MessageEvent;
-    this.listeners["message"]?.forEach(l => l(event));
-    this.onmessage?.(event);
-  }
+    triggerMessage(data: unknown) {
+        const event = { data: JSON.stringify(data) } as MessageEvent;
+        this.listeners["message"]?.forEach(l => l(event));
+        this.onmessage?.(event);
+    }
 
-  triggerNamed(type: string, data: unknown) {
-    const event = { data: JSON.stringify(data) } as MessageEvent;
-    this.listeners[type]?.forEach(l => l(event));
-  }
+    triggerMessageRaw(rawData: string) {
+        const event = { data: rawData } as MessageEvent;
+        this.listeners["message"]?.forEach(l => l(event));
+        this.onmessage?.(event);
+    }
+
+    triggerNamed(type: string, data: unknown) {
+        const event = { data: JSON.stringify(data) } as MessageEvent;
+        this.listeners[type]?.forEach(l => l(event));
+    }
+
+    triggerNamedRaw(type: string, rawData: string) {
+        const event = { data: rawData } as MessageEvent;
+        this.listeners[type]?.forEach(l => l(event));
+    }
 
 }

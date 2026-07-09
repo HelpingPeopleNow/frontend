@@ -9,11 +9,13 @@ const SSE_URL = '/api/v1/direct-messages/stream';
 const POLL_URL = '/api/v1/direct-messages/since';
 const MAX_RECONNECT_MS = 30000;
 const POLL_INTERVAL_MS = 4000;
+const POLL_TIMEOUT_MS = POLL_INTERVAL_MS * 2;
 
 export class DirectMessageSSE {
   private es: EventSource | null = null;
   private reconnectAttempts = 0;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private lastSeen = new Date().toISOString();
   private callback: EventCallback | null = null;
   private running = false;
@@ -33,6 +35,10 @@ export class DirectMessageSSE {
 
   disconnect() {
     this.running = false;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     this.es?.close();
     this.es = null;
     this.stopPolling();
@@ -45,34 +51,51 @@ export class DirectMessageSSE {
     }
   }
 
+  private safeParse(raw: string): any | undefined {
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      console.warn('[SSE] dropping malformed frame:', e);
+      return undefined;
+    }
+  }
+
   private openSSE() {
     if (!this.running || !this.callback) return;
+
+    this.stopPolling();
 
     this.es = new EventSource(SSE_URL, { withCredentials: true });
 
     this.es.addEventListener('message', (e: MessageEvent) => {
       this.lastSeen = new Date().toISOString();
-      this.callback?.({ type: 'message', data: JSON.parse(e.data) });
+      const data = this.safeParse(e.data);
+      if (data !== undefined) this.callback?.({ type: 'message', data });
     });
 
     this.es.addEventListener('read', (e: MessageEvent) => {
-      this.callback?.({ type: 'read', data: JSON.parse(e.data) });
+      const data = this.safeParse(e.data);
+      if (data !== undefined) this.callback?.({ type: 'read', data });
     });
 
     this.es.addEventListener('archive', (e: MessageEvent) => {
-      this.callback?.({ type: 'archive', data: JSON.parse(e.data) });
+      const data = this.safeParse(e.data);
+      if (data !== undefined) this.callback?.({ type: 'archive', data });
     });
 
     this.es.addEventListener('block', (e: MessageEvent) => {
-      this.callback?.({ type: 'block', data: JSON.parse(e.data) });
+      const data = this.safeParse(e.data);
+      if (data !== undefined) this.callback?.({ type: 'block', data });
     });
 
     this.es.addEventListener('report', (e: MessageEvent) => {
-      this.callback?.({ type: 'report', data: JSON.parse(e.data) });
+      const data = this.safeParse(e.data);
+      if (data !== undefined) this.callback?.({ type: 'report', data });
     });
 
     this.es.onopen = () => {
       this.reconnectAttempts = 0;
+      this.stopPolling();
       this.callback?.({ type: 'open', data: {} });
       console.log('[SSE] connected');
     };
@@ -87,9 +110,9 @@ export class DirectMessageSSE {
       const delay = Math.min(MAX_RECONNECT_MS, 1000 * Math.pow(2, this.reconnectAttempts));
       console.log(`[SSE] reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
 
-      setTimeout(() => this.openSSE(), delay);
+      if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = setTimeout(() => this.openSSE(), delay);
 
-      // Fall back to polling after 3+ failed SSE attempts
       if (this.reconnectAttempts > 3) {
         console.log('[SSE] switching to polling fallback');
         this.startPolling();
@@ -100,7 +123,6 @@ export class DirectMessageSSE {
   private async startPolling() {
     if (!this.running || !this.callback) return;
 
-    // Don't start a second polling timer
     if (this.pollTimer) return;
 
     const poll = async () => {
@@ -108,12 +130,13 @@ export class DirectMessageSSE {
       try {
         const res = await fetch(`${POLL_URL}?ts=${encodeURIComponent(this.lastSeen)}`, {
           credentials: 'include',
+          signal: AbortSignal.timeout(POLL_TIMEOUT_MS),
         });
         if (res.ok) {
           const data = await res.json();
           this.lastSeen = data.server_time || new Date().toISOString();
           for (const msg of data.messages || []) {
-            this.callback?.({ type: 'message', data: msg });
+            if (this.running) this.callback?.({ type: 'message', data: msg });
           }
         }
       } catch {
@@ -121,7 +144,6 @@ export class DirectMessageSSE {
       }
     };
 
-    // Poll immediately, then on interval
     poll();
     this.pollTimer = setInterval(poll, POLL_INTERVAL_MS);
   }

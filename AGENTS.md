@@ -79,13 +79,13 @@ Playwright config in `playwright.config.js`; only `e2e/deploy.spec.js` exists (d
 docker build -t ghcr.io/helpingpeoplenow/frontend:latest .
 ```
 
-Multi-stage: `node:22-alpine` build → `nginx:alpine` runtime (container name `helpingpeoplenow-frontend` in compose). CI pipeline (`.github/workflows/ci.yml`): lint → typecheck → vitest (unit + integration) → Playwright e2e → docker build/push to ghcr.
+Multi-stage: `node:22-alpine` build → `nginx:alpine` runtime. The stage-2 image runs as the unprivileged `nginx` user (audit P2-1) and listens on **port 8080** (not 80) so non-root can bind; the Dockerfile `sed`-transforms the baked `listen 80` directive. A `HEALTHCHECK` polls `http://127.0.0.1:8080/` every 30 s. `.dockerignore` covers `.git`, `*.env`, `node_modules`, `dist`, `coverage`, `test-results`, `playwright-report`, `*.log`. Container name is `helpingpeoplenow-frontend` in compose; the **infra** repo's `docker-compose.yml` + `docker-compose-dev.yaml` + `nginx-default.conf` are coordinated on port 8080 (`loadbalancer.server.port=8080`, `expose: 8080`). CI pipeline (`.github/workflows/ci.yml`): lint → typecheck → vitest (unit + integration) → Playwright e2e → docker build/push to ghcr.
 
 ## Direct Messaging
 
 - **Flow**: FindPage → click WorkerCard → `/workers/:workerId` → `WorkerContactPage` calls `GET /api/v1/workers/:id/contact` → redirects to `/inbox/:convId` → `DirectMessagePage`
 - **API client**: `src/lib/directMessageApi.ts` — wraps all DM endpoints with `fetchJSON` (credentials: include)
-- **SSE**: `src/lib/sse.ts` — `DirectMessageSSE` class: opens EventSource on `/api/v1/direct-messages/stream`, falls back to polling (`/since`) after 3+ consecutive failures, exponential backoff reconnect
+- **SSE**: `src/lib/sse.ts` — `DirectMessageSSE` class: opens EventSource on `/api/v1/direct-messages/stream`, falls back to polling (`/since`) after 3+ consecutive failures (mutually exclusive transport — polling STOPS when SSE reconnects), exponential backoff reconnect. All `JSON.parse` calls are guarded by `safeParse`; malformed frames are dropped + logged, never crash the stream. Poll fetches use `AbortSignal.timeout(POLL_TIMEOUT_MS = POLL_INTERVAL_MS * 2 = 8s)`.
 - **Store**: `src/store/directMessages.ts` — Zustand store. `connect()` starts SSE listener, `addMessage()` appends inbound messages to the correct thread and increments unread
 - **Status indicator**: InboxPage shows a colored dot: green (open), yellow (connecting), cyan (polling), red (disconnected)
 - **Rate limiting**: `sendMessage()` in store catches 429 responses, sets `rateLimited: true` with 5s auto-clear. DirectMessagePage shows ⏳ banner.
@@ -115,8 +115,16 @@ Multi-stage: `node:22-alpine` build → `nginx:alpine` runtime (container name `
 - AdminPage also has a link to Adminer (DB admin tool) at `/adminer`
 - `useLanguage()` hook returns `{ lang, setLang, t }`. Spanish is the default language. All chat requests include `lang` in body so the backend instructs AI to respond in the matching language.
 - nginx SPA fallback: `try_files $uri $uri/ /index.html`
-- `src/services/profiles.ts` is dead code — no component imports its functions. Profile read/reset happens via the chat handlers. Slated for removal.
-- `useDirectMessages` exposes a `tallyUnread(convId)` action that is never called by any component. Slated for removal.
-- `@types/react` and `@types/react-dom` are in `devDependencies` but the project uses Preact, not React. Slated for removal.
-- `ErrorBoundary` wraps all `<ProtectedRoute>` chains in `App.tsx` — no functional tests cover the error path today.
-- `tests/placeholder.test.ts` is the only vitest test (single `expect(1 + 1).toBe(2)`); the integration paths the README hints at (chat, conversations, etc.) are not yet implemented.
+- nginx serves security headers (CSP, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, HSTS 1y), gzip, immutable `/assets/` cache (1y), and `no-cache` for `index.html` (audit P1-2). The Dockerfile `sed`-transforms `listen 80` → `listen 8080` so the container can run as the unprivileged `nginx` user (audit P2-1).
+- `src/services/profiles.ts` was REMOVED in audit P3-2 — it was dead code. Profile read/reset happens via the chat handlers.
+- `useDirectMessages` no longer exposes `tallyUnread` (removed in audit P3-2). Unread totals are recomputed inline by `addMessage` and `markRead`.
+- `@types/react`, `@types/react-dom`, and `eslint-plugin-react-hooks` were REMOVED from `devDependencies` in audit P3-2. The project uses Preact; the vitest `react → preact/compat` alias already handles zustand's React dep.
+- `ErrorBoundary` wraps all `<ProtectedRoute>` chains in `App.tsx` AND all five public routes (`/`, `/login`, `/terms`, `/privacy`, `/cookies`) per audit P1-5.
+- `ErrorBoundary` "Try again" bumps an internal `resetKey` to remount children via a keyed wrapper (audit P2-3) — clearing bad state instead of resetting only the boundary flag.
+- `AuthProvider` exposes an `error: boolean` on the context (audit P2-2) when the session-fetch promise rejects (auth service down vs. merely no session). Consumers can render a "service down / retry" UI; `refreshSession()` unconditionally clears the flag.
+- `src/lib/validate.ts` provides anti-corruption validators (`assertString/Number/Bool/Array/Object/OptString`). `publicProfileApi.ts` and `src/store/directMessages.ts` use them at adapter boundaries to fail loudly on malformed backend payloads (audit P2-4).
+- `sendChat(req, signal?)` accepts an optional `AbortSignal`; `useChat` aborts in-flight streams on unmount, mode change, and on a new send (audit P0-2). The stream loop buffers partial lines across chunks and breaks the outer `while` on `[DONE]` (audit P1-4).
+- `DirectMessageSSE` (`src/lib/sse.ts`) guards every `JSON.parse` with `safeParse()` (audit P0-3), stops polling on SSE recovery (audit P0-1), and uses `AbortSignal.timeout` on poll fetches (audit P1-1).
+- `src/services/api.ts` (and `directMessageApi.ts`, `publicProfileApi.ts`) default to a 15s `AbortSignal.timeout` when the caller does not supply its own signal (audit P1-1).
+- `useDirectMessages` exposes `setActiveConv(convId)` / `setActiveConv(null)`. `addMessage` skips the `unread_count++` increment when the conversation is the active one (audit P1-3). `DirectMessagePage` calls `setActiveConv(convId)` on mount and `null` on unmount.
+- Vitest coverage includes `src/lib/**`, `src/services/**` and `src/store/**`. Audit regression tests for SSE safeParse + recovery, chat AbortController passthrough, anti-corruption validators, and unread-active-guard live under `tests/{lib,services,store}/**`. `tests/placeholder.test.ts` remains as a vitest smoke test.

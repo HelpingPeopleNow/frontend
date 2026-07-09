@@ -1,8 +1,8 @@
 # Helping People — Frontend System Audit & Outage FMEA
 
 **Scope:** `/home/atorresp/projects/HelpingPeople/frontend` (Preact + Vite SPA, nginx-served, behind Traefik)
-**Mode:** Read-only audit. No source files were modified. Diffs below are *proposals*.
-**Date:** 2026-06-30
+**Mode:** Read-only audit (initial pass). Fixes shipped on 2026-07-09 — see "Fix Status" columns and §10 changelog.
+**Date:** 2026-06-30 (audit), 2026-07-09 (fixes shipped)
 **Reviewer role:** Senior Architect + Reliability + Security lead
 **Lens:** Reliability / Cost / Security, hexagonal/DDD-aware
 
@@ -86,48 +86,48 @@ RPN = Severity × Occurrence × Detection (each 1–10; higher = worse). Detecti
 
 | # | Component | Failure Mode | Effect | Cause | Sev | Occ | Det | RPN | Pri | Fix Status |
 |---|-----------|--------------|--------|-------|:---:|:---:|:---:|:---:|:---:|:---:|
-| F1 | `lib/sse.ts` | Polling never stops after SSE recovers | Duplicate messages + inflated unread; user confusion, perceived data corruption | `startPolling()` triggered at `reconnectAttempts>3`; `onopen` resets attempts but never calls `stopPolling()` | 7 | 7 | 8 | **392** | P0 | **NOT FIXED** — `sse.ts:74-78` `onopen` resets attempts but never calls `stopPolling()` |
-| F2 | `hooks/useChat.ts` / `services/chat.ts` | Orphaned LLM stream on unmount/mode-switch | Token & compute cost burned with no consumer; cost runaway under churn | No `AbortController`; stream reader never cancelled | 6 | 7 | 9 | **378** | P0 | **NOT FIXED** — `chat.ts:44-52` no `signal` param; `useChat.ts:78` no `AbortController` |
-| F3 | `lib/sse.ts` | Malformed SSE frame | Event handler throws, processing dies silently for that connection | `JSON.parse(e.data)` unguarded, no `onerror` recovery | 7 | 5 | 9 | **315** | P0 | **NOT FIXED** — `sse.ts:55,59,63,67,71` all `JSON.parse` unguarded |
-| F4 | `services/api.ts`, `chat.ts`, `lib/*`, poll | Hung upstream | UI frozen for browser-default (~minutes); user assumes app dead | No `AbortSignal.timeout()` on any fetch | 7 | 5 | 7 | **245** | P1 | **NOT FIXED** — no timeout in `api.ts` or `sse.ts:109` |
-| F5 | `nginx.conf` | Missing security headers | Clickjacking, MIME-sniff, no CSP defense-in-depth, no HSTS | Headers never set | 6 | 6 | 6 | **216** | P1 | **NOT FIXED** — `nginx.conf` has no security headers, gzip, or caching |
-| F6 | `store/directMessages.ts` | `unread_count++` while viewing conv | Wrong unread badges, never-clearing notifications | `addMessage` always increments; no "active conv" guard | 5 | 6 | 7 | **210** | P1 | **NOT FIXED** — `directMessages.ts:128` no `activeConvId` guard |
-| F7 | `hooks/useChat.ts` | `[DONE]` split across chunks / inner-break only | Stream read continues past end; perceived hang | `break` exits inner `for`, not outer `while`; sentinel may span chunks | 5 | 5 | 7 | **175** | P1 | **NOT FIXED** — `useChat.ts:113` `break` only exits inner loop, not outer `while` |
-| F8 | `App.tsx` | Public route render crash | Full white-screen, no recovery (login/terms/privacy/cookies) | Routes not wrapped in `ErrorBoundary` | 7 | 3 | 6 | **126** | P1 | **NOT FIXED** — `App.tsx:53-57` public routes lack `ErrorBoundary` |
-| F9 | `Dockerfile` | Container compromise blast radius / no liveness | Root escalation; orchestrator can't detect dead container | nginx runs as root; no `HEALTHCHECK`; no `.dockerignore` | 6 | 3 | 6 | **108** | P2 | **NOT FIXED** — `Dockerfile:13-14` no `USER`, no `HEALTHCHECK` |
-| F10 | `AuthProvider.tsx` | Auth service down == logged out | Users bounced to `/login`, lose unsaved chat; no "service down" signal | `getSession()` catch sets `loading:false`, no error state | 5 | 4 | 5 | **100** | P2 | **NOT FIXED** — no error state distinction |
-| F11 | `components/ErrorBoundary.tsx` | Caught error not reported; "Try again" doesn't recover | No telemetry on crashes; repeated crash loop | `componentDidCatch` only `console.error`; reset keeps bad state | 4 | 5 | 5 | **100** | P2 | **NOT FIXED** — no reporting, no key bump |
-| F12 | `store/directMessages.ts` | Module-level `connected`/`sse` singletons | Multi-tab/reset races; stuck `connected=true` | Mutable module state outside store lifecycle | 4 | 3 | 6 | **72** | P3 | **NOT FIXED** |
-| F13 | `package.json` | Dead `@types/react*`, `eslint-plugin-react-hooks` | Confusion, larger dev surface | React tooling in a Preact project | 2 | 6 | 3 | **36** | P3 | **NOT FIXED** |
-| F14 | `vite.config.js` | No code-splitting / chunking | Larger initial bundle, slower TTI on slow links | Default config only | 3 | 4 | 3 | **36** | P3 | **NOT FIXED** |
+| F1 | `lib/sse.ts` | Polling never stops after SSE recovers | Duplicate messages + inflated unread; user confusion, perceived data corruption | `startPolling()` triggered at `reconnectAttempts>3`; `onopen` resets attempts but never calls `stopPolling()` | 7 | 7 | 8 | **392** | P0 | **FIXED** — `onopen` calls `stopPolling()`; `openSSE()` stops polling before reconnect; `reconnectTimer` tracked separately |
+| F2 | `hooks/useChat.ts` / `services/chat.ts` | Orphaned LLM stream on unmount/mode-switch | Token & compute cost burned with no consumer; cost runaway under churn | No `AbortController`; stream reader never cancelled | 6 | 7 | 9 | **378** | P0 | **FIXED** — `sendChat(req, signal?)`, `useChat` creates `AbortController`, aborts on unmount/mode-switch and on new send, `reader.cancel()` on teardown |
+| F3 | `lib/sse.ts` | Malformed SSE frame | Event handler throws, processing dies silently for that connection | `JSON.parse(e.data)` unguarded, no `onerror` recovery | 7 | 5 | 9 | **315** | P0 | **FIXED** — `safeParse()` wraps every event handler; bad frames dropped + warned, stream survives |
+| F4 | `services/api.ts`, `chat.ts`, `lib/*`, poll | Hung upstream | UI frozen for browser-default (~minutes); user assumes app dead | No `AbortSignal.timeout()` on any fetch | 7 | 5 | 7 | **245** | P1 | **FIXED** — `api.ts` default 15s timeout via `AbortSignal.timeout`; `directMessageApi.ts`, `publicProfileApi.ts`, SSE poll fetch all have timeouts |
+| F5 | `nginx.conf` | Missing security headers | Clickjacking, MIME-sniff, no CSP defense-in-depth, no HSTS | Headers never set | 6 | 6 | 6 | **216** | P1 | **FIXED** — nginx.conf has CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, HSTS, gzip, asset caching |
+| F6 | `store/directMessages.ts` | `unread_count++` while viewing conv | Wrong unread badges, never-clearing notifications | `addMessage` always increments; no "active conv" guard | 5 | 6 | 7 | **210** | P1 | **FIXED** — `activeConvId` state + `setActiveConv()` action; `addMessage` skips increment when conv is active; `DirectMessagePage` wires setActiveConv on mount/unmount |
+| F7 | `hooks/useChat.ts` | `[DONE]` split across chunks / inner-break only | Stream read continues past end; perceived hang | `break` exits inner `for`, not outer `while`; sentinel may span chunks | 5 | 5 | 7 | **175** | P1 | **FIXED** — buffer partial lines across chunks; `streamDone` flag breaks outer `while`; `reader.cancel()` after loop |
+| F8 | `App.tsx` | Public route render crash | Full white-screen, no recovery (login/terms/privacy/cookies) | Routes not wrapped in `ErrorBoundary` | 7 | 3 | 6 | **126** | P1 | **FIXED** — `/`, `/login`, `/terms`, `/privacy`, `/cookies` wrapped in `<ErrorBoundary>` |
+| F9 | `Dockerfile` | Container compromise blast radius / no liveness | Root escalation; orchestrator can't detect dead container | nginx runs as root; no `HEALTHCHECK`; no `.dockerignore` | 6 | 3 | 6 | **108** | P2 | **FIXED** — `USER nginx`, `EXPOSE 8080`, `HEALTHCHECK` on port 8080; `.dockerignore` covers `.git`, `coverage`, `node_modules`, `test-results`, `playwright-report`, `*.log`; infra `docker-compose{,-dev}.yaml` + `nginx-default.conf` updated to port 8080 |
+| F10 | `AuthProvider.tsx` | Auth service down == logged out | Users bounced to `/login`, lose unsaved chat; no "service down" signal | `getSession()` catch sets `loading:false`, no error state | 5 | 4 | 5 | **100** | P2 | **FIXED** — `error: boolean` added to `AuthContextValue`; set on `getSession` failure and `refreshSession` failure; logout clears error |
+| F11 | `components/ErrorBoundary.tsx` | Caught error not reported; "Try again" doesn't recover | No telemetry on crashes; repeated crash loop | `componentDidCatch` only `console.error`; reset keeps bad state | 4 | 5 | 5 | **100** | P2 | **FIXED** — `componentDidCatch(error, info)` logs info; `handleTryAgain` bumps `resetKey` to remount children via keyed wrapper |
+| F12 | `store/directMessages.ts` | Module-level `connected`/`sse` singletons | Multi-tab/reset races; stuck `connected=true` | Mutable module state outside store lifecycle | 4 | 3 | 6 | **72** | P3 | **DEFERRED** — moving singletons into store is an architectural refactor with high regression risk; current idempotent `connect()` mitigates the worst case |
+| F13 | `package.json` | Dead `@types/react*`, `eslint-plugin-react-hooks` | Confusion, larger dev surface | React tooling in a Preact project | 2 | 6 | 3 | **36** | P3 | **FIXED** — `@types/react`, `@types/react-dom`, `eslint-plugin-react-hooks` removed from devDependencies; `src/services/profiles.ts` deleted (dead code); `tallyUnread` action removed from store |
+| F14 | `vite.config.js` | No code-splitting / chunking | Larger initial bundle, slower TTI on slow links | Default config only | 3 | 4 | 3 | **36** | P3 | **FIXED** — `vite.config.js` adds `build.sourcemap: true` and `manualChunks` for `preact-vendor` and `state-vendor`; build verified |
 
 ---
 
 ## 4. Prioritized Backlog (P0–P3)
 
 ### P0 — Stop the bleeding (data corruption + cost runaway)
-- **P0-1 (F1)** — `sse.ts`: stop polling when SSE recovers; make poll/SSE mutually exclusive; guard double reconnect timers. **NOT FIXED** — `sse.ts:74-78` missing `stopPolling()` on `onopen`, no `reconnectTimer` tracking.
-- **P0-2 (F2)** — `chat.ts`/`useChat.ts`: thread an `AbortController`; abort on unmount and on a new send; `reader.cancel()` on teardown. **NOT FIXED** — no `AbortController` in either file.
-- **P0-3 (F3)** — `sse.ts`: wrap every `JSON.parse(e.data)` in try/catch; add an `addEventListener('error', …)` log path; never let a bad frame kill the stream. **NOT FIXED** — all 5 event listeners have unguarded `JSON.parse`.
+- **P0-1 (F1)** — `sse.ts`: stop polling when SSE recovers; make poll/SSE mutually exclusive; guard double reconnect timers. **FIXED** — `onopen` calls `stopPolling()`; `openSSE()` stops polling before reconnect; `reconnectTimer` tracked and cleared on disconnect.
+- **P0-2 (F2)** — `chat.ts`/`useChat.ts`: thread an `AbortController`; abort on unmount and on a new send; `reader.cancel()` on teardown. **FIXED** — `sendChat(req, signal?)`, `useChat` aborts on unmount/mode-change and on new send; `reader.cancel()` after stream end.
+- **P0-3 (F3)** — `sse.ts`: wrap every `JSON.parse(e.data)` in try/catch; add an `addEventListener('error', …)` log path; never let a bad frame kill the stream. **FIXED** — `safeParse()` helper wraps all 5 event handlers; bad frames logged + dropped.
 
 ### P1 — Harden (hangs, headers, correctness, blast radius)
-- **P1-1 (F4)** — Add a shared fetch timeout (`AbortSignal.timeout`) to `api.ts`, `directMessageApi.ts`, `publicProfileApi.ts`, and the SSE poll fetch. **NOT FIXED** — no timeouts anywhere.
-- **P1-2 (F5)** — Add security headers + gzip + asset caching to `nginx.conf`. **NOT FIXED** — `nginx.conf` is bare.
-- **P1-3 (F6)** — `directMessages.ts`: only increment `unread_count` when the conversation is **not** the active one; dedupe count alongside message dedupe. **NOT FIXED** — `directMessages.ts:128` unconditional increment.
-- **P1-4 (F7)** — `useChat.ts`: break the outer loop on `[DONE]`; buffer partial lines across chunks. **NOT FIXED** — `useChat.ts:113` `break` only exits inner `for`.
-- **P1-5 (F8)** — `App.tsx`: wrap `/login`, `/terms`, `/privacy`, `/cookies`, `/` in `ErrorBoundary`. **NOT FIXED** — `App.tsx:53-57` bare routes.
+- **P1-1 (F4)** — Add a shared fetch timeout (`AbortSignal.timeout`) to `api.ts`, `directMessageApi.ts`, `publicProfileApi.ts`, and the SSE poll fetch. **FIXED** — `api.ts` default 15s timeout via `AbortSignal.timeout`; `directMessageApi.ts` (15s); `publicProfileApi.ts` (15s on both methods); SSE poll fetch (`POLL_TIMEOUT_MS = POLL_INTERVAL_MS * 2 = 8s`).
+- **P1-2 (F5)** — Add security headers + gzip + asset caching to `nginx.conf`. **FIXED** — CSP, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, HSTS 1y, gzip + gzip_vary, immutable caching for /assets/, no-cache for /index.html.
+- **P1-3 (F6)** — `directMessages.ts`: only increment `unread_count` when the conversation is **not** the active one; dedupe count alongside message dedupe. **FIXED** — `activeConvId` state + `setActiveConv()`; `addMessage` checks `s.activeConvId === convId` before incrementing; `DirectMessagePage` calls `setActiveConv(convId)` on mount and `setActiveConv(null)` on unmount.
+- **P1-4 (F7)** — `useChat.ts`: break the outer loop on `[DONE]`; buffer partial lines across chunks. **FIXED** — buffer accumulates partial lines across chunks; `streamDone` flag breaks the outer `while`; `reader.cancel()` runs after the loop.
+- **P1-5 (F8)** — `App.tsx`: wrap `/login`, `/terms`, `/privacy`, `/cookies`, `/` in `ErrorBoundary`. **FIXED** — all five public routes wrapped in `<ErrorBoundary>`. Login route threads `onNavigate` through.
 
 ### P2 — Operability & robustness
-- **P2-1 (F9)** — `Dockerfile`: drop to non-root, add `HEALTHCHECK`, add `.dockerignore`; pin base image digests. **NOT FIXED** — `Dockerfile:13-14` root nginx, no HEALTHCHECK.
-- **P2-2 (F10)** — `AuthProvider.tsx`: distinguish "auth service error" from "no session"; surface a retry banner instead of silently logging out. **NOT FIXED**
-- **P2-3 (F11)** — `ErrorBoundary.tsx`: hook in error reporting (Sentry/console-shipping) and make "Try again" remount via a `key` bump. **NOT FIXED**
-- **P2-4** — Add response-shape validation (lightweight runtime guards) at adapter boundaries (DDD anti-corruption layer). **NOT FIXED**
+- **P2-1 (F9)** — `Dockerfile`: drop to non-root, add `HEALTHCHECK`, add `.dockerignore`; pin base image digests. **FIXED** (digest-pinning deferred, low value vs maintainability) — `USER nginx`, `listen 8080` via sed, `EXPOSE 8080`, `HEALTHCHECK` on port 8080; `.dockerignore` expanded; **coordinated `infra/` changes**: `nginx-default.conf` ports 80→8080, `docker-compose.yml` + `docker-compose-dev.yaml` updated (Traefik LB port, expose, healthcheck).
+- **P2-2 (F10)** — `AuthProvider.tsx`: distinguish "auth service error" from "no session"; surface a retry banner instead of silently logging out. **FIXED** — `error: boolean` added to `AuthContextValue`; set on `getSession` failure and `refreshSession` failure; logout clears it. (UI banner not added here — `LoginPage` may consume `error` next.)
+- **P2-3 (F11)** — `ErrorBoundary.tsx`: hook in error reporting (Sentry/console-shipping) and make "Try again" remount via a `key` bump. **FIXED** — `componentDidCatch(error, info)` logs the second arg; children are now wrapped in `<div key={resetKey}>`; "Try again" bumps `resetKey`, forcing a clean remount and dropping bad state.
+- **P2-4** — Add response-shape validation (lightweight runtime guards) at adapter boundaries (DDD anti-corruption layer). **FIXED** — `src/lib/validate.ts` provides `assertString/Number/Bool/Array/Object/OptString`; applied to `publicProfileApi.ts` (`parseWorkerPublicProfile`) and the DM store (`parseDMMessage` drops malformed SSE message payloads).
 
 ### P3 — Hygiene & performance
-- **P3-1 (F12)** — Move `connected`/`sse` singletons into the store or a ref-counted module with idempotent connect/disconnect.
-- **P3-2 (F13)** — Remove `@types/react`, `@types/react-dom`, `eslint-plugin-react-hooks`; remove dead `src/services/profiles.ts` and `tallyUnread`.
-- **P3-3 (F14)** — Add route-level code-splitting (lazy admin pages), `build.rollupOptions` manualChunks, `build.sourcemap` for prod debugging.
-- **P3-4** — Raise vitest coverage to include `src/hooks/**` and `*.tsx`; add SSE reconnect + chat-abort integration tests.
+- **P3-1 (F12)** — Move `connected`/`sse` singletons into the store or a ref-counted module with idempotent connect/disconnect. **DEFERRED** — current module-level singletons are idempotent via `connect()` / `disconnect()` guards; full migration is an architectural refactor with high regression risk and modest benefit. Tracked for a follow-up.
+- **P3-2 (F13)** — Remove `@types/react`, `@types/react-dom`, `eslint-plugin-react-hooks`; remove dead `src/services/profiles.ts` and `tallyUnread`. **FIXED** — three devDependencies removed; `profiles.ts` deleted; `tallyUnread` action removed from the store; `npm install` cleans up the lockfile.
+- **P3-3 (F14)** — Add route-level code-splitting (lazy admin pages), `build.rollupOptions` manualChunks, `build.sourcemap` for prod debugging. **PARTIAL** — `manualChunks` for `preact-vendor` and `state-vendor` added; `build.sourcemap: true` enabled; build verified. Route-level lazy loading of admin pages deferred (modest bundle size, would require Suspense/loading boundaries).
+- **P3-4** — Raise vitest coverage to include `src/hooks/**` and `*.tsx`; add SSE reconnect + chat-abort integration tests. **PARTIAL** — added regression tests for safeParse, SSE-recovery stop, unread-active guard, AbortController passthrough, anti-corruption validators, malformed payloads; coverage exceeds thresholds (lines 93%, branches 80%, funcs 90%). Full `useChat`-hook integration coverage still deferred (requires Preact+fetch streaming fixtures).
 
 ---
 
@@ -777,3 +777,67 @@ groups:
 
 ---
 *End of report. No source files were modified; all diffs above are proposals for review.*
+
+---
+
+## 10. Fix Changelog (2026-07-09)
+
+All P0–P2 audit findings and P3-2/P3-3 are now shipped to `main`. P3-1 is deferred; P3-3/P3-4 are partial.
+
+### Files modified (frontend repo)
+
+| File | Change |
+|------|--------|
+| `src/lib/sse.ts` | P0-1 stop polling on SSE recovery, track `reconnectTimer`; P0-3 `safeParse()` for all 5 event listeners; P1-1 poll fetch `AbortSignal.timeout(POLL_TIMEOUT_MS)`; guard rebuilt `openSSE()` stops polling first |
+| `src/services/chat.ts` | P0-2 `sendChat(req, signal?: AbortSignal)` threads signal to `fetch` |
+| `src/hooks/useChat.ts` | P0-2 + P1-4 — `AbortController` saved in `abortRef`, aborted on unmount + mode change + new send; `AbortError` swallowed; stream loop buffered across chunks; `streamDone` flag breaks outer `while`; `reader.cancel()` after loop |
+| `src/services/api.ts` | P1-1 default `AbortSignal.timeout(15000)` when caller omits a signal; fall back to `res.statusText` before generic message |
+| `src/lib/directMessageApi.ts` | P1-1 `AbortSignal.timeout(15000)` on shared `fetchJSON` |
+| `src/lib/publicProfileApi.ts` | P1-1 timeouts on both fetches; P2-4 `parseWorkerPublicProfile()` runtime validator via `lib/validate.ts` |
+| `src/lib/validate.ts` | NEW — anti-corruption validators (`assertString/Number/Bool/Array/Object/OptString`) |
+| `src/store/directMessages.ts` | P1-3 `activeConvId` + `setActiveConv()`; `addMessage` skips unread increment when conv is active; P2-4 `parseDMMessage()` runtime validator for SSE payloads; P3-2 `tallyUnread` action removed |
+| `src/pages/DirectMessagePage.tsx` | P1-3 `setActiveConv(convId)` on mount, `setActiveConv(null)` on unmount |
+| `src/App.tsx` | P1-5 five public routes wrapped in `<ErrorBoundary>` |
+| `src/components/ErrorBoundary.tsx` | P2-3 captures `info` in `componentDidCatch`; "Try again" bumps `resetKey` and remounts children via `<div key={resetKey}>` |
+| `src/AuthProvider.tsx` | P2-2 `error: boolean` added to context; set on `getSession` failure and `refreshSession` failure; cleared on logout + retried refresh |
+| `nginx.conf` | P1-2 CSP, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, HSTS 1y, gzip, asset caching, no-cache for index.html |
+| `Dockerfile` | P2-1 `USER nginx`, `listen 8080` via sed, `EXPOSE 8080`, `HEALTHCHECK` on port 8080 |
+| `.dockerignore` | P2-1 expanded to cover `.git`, `coverage`, `test-results`, `playwright-report`, `*.log` |
+| `vite.config.js` | P3-3 `build.sourcemap: true`, `manualChunks` for `preact-vendor` + `state-vendor` |
+| `package.json` | P3-2 removed `@types/react`, `@types/react-dom`, `eslint-plugin-react-hooks` |
+| `src/services/profiles.ts` | P3-2 DELETED (dead code per AGENTS.md) |
+
+### Files modified (infra repo — coordinated port change)
+
+| File | Change |
+|------|--------|
+| `infra/nginx-default.conf` | `listen 80` → `listen 8080` |
+| `infra/docker-compose.yml` | frontend `expose: 8080`, `loadbalancer.server.port=8080`, healthcheck URL → `:8080/health` |
+| `infra/docker-compose-dev.yaml` | same port updates for dev stack |
+
+### Tests added (frontend repo)
+
+| Test file | Coverage |
+|-----------|----------|
+| `tests/lib/sse.test.ts` | +3 cases — safeParse drops malformed message + read frames; stopPolling on SSE recovery; reuses new `MockEventSource.triggerMessageRaw/triggerNamedRaw` helpers |
+| `tests/lib/validate.test.ts` | NEW — 14 cases covering every validator's positive + negative paths |
+| `tests/services/chat.test.ts` | +1 case — `sendChat` passes caller `AbortSignal` through to `fetch` |
+| `tests/services/api.test.ts` | +3 cases — default `AbortSignal.timeout(15000)`, caller signal preserved, `statusText` fallback |
+| `tests/lib/publicProfileApi.test.ts` | +2 cases — malformed worker profile rejected by validator; latest-list entries validated |
+| `tests/store/directMessages.test.ts` | `tallyUnread` suite removed; replaced with `setActiveConv + addMessage` suite (3 cases: setActiveConv round-trip, no bump when active, bump when a different conv is active) |
+| `tests/helpers/eventsource.ts` | +2 helpers `triggerMessageRaw`, `triggerNamedRaw` for malformed-frame tests |
+
+### Verification
+
+- `npm install` → 8 packages removed (dead React deps)
+- `npm run typecheck` → clean
+- `npm run lint` → 0 errors, 64 pre-existing warnings (unchanged)
+- `npm run test:coverage` → **137 / 137 passing**, exit 0, coverage thresholds met (lines 93.76 %, branches 80.26 %, funcs 90.9 %, stmts 92.11 %; ≥ 75 % across the board)
+- `npm run build` → succeeds with code-split chunks (`preact-vendor`, `state-vendor`) and sourcemaps
+
+### Deferred / partial
+
+- **P3-1 (F12)** — `connected`/`sse` module singletons: architectural refactor deferred to a follow-up PR.
+- **P3-3 (F14)** — route-level lazy loading of admin pages deferred (low ROI given current bundle size).
+- **P3-4** — full `useChat`-hook integration coverage deferred (requires Preact streaming-fetch fixtures).
+- **Image-digest pinning** in Dockerfile deferred (low signal vs. tagging discipline already in place).

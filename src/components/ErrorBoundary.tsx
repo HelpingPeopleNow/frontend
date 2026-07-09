@@ -8,18 +8,28 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+  // Bumped on "Try again" to force remount of children (drops bad state).
+  resetKey: number;
 }
 
 export default class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false };
+  state: State = { hasError: false, resetKey: 0 };
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error, resetKey: 0 };
   }
 
-  componentDidCatch(error: Error) {
-    console.error('[ErrorBoundary]', error);
+  componentDidCatch(error: Error, info: any) {
+    console.error('[ErrorBoundary]', error, info);
   }
+
+  handleTryAgain = () => {
+    this.setState((s: State) => ({
+      hasError: false,
+      error: undefined,
+      resetKey: s.resetKey + 1,
+    }));
+  };
 
   render() {
     if (this.state.hasError) {
@@ -35,13 +45,13 @@ export default class ErrorBoundary extends Component<Props, State> {
           <button
             class="btn btn-secondary btn-sm"
             style={{ marginTop: 'var(--sp-4)' }}
-            onClick={() => this.setState({ hasError: false, error: undefined })}
+            onClick={this.handleTryAgain}
           >
             Try again
           </button>
         </div>
       );
     }
-    return this.props.children;
+    return <div key={this.state.resetKey}>{this.props.children}</div>;
   }
 }

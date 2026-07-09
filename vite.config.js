@@ -3,4 +3,15 @@ import preact from '@preact/preset-vite';
 
 export default defineConfig({
   plugins: [preact()],
+  build: {
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'preact-vendor': ['preact', 'preact-router'],
+          'state-vendor': ['zustand'],
+        },
+      },
+    },
+  },
 });

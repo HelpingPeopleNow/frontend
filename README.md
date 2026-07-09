@@ -110,8 +110,8 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 | `src/LoginPage.tsx` | Magic-link login + signup — email input, send link |
 | `src/i18n.ts` | Internationalization — translations, language toggle |
 | `src/hooks/useGeolocation.ts` | GPS geolocation — wraps `navigator.geolocation`, returns `{ latitude, longitude, loading, permissionDenied, error }` |
-| `nginx.conf` | Static file serving + SPA fallback (`try_files $uri /index.html`) |
-| `Dockerfile` | Multi-stage: `node:22-alpine` build → `nginx:alpine` runtime |
+| `nginx.conf` | Static file serving + SPA fallback (`try_files $uri /index.html`) + security headers (CSP/HSTS/X-Frame-Options/etc.), gzip, asset caching (audit P1-2) |
+| `Dockerfile` | Multi-stage: `node:22-alpine` build → `nginx:alpine` runtime. Runs as non-root `nginx` user on port 8080 with `HEALTHCHECK` (audit P2-1) |
 
 ---
 

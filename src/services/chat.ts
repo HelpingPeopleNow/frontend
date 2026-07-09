@@ -41,12 +41,13 @@ export interface ChatResponse {
   conversation_id?: string;
 }
 
-export function sendChat(req: ChatRequest): Promise<Response> {
+export function sendChat(req: ChatRequest, signal?: AbortSignal): Promise<Response> {
   log('chat', `sending message mode=${req.mode} msg_len=${req.message.length} conv=${req.conversation_id || 'new'} lang=${req.lang}`);
   return fetch('/api/v1/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify(req),
+    signal,
   });
 }

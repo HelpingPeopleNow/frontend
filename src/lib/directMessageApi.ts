@@ -1,6 +1,7 @@
 import { log, logError } from './logger';
 
 const BASE = '/api/v1';
+const DEFAULT_TIMEOUT_MS = 15000;
 
 async function fetchJSON(path: string, options: RequestInit = {}) {
   log('dm', `${options.method || 'GET'} ${path}`);
@@ -8,6 +9,7 @@ async function fetchJSON(path: string, options: RequestInit = {}) {
     ...options,
     headers: { 'Content-Type': 'application/json', ...options.headers },
     credentials: 'include',
+    signal: options.signal ?? AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
   });
   if (res.status === 204) return undefined;
   if (!res.ok) {

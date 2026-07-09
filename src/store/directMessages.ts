@@ -9,12 +9,28 @@ import {
   markRead as apiMarkRead,
 } from '../lib/directMessageApi';
 import { DirectMessageSSE, SSEEvent } from '../lib/sse';
+import { assertString, assertObject } from '../lib/validate';
 
 let sse: DirectMessageSSE | null = null;
 
 function getSSE() {
   if (!sse) sse = new DirectMessageSSE();
   return sse;
+}
+
+function parseDMMessage(raw: unknown): DMMessage | null {
+  try {
+    const o = assertObject(raw, 'DMMessage');
+    assertString(o.id, 'id', 'DMMessage');
+    assertString(o.conversation_id, 'conversation_id', 'DMMessage');
+    assertString(o.sender_id, 'sender_id', 'DMMessage');
+    assertString(o.body, 'body', 'DMMessage');
+    assertString(o.created_at, 'created_at', 'DMMessage');
+    return o as unknown as DMMessage;
+  } catch (e) {
+    logWarn('dm', `dropping malformed SSE message: ${e instanceof Error ? e.message : String(e)}`);
+    return null;
+  }
 }
 
 // ── Store ────────────────────────────────────────────────────────────────────
@@ -25,13 +41,14 @@ interface DMState {
   unreadTotal: number;
   sseStatus: 'disconnected' | 'connecting' | 'open' | 'polling';
   rateLimited: boolean;
+  activeConvId: string | null;
 
   loadInbox: () => Promise<void>;
   loadMessages: (convId: string) => Promise<void>;
   sendMessage: (convId: string, body: string) => Promise<DMMessage>;
   markRead: (convId: string) => void;
   addMessage: (convId: string, msg: DMMessage) => void;
-  tallyUnread: (convId: string) => void;
+  setActiveConv: (convId: string | null) => void;
   connect: () => void;
   disconnect: () => void;
   clearRateLimited: () => void;
@@ -45,6 +62,9 @@ export const useDirectMessages = create<DMState>((set, get) => ({
   unreadTotal: 0,
   sseStatus: 'disconnected',
   rateLimited: false,
+  activeConvId: null,
+
+  setActiveConv: (convId: string | null) => set({ activeConvId: convId }),
 
   loadInbox: async () => {
     log('dm', 'loading inbox');
@@ -115,8 +135,8 @@ export const useDirectMessages = create<DMState>((set, get) => ({
       const existing = s.messagesByConv[convId] || [];
       if (existing.find(m => m.id === msg.id)) return s;
 
-      // Incrementally update the conversation's last_message and unread count
-      // (only if the user is not currently viewing this conversation)
+      // Only count as unread when the user is NOT actively viewing this conversation.
+      const isActive = s.activeConvId === convId;
       const updatedConvs = s.conversations.map(c => {
         if (c.id === convId) {
           return {
@@ -125,7 +145,7 @@ export const useDirectMessages = create<DMState>((set, get) => ({
               preview: msg.body.slice(0, 100),
               at: msg.created_at,
             },
-            unread_count: (c.unread_count || 0) + 1,
+            unread_count: isActive ? (c.unread_count || 0) : (c.unread_count || 0) + 1,
           };
         }
         return c;
@@ -144,12 +164,6 @@ export const useDirectMessages = create<DMState>((set, get) => ({
     });
   },
 
-  tallyUnread: (_convId: string) => {
-    // Recalculate unread total from current conversations state
-    const total = get().conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
-    set({ unreadTotal: total });
-  },
-
   clearRateLimited: () => set({ rateLimited: false }),
 
   connect: () => {
@@ -165,7 +179,8 @@ export const useDirectMessages = create<DMState>((set, get) => ({
           break;
 
         case 'message': {
-          const msg = event.data as DMMessage;
+          const msg = parseDMMessage(event.data);
+          if (!msg) break;
           log('dm', `SSE message received conv=${msg.conversation_id} msg_id=${msg.id}`);
           get().addMessage(msg.conversation_id, msg);
           break;

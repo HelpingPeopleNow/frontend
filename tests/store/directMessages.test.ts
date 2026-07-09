@@ -196,18 +196,45 @@ describe('store/directMessages', () => {
     });
   });
 
-  describe('tallyUnread', () => {
-    it('recomputes unreadTotal from current conversations', async () => {
+  describe('setActiveConv + addMessage', () => {
+    it('setActiveConv stores the active conversation id', async () => {
+      const { useDirectMessages } = await importFreshStore();
+      useDirectMessages.getState().setActiveConv('c-1');
+      expect(useDirectMessages.getState().activeConvId).toBe('c-1');
+      useDirectMessages.getState().setActiveConv(null);
+      expect(useDirectMessages.getState().activeConvId).toBeNull();
+    });
+
+    it('addMessage does NOT bump unread_count when conv is active', async () => {
       const { useDirectMessages } = await importFreshStore();
       useDirectMessages.setState({
-        conversations: [
-          makeDMConversationItem({ id: 'c-1', unread_count: 2 }),
-          makeDMConversationItem({ id: 'c-2', unread_count: 3 }),
-        ],
+        conversations: [makeDMConversationItem({ id: 'c-1', unread_count: 0 })],
+        messagesByConv: {},
         unreadTotal: 0,
+        activeConvId: 'c-1',
       });
-      useDirectMessages.getState().tallyUnread('c-1');
-      expect(useDirectMessages.getState().unreadTotal).toBe(5);
+      useDirectMessages.getState().addMessage('c-1', makeDMMessage({
+        id: 'm-1', conversation_id: 'c-1', body: 'hi',
+      }));
+      const c = useDirectMessages.getState().conversations.find(x => x.id === 'c-1')!;
+      expect(c.unread_count).toBe(0);
+      expect(useDirectMessages.getState().unreadTotal).toBe(0);
+    });
+
+    it('addMessage DOES bump unread_count when a DIFFERENT conv is active', async () => {
+      const { useDirectMessages } = await importFreshStore();
+      useDirectMessages.setState({
+        conversations: [makeDMConversationItem({ id: 'c-1', unread_count: 0 })],
+        messagesByConv: {},
+        unreadTotal: 0,
+        activeConvId: 'c-other',
+      });
+      useDirectMessages.getState().addMessage('c-1', makeDMMessage({
+        id: 'm-1', conversation_id: 'c-1', body: 'hi',
+      }));
+      const c = useDirectMessages.getState().conversations.find(x => x.id === 'c-1')!;
+      expect(c.unread_count).toBe(1);
+      expect(useDirectMessages.getState().unreadTotal).toBe(1);
     });
   });
 

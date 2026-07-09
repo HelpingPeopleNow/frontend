@@ -103,6 +103,38 @@ describe('services/api', () => {
 
       await expect(request('/api/x')).rejects.toBeInstanceOf(Error);
     });
+
+    it('attaches a default AbortSignal.timeout(15000) when caller provides no signal (P1-1)', async () => {
+      fetchSpy.mockResolvedValue(jsonResponse({ body: { ok: true } }));
+      await request('/api/x');
+      const init = fetchSpy.mock.calls[0][1] as RequestInit;
+      expect(init.signal).toBeInstanceOf(AbortSignal);
+    });
+
+    it('preserves a caller-supplied signal (does NOT override with default timeout)', async () => {
+      fetchSpy.mockResolvedValue(jsonResponse({ body: { ok: true } }));
+      const ac = new AbortController();
+      await request('/api/x', { signal: ac.signal });
+      const init = fetchSpy.mock.calls[0][1] as RequestInit;
+      expect(init.signal).toBe(ac.signal);
+    });
+
+    it('uses res.statusText as the error message when body has no error field (P1-1)', async () => {
+      fetchSpy.mockResolvedValue(jsonResponse({
+        status: 502,
+        ok: false,
+        body: {},
+      }) as Response & { statusText?: string });
+      // Manually craft a Response with statusText since the helper doesn't set one
+      const res: any = jsonResponse({ status: 502, ok: false, body: {} });
+      res.statusText = 'Bad Gateway';
+      fetchSpy.mockResolvedValueOnce(res);
+
+      await expect(request('/api/x')).rejects.toMatchObject({
+        status: 502,
+        message: 'Bad Gateway',
+      });
+    });
   });
 
   describe('ApiError', () => {

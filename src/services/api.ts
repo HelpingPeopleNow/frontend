@@ -1,6 +1,7 @@
 import { log, logError } from '../lib/logger';
 
 const API_BASE = '';
+const DEFAULT_TIMEOUT_MS = 15000;
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public path?: string) {
@@ -19,6 +20,7 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
       ...options.headers,
     },
     credentials: 'include',
+    signal: options.signal ?? AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
   });
 
   if (!res.ok) {
@@ -26,7 +28,7 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
       logError('api', `failed to parse error body for ${res.status} ${options.method || 'GET'} ${path}`);
       return {};
     });
-    const errMsg = body.error || `Request failed with status ${res.status}`;
+    const errMsg = body.error || res.statusText || `Request failed with status ${res.status}`;
     logError('api', `${res.status} ${options.method || 'GET'} ${path}: ${errMsg}`);
     throw new ApiError(res.status, errMsg, path);
   }

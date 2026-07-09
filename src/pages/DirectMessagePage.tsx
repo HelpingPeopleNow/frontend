@@ -16,7 +16,7 @@ export default function DirectMessagePage({ convId }: Props) {
   const { t } = useLanguage();
   const { session } = useAuth();
   const currentUserId = session?.user?.id;
-  const { messagesByConv, loadMessages, loadInbox, sendMessage, markRead, conversations, rateLimited, connect, disconnect } =
+  const { messagesByConv, loadMessages, loadInbox, sendMessage, markRead, conversations, rateLimited, connect, disconnect, setActiveConv } =
     useDirectMessages();
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -34,9 +34,11 @@ export default function DirectMessagePage({ convId }: Props) {
 
   useEffect(() => {
     log('thread', `loading thread conv=${convId}`);
+    setActiveConv(convId);
     loadMessages(convId);
     loadInbox();
     markRead(convId);
+    return () => setActiveConv(null);
   }, [convId]);
 
   useEffect(() => {

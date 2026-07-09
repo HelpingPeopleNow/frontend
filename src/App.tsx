@@ -50,11 +50,11 @@ function AppRouter() {
 
   return (
     <Router>
-      <Route path="/" component={LandingPage} />
-      <Route path="/login" component={LoginPage} onNavigate={(p: string) => route(p)} />
-      <Route path="/terms" component={TermsPage} />
-      <Route path="/privacy" component={PrivacyPage} />
-      <Route path="/cookies" component={CookiesPage} />
+      <Route path="/" component={() => <ErrorBoundary><LandingPage /></ErrorBoundary>} />
+      <Route path="/login" component={({ onNavigate }: any) => <ErrorBoundary><LoginPage onNavigate={onNavigate || ((p: string) => route(p))} /></ErrorBoundary>} onNavigate={(p: string) => route(p)} />
+      <Route path="/terms" component={() => <ErrorBoundary><TermsPage /></ErrorBoundary>} />
+      <Route path="/privacy" component={() => <ErrorBoundary><PrivacyPage /></ErrorBoundary>} />
+      <Route path="/cookies" component={() => <ErrorBoundary><CookiesPage /></ErrorBoundary>} />
       <Route path="/chat" component={() => <ErrorBoundary><ProtectedRoute component={ChatPage} /></ErrorBoundary>} />
       <Route path="/find" component={() => <ErrorBoundary><ProtectedRoute component={FindPage} /></ErrorBoundary>} />
 
