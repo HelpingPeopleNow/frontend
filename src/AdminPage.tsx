@@ -78,7 +78,7 @@ export default function AdminPage() {
           </a>
 
           {isAdmin && (
-            <a href="/adminer" target="_blank" rel="noopener noreferrer" class="admin-menu-card">
+            <a href="https://adminer.helpingpeople.cloud" target="_blank" rel="noopener noreferrer" class="admin-menu-card">
               <div class="admin-menu-icon">🗄</div>
               <div>
                 <div class="admin-menu-title">{t('admin.db')}</div>
