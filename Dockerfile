@@ -11,7 +11,7 @@ FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Run as the unprivileged nginx user
-RUN chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx \
+RUN chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /run \
     && sed -i 's/listen\s*80;/listen 8080;/' /etc/nginx/conf.d/default.conf
 USER nginx
 EXPOSE 8080
