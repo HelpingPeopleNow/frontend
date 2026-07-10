@@ -86,6 +86,10 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 - All UI text uses `t()` from `useLanguage()` for translated strings
 - Chat requests include a `lang` parameter so the AI responds in the matching language
 
+### Analytics
+
+- A self-hosted **Umami** analytics script is injected in `index.html` (`https://helpingpeople.cloud/umami/script.js`). It tracks page views without cookies and does not collect personal data. The `CookiesPage` states that the platform does not use third-party, advertising, social-media, or analytics/tracking cookies.
+
 ### GPS Geolocation
 
 - `useGeolocation()` hook wraps `navigator.geolocation` with 5-min cache (`maximumAge: 300000`)
