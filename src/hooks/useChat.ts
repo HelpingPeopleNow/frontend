@@ -43,6 +43,13 @@ export function useChat({ mode, lang, latitude, longitude, initialMessages, init
   const errorRef = useRef(errorMessage);
   errorRef.current = errorMessage;
 
+  // Refs for GPS coords — these resolve asynchronously after first render,
+  // so the memoized send callback must read the latest values via a ref.
+  const latitudeRef = useRef(latitude);
+  latitudeRef.current = latitude;
+  const longitudeRef = useRef(longitude);
+  longitudeRef.current = longitude;
+
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -81,6 +88,8 @@ export function useChat({ mode, lang, latitude, longitude, initialMessages, init
     const currentLang = langRef.current;
     const currentConvId = conversationIdRef.current;
     const currentErrorMsg = errorRef.current;
+    const currentLatitude = latitudeRef.current;
+    const currentLongitude = longitudeRef.current;
 
     log('chat', `sending message text_len=${text.length} conv=${currentConvId || 'new'} mode=${currentMode}`);
     try {
@@ -94,7 +103,7 @@ export function useChat({ mode, lang, latitude, longitude, initialMessages, init
         history,
         conversation_id: currentConvId || undefined,
         lang: currentLang,
-        ...(latitude != null && longitude != null ? { latitude, longitude } : {}),
+        ...(currentLatitude != null && currentLongitude != null ? { latitude: currentLatitude, longitude: currentLongitude } : {}),
       }, ac.signal);
       if (!res.ok) {
         logError('chat', `chat API returned ${res.status}`);
