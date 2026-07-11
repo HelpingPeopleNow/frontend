@@ -1,7 +1,8 @@
 import { h } from 'preact';
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import { useAuth } from './AuthProvider';
 import { useLanguage } from './i18n';
+import 'cap-widget';
 
 export default function LoginPage({ onNavigate }: { onNavigate: (path: string) => void }) {
   document.title = `Sign In | Helping People`;
@@ -9,15 +10,33 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [capToken, setCapToken] = useState<string | null>(null);
   const { sendMagicLink } = useAuth();
   const { t } = useLanguage();
+
+  useEffect(() => {
+    const widget = document.querySelector('cap-widget');
+    if (widget) {
+      const handleSolve = (e: CustomEvent<{ token: string }>) => {
+        setCapToken(e.detail.token);
+      };
+      widget.addEventListener('solve', handleSolve);
+      return () => widget.removeEventListener('solve', handleSolve);
+    }
+  }, []);
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
     setError('');
     if (!email) { setError(t('auth.email.required')); return; }
+
+    if (!capToken) {
+      setError(t('auth.captcha.required'));
+      return;
+    }
+
     setSubmitting(true);
-    const result = await sendMagicLink(email);
+    const result = await sendMagicLink(email, capToken);
     setSubmitting(false);
     if (!result.ok) {
       setError(result.error || 'Unknown error');
@@ -84,7 +103,15 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
                 autoFocus
               />
             </div>
-            <button class="btn btn-primary" type="submit" disabled={submitting} style={{ width: '100%', padding: '12px' }}>
+
+            <div class="captcha-widget">
+              <cap-widget
+                data-cap-api-endpoint="https://cap.helpingpeople.cloud/YOUR_SITE_KEY/"
+                data-cap-hidden-field-name="cap-token"
+              />
+            </div>
+
+            <button class="btn btn-primary" type="submit" disabled={submitting || !capToken} style={{ width: '100%', padding: '12px' }}>
               {submitting && <span class="spinner" />}
               {submitting ? t('auth.sending') : t('auth.send.magic')}
             </button>

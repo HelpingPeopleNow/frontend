@@ -6,6 +6,7 @@ import { useAuth } from '../AuthProvider';
 import { fetchPublicProfile, WorkerPublicProfile } from '../lib/publicProfileApi';
 import { log, logError } from '../lib/logger';
 import { getContact } from '../lib/directMessageApi';
+import 'cap-widget';
 
 interface Props {
   slug: string;
@@ -22,6 +23,7 @@ export default function PublicProfilePage({ slug }: Props) {
   const { session, loading: authLoading } = useAuth();
   const [state, setState] = useState<ProfileState>({ status: 'loading' });
   const [contactLoading, setContactLoading] = useState(false);
+  const [capToken, setCapToken] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,15 +50,27 @@ export default function PublicProfilePage({ slug }: Props) {
     return () => { document.title = 'HelpingPeopleNow'; };
   }, [state]);
 
+  useEffect(() => {
+    const widget = document.querySelector('cap-widget');
+    if (widget) {
+      const handleSolve = (e: CustomEvent<{ token: string }>) => {
+        setCapToken(e.detail.token);
+      };
+      widget.addEventListener('solve', handleSolve);
+      return () => widget.removeEventListener('solve', handleSolve);
+    }
+  }, []);
+
   const handleContact = async () => {
     if (!session) {
       route(`/login?redirect=/profile/${encodeURIComponent(slug)}`, false);
       return;
     }
     if (state.status !== 'loaded') return;
+    if (!capToken) return;
     setContactLoading(true);
     try {
-      const data = await getContact(state.profile.id);
+      const data = await getContact(state.profile.id, capToken);
       if (data.conversation_id) route(`/inbox/${data.conversation_id}`, true);
     } catch (err) {
       logError('profile', `contact failed: ${String(err)}`);
@@ -229,10 +243,16 @@ export default function PublicProfilePage({ slug }: Props) {
 
         {/* ── CTA ───────────────────────────────────── */}
         <section class="profile-cta">
+          <div class="captcha-widget">
+            <cap-widget
+              data-cap-api-endpoint="https://cap.helpingpeople.cloud/YOUR_SITE_KEY/"
+              data-cap-hidden-field-name="cap-token"
+            />
+          </div>
           <button
             class="btn btn-primary btn-lg"
             onClick={handleContact}
-            disabled={contactLoading}
+            disabled={contactLoading || !capToken}
             style={{ width: '100%' }}
           >
             {contactLoading ? '⏳ ...' : t('profile.contact')}

@@ -8,7 +8,7 @@ export interface AuthContextValue {
   session: Session | null;
   loading: boolean;
   error: boolean;
-  sendMagicLink: (email: string) => Promise<{ ok: boolean; error?: string }>;
+  sendMagicLink: (email: string, capToken: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<Session | null>;
 }
@@ -17,7 +17,7 @@ const AuthCtx = createContext<AuthContextValue>({
   session: null,
   loading: true,
   error: false,
-  sendMagicLink: async (email: string) => sendMagicLink(email),
+  sendMagicLink: async (email: string, capToken: string) => sendMagicLink(email, capToken),
   logout,
   refreshSession: async () => null,
 });
@@ -49,8 +49,8 @@ export function AuthProvider({ children }: { children: h.JSX.Element }) {
     setError(false);
   };
 
-  const sendMagicLinkFn = async (email: string) => {
-    const result = await sendMagicLink(email, lang);
+  const sendMagicLinkFn = async (email: string, capToken: string) => {
+    const result = await sendMagicLink(email, capToken, lang);
     return result;
   };
 

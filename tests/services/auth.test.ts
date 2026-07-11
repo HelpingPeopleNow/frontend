@@ -63,15 +63,15 @@ describe('services/auth', () => {
   });
 
   describe('sendMagicLink', () => {
-    it('POSTs to /api/auth/sign-in/magic-link with email, callbackURL, and metadata.lang', async () => {
+    it('POSTs to /api/auth/sign-in/magic-link with email, callbackURL, and metadata', async () => {
       fetchSpy.mockResolvedValue(jsonResponse({ body: { ok: true } }));
-      await sendMagicLink('a@b.com', 'en');
+      await sendMagicLink('a@b.com', 'cap-token', 'en');
       const init = fetchSpy.mock.calls[0][1] as RequestInit;
       expect(init.method).toBe('POST');
       expect(JSON.parse(init.body as string)).toEqual({
         email: 'a@b.com',
         callbackURL: '/',
-        metadata: { lang: 'en' },
+        metadata: { lang: 'en', capToken: 'cap-token' },
       });
     });
 

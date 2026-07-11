@@ -3378,3 +3378,10 @@ button { cursor: pointer; font-family: inherit; }
     font-size: var(--text-xl);
   }
 }
+
+/* ── Cap CAPTCHA widget ─────────────────────────────────── */
+.captcha-widget {
+  margin: var(--sp-4) 0;
+  display: flex;
+  justify-content: center;
+}

@@ -39,7 +39,7 @@ export async function getSession(): Promise<Session | null> {
   }
 }
 
-export async function sendMagicLink(email: string, lang: string = 'es'): Promise<{ ok: boolean; error?: string }> {
+export async function sendMagicLink(email: string, capToken?: string, lang: string = 'es'): Promise<{ ok: boolean; error?: string }> {
   try {
     log('auth', `sending magic link to ${email} lang=${lang}`);
     await request('/api/auth/sign-in/magic-link', {
@@ -47,7 +47,7 @@ export async function sendMagicLink(email: string, lang: string = 'es'): Promise
       body: JSON.stringify({
         email,
         callbackURL: '/',
-        metadata: { lang },
+        metadata: { lang, capToken },
       }),
     });
     return { ok: true };
