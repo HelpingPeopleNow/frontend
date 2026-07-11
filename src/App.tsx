@@ -2,6 +2,7 @@ import { h, Fragment } from 'preact';
 import { Router, Route, route } from 'preact-router';
 import { useEffect } from 'preact/hooks';
 import { AuthProvider, useAuth } from './AuthProvider';
+import { log } from './lib/logger';
 import ErrorBoundary from './components/ErrorBoundary';
 import LandingPage from './LandingPage';
 import ChatPage from './ChatPage';
@@ -33,6 +34,7 @@ function ProtectedRoute({ component: Component, ...props }: any) {
   const { session, loading } = useAuth();
   useEffect(() => {
     if (!loading && !session) {
+      log('auth', 'redirecting to login — no session');
       route('/login', true);
     }
   }, [loading, session]);

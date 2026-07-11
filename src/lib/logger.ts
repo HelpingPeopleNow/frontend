@@ -13,6 +13,7 @@ const PREFIXES = {
   app: '[App]',
   profile: '[Profile]',
   landing: '[Landing]',
+  geo: '[Geo]',
 } as const;
 
 type LoggerCategory = keyof typeof PREFIXES;

@@ -112,7 +112,10 @@ export function useChat({ mode, lang, latitude, longitude, initialMessages, init
       if (res.headers.get('content-type')?.includes('text/event-stream')) {
         log('chat', 'streaming SSE response');
         const reader = res.body?.getReader();
-        if (!reader) return;
+        if (!reader) {
+          logError('chat', 'response body is null, cannot stream');
+          return;
+        }
         const decoder = new TextDecoder();
         let buffer = '';
         let streamDone = false;
@@ -155,7 +158,10 @@ export function useChat({ mode, lang, latitude, longitude, initialMessages, init
         responseText = data.answer || data.response || data.text || JSON.stringify(data);
         const workers = data.workers || undefined;
         setMessages((m) => [...m, { role: 'assistant', text: responseText, workers }]);
-        if (data.conversation_id) setConversationId(data.conversation_id);
+        if (data.conversation_id) {
+          log('chat', 'new conversation', { conversationId: data.conversation_id });
+          setConversationId(data.conversation_id);
+        }
       }
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') {

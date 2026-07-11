@@ -11,7 +11,12 @@ export default function CookieConsent() {
 
   useEffect(() => {
     // Only show if user hasn't seen it before
-    const seen = localStorage.getItem(STORAGE_KEY);
+    let seen: string | null = null;
+    try {
+      seen = localStorage.getItem(STORAGE_KEY);
+    } catch (e) {
+      console.warn('[cookie] localStorage unavailable:', e);
+    }
     if (!seen) {
       // Small delay to avoid blocking initial render
       const timer = setTimeout(() => setVisible(true), 1000);
@@ -20,7 +25,11 @@ export default function CookieConsent() {
   }, []);
 
   const dismiss = () => {
-    localStorage.setItem(STORAGE_KEY, '1');
+    try {
+      localStorage.setItem(STORAGE_KEY, '1');
+    } catch (e) {
+      console.warn('[cookie] localStorage unavailable:', e);
+    }
     setVisible(false);
   };
 

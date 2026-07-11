@@ -64,7 +64,10 @@ export const useDirectMessages = create<DMState>((set, get) => ({
   rateLimited: false,
   activeConvId: null,
 
-  setActiveConv: (convId: string | null) => set({ activeConvId: convId }),
+  setActiveConv: (convId: string | null) => {
+    log('dm', 'setActiveConv', { convId });
+    set({ activeConvId: convId });
+  },
 
   loadInbox: async () => {
     log('dm', 'loading inbox');
@@ -131,9 +134,13 @@ export const useDirectMessages = create<DMState>((set, get) => ({
   },
 
   addMessage: (convId: string, msg: DMMessage) => {
+    log('dm', 'addMessage', { convId: msg.conversation_id, senderId: msg.sender_id });
     set(s => {
       const existing = s.messagesByConv[convId] || [];
-      if (existing.find(m => m.id === msg.id)) return s;
+      if (existing.find(m => m.id === msg.id)) {
+        log('dm', 'duplicate message dropped', { messageId: msg.id });
+        return s;
+      }
 
       // Only count as unread when the user is NOT actively viewing this conversation.
       const isActive = s.activeConvId === convId;

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "preact/hooks";
 
+import { log, logError } from '../lib/logger';
+
 interface GeolocationState {
   latitude: number | null;
   longitude: number | null;
@@ -19,6 +21,7 @@ export function useGeolocation(): GeolocationState {
 
   useEffect(() => {
     if (!navigator.geolocation) {
+      logError('geo', 'geolocation not supported');
       setState((s) => ({
         ...s,
         loading: false,
@@ -29,6 +32,7 @@ export function useGeolocation(): GeolocationState {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        log('geo', 'location obtained', { lat: position.coords.latitude, lng: position.coords.longitude });
         setState({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -38,6 +42,7 @@ export function useGeolocation(): GeolocationState {
         });
       },
       (error) => {
+        logError('geo', 'location error', error.message);
         setState((s) => ({
           ...s,
           loading: false,

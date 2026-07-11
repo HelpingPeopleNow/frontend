@@ -139,8 +139,8 @@ export class DirectMessageSSE {
             if (this.running) this.callback?.({ type: 'message', data: msg });
           }
         }
-      } catch {
-        // silent retry
+      } catch (e) {
+        console.warn('[sse] poll error:', e);
       }
     };
 

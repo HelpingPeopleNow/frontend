@@ -1,4 +1,4 @@
-import { log } from '../lib/logger';
+import { log, logError } from '../lib/logger';
 
 export interface ChatHistoryItem {
   role: 'user' | 'assistant';
@@ -43,11 +43,16 @@ export interface ChatResponse {
 
 export function sendChat(req: ChatRequest, signal?: AbortSignal): Promise<Response> {
   log('chat', `sending message mode=${req.mode} msg_len=${req.message.length} conv=${req.conversation_id || 'new'} lang=${req.lang}`);
-  return fetch('/api/v1/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-    body: JSON.stringify(req),
-    signal,
-  });
+  try {
+    return fetch('/api/v1/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(req),
+      signal,
+    });
+  } catch (e) {
+    logError('chat', 'sendChat network error', e);
+    throw e;
+  }
 }
