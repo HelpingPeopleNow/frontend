@@ -97,7 +97,7 @@ export default function FeedbackAdminPage() {
   };
 
   return (
-    <AppShell>
+    <AppShell currentPath="/admin/feedback" title="Feedback">
       <div class="admin-page">
         <div class="admin-header">
           <a href="/admin" class="back-link">← Admin</a>

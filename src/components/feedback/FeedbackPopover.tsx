@@ -12,6 +12,8 @@ const CATEGORIES: { value: FeedbackCategory; label: string; emoji: string }[] = 
 
 interface Props {
   onSubmit?: () => void;
+  submitted?: boolean;
+  onSubmittedReset?: () => void;
 }
 
 export default function FeedbackPopover({ onSubmit, submitted: controlledSubmitted, onSubmittedReset }: Props) {
