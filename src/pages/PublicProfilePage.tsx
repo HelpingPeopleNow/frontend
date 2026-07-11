@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useState, useRef } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useLanguage } from '../i18n';
 import { useAuth } from '../AuthProvider';
@@ -24,6 +24,8 @@ export default function PublicProfilePage({ slug }: Props) {
   const [state, setState] = useState<ProfileState>({ status: 'loading' });
   const [contactLoading, setContactLoading] = useState(false);
   const [capToken, setCapToken] = useState<string | null>(null);
+  const [capKey, setCapKey] = useState(0);
+  const widgetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,7 +53,7 @@ export default function PublicProfilePage({ slug }: Props) {
   }, [state]);
 
   useEffect(() => {
-    const widget = document.querySelector('cap-widget');
+    const widget = widgetRef.current?.querySelector('cap-widget');
     if (widget) {
       const handleSolve = (e: CustomEvent<{ token: string }>) => {
         setCapToken(e.detail.token);
@@ -59,7 +61,7 @@ export default function PublicProfilePage({ slug }: Props) {
       widget.addEventListener('solve', handleSolve);
       return () => widget.removeEventListener('solve', handleSolve);
     }
-  }, []);
+  }, [capKey]);
 
   const handleContact = async () => {
     if (!session) {
@@ -74,6 +76,8 @@ export default function PublicProfilePage({ slug }: Props) {
       if (data.conversation_id) route(`/inbox/${data.conversation_id}`, true);
     } catch (err) {
       logError('profile', `contact failed: ${String(err)}`);
+      setCapToken(null);
+      setCapKey(k => k + 1);
       setContactLoading(false);
     }
   };
@@ -243,11 +247,13 @@ export default function PublicProfilePage({ slug }: Props) {
 
         {/* ── CTA ───────────────────────────────────── */}
         <section class="profile-cta">
-          <div class="captcha-widget">
-            <cap-widget
-              data-cap-api-endpoint="https://cap.helpingpeople.cloud/0a4189abe8/"
-              data-cap-hidden-field-name="cap-token"
-            />
+          <div class="captcha-widget" ref={widgetRef}>
+            <div key={capKey}>
+              <cap-widget
+                data-cap-api-endpoint="https://cap.helpingpeople.cloud/0a4189abe8/"
+                data-cap-hidden-field-name="cap-token"
+              />
+            </div>
           </div>
           <button
             class="btn btn-primary btn-lg"

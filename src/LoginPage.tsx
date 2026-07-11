@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useRef } from 'preact/hooks';
 import { useAuth } from './AuthProvider';
 import { useLanguage } from './i18n';
 import 'cap-widget';
@@ -11,11 +11,13 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [capToken, setCapToken] = useState<string | null>(null);
+  const [capKey, setCapKey] = useState(0);
   const { sendMagicLink } = useAuth();
   const { t } = useLanguage();
+  const widgetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const widget = document.querySelector('cap-widget');
+    const widget = widgetRef.current?.querySelector('cap-widget');
     if (widget) {
       const handleSolve = (e: CustomEvent<{ token: string }>) => {
         setCapToken(e.detail.token);
@@ -23,7 +25,7 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
       widget.addEventListener('solve', handleSolve);
       return () => widget.removeEventListener('solve', handleSolve);
     }
-  }, []);
+  }, [capKey]);
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -39,6 +41,8 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
     const result = await sendMagicLink(email, capToken);
     setSubmitting(false);
     if (!result.ok) {
+      setCapToken(null);
+      setCapKey(k => k + 1);
       setError(result.error || 'Unknown error');
     } else {
       setSent(true);
@@ -104,11 +108,13 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
               />
             </div>
 
-            <div class="captcha-widget">
-              <cap-widget
-                data-cap-api-endpoint="https://cap.helpingpeople.cloud/0a4189abe8/"
-                data-cap-hidden-field-name="cap-token"
-              />
+            <div class="captcha-widget" ref={widgetRef}>
+              <div key={capKey}>
+                <cap-widget
+                  data-cap-api-endpoint="https://cap.helpingpeople.cloud/0a4189abe8/"
+                  data-cap-hidden-field-name="cap-token"
+                />
+              </div>
             </div>
 
             <button class="btn btn-primary" type="submit" disabled={submitting || !capToken} style={{ width: '100%', padding: '12px' }}>
