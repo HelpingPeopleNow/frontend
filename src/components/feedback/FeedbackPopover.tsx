@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import { submitFeedback, FeedbackCategory } from '../../lib/feedbackApi';
 import { log, logError } from '../../lib/logger';
 
@@ -14,12 +14,14 @@ interface Props {
   onSubmit?: () => void;
 }
 
-export default function FeedbackPopover({ onSubmit }: Props) {
+export default function FeedbackPopover({ onSubmit, submitted: controlledSubmitted, onSubmittedReset }: Props) {
   const [message, setMessage] = useState('');
   const [category, setCategory] = useState<FeedbackCategory>('general');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+
+  const isSubmitted = controlledSubmitted ?? submitted;
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -34,13 +36,11 @@ export default function FeedbackPopover({ onSubmit }: Props) {
         category,
       });
       setSubmitted(true);
-      log('feedback', 'submit success');
+      onSubmittedReset?.();
       onSubmit?.();
       setTimeout(() => {
-        setSubmitted(false);
-        setMessage('');
-        setCategory('general');
-      }, 2000);
+        onSubmit?.();
+      }, 500);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to submit';
       logError('feedback', msg, err);
@@ -50,7 +50,17 @@ export default function FeedbackPopover({ onSubmit }: Props) {
     }
   };
 
-  if (submitted) {
+  useEffect(() => {
+    if (!isSubmitted) return;
+    const timer = setTimeout(() => {
+      setSubmitted(false);
+      setMessage('');
+      setCategory('general');
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [isSubmitted]);
+
+  if (isSubmitted) {
     return (
       <div class="feedback-popover">
         <div class="feedback-success">

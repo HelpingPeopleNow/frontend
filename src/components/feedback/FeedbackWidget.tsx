@@ -30,7 +30,7 @@ export default function FeedbackWidget() {
     <div class="feedback-widget" ref={ref}>
       {open && (
         <div class="feedback-popover-container">
-          <FeedbackPopover onSubmit={() => { setOpen(false); log('feedback', 'close via submit'); }} />
+          <FeedbackPopover onSubmit={() => { setOpen(false); log('feedback', 'close via submit'); }} onSubmittedReset={() => setOpen(false)} />
         </div>
       )}
 

@@ -79,10 +79,20 @@ export default function FeedbackAdminPage() {
   const statusColor = (s: string) => {
     switch (s) {
       case 'open': return 'var(--warning, #f59e0b)';
-      case 'in_progress': return 'var(--accent)';
-      case 'resolved': return 'var(--success, #22c55e)';
-      case 'dismissed': return 'var(--text-secondary)';
-      default: return 'var(--text-secondary)';
+      case 'in_progress': return 'var(--accent, #06b6d4)';
+      case 'resolved': return 'var(--success, #10b981)';
+      case 'dismissed': return 'var(--text-muted, #4a5568)';
+      default: return 'var(--text-muted, #4a5568)';
+    }
+  };
+
+  const statusBg = (s: string) => {
+    switch (s) {
+      case 'open': return 'var(--warning-subtle, rgba(245,158,11,0.12))';
+      case 'in_progress': return 'var(--accent-subtle, rgba(6,182,212,0.12))';
+      case 'resolved': return 'var(--success-subtle, rgba(16,185,129,0.12))';
+      case 'dismissed': return 'rgba(255,255,255,0.04)';
+      default: return 'rgba(255,255,255,0.04)';
     }
   };
 
@@ -94,7 +104,7 @@ export default function FeedbackAdminPage() {
           <h1>💬 Feedback</h1>
           <div class="feedback-filters">
             <select
-              class="admin-select"
+              class="select"
               value={statusFilter}
               onChange={(e: any) => setStatusFilter(e.target.value)}
             >
@@ -103,7 +113,7 @@ export default function FeedbackAdminPage() {
                 <option key={s} value={s}>{s.replace('_', ' ')}</option>
               ))}
             </select>
-            <button class="admin-btn" onClick={fetchItems}>↻ Refresh</button>
+            <button class="btn btn-ghost btn-sm" onClick={fetchItems}>↻ Refresh</button>
           </div>
         </div>
 
@@ -124,7 +134,7 @@ export default function FeedbackAdminPage() {
                   </span>
                   <span
                     class="feedback-status"
-                    style={{ color: statusColor(item.status) }}
+                    style={{ color: statusColor(item.status), background: statusBg(item.status), padding: '2px 8px', borderRadius: '9999px', fontSize: '11px', fontWeight: 600 }}
                   >
                     {item.status.replace('_', ' ')}
                   </span>
@@ -150,8 +160,7 @@ export default function FeedbackAdminPage() {
                   {STATUS_OPTIONS.map(s => (
                     <button
                       key={s}
-                      class={`feedback-action-btn ${item.status === s ? 'active' : ''}`}
-                      style={item.status === s ? { background: statusColor(s), color: '#fff' } : {}}
+                      class={`feedback-action-btn status-${s} ${item.status === s ? 'active' : ''}`}
                       onClick={() => updateStatus(item.id, s)}
                     >
                       {s.replace('_', ' ')}
@@ -237,22 +246,30 @@ export default function FeedbackAdminPage() {
         }
         .feedback-action-btn {
           background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 6px;
-          padding: 3px 10px;
-          font-size: 11px;
+          border: 1px solid var(--border-strong);
+          border-radius: var(--r-sm);
+          padding: 4px 12px;
+          font-size: var(--text-xs);
+          font-weight: 500;
           cursor: pointer;
           color: var(--text-secondary);
           text-transform: capitalize;
-          transition: all 0.15s ease;
+          transition: all 0.15s var(--ease);
         }
         .feedback-action-btn:hover {
+          background: var(--surface-hover);
           border-color: var(--accent);
           color: var(--text);
         }
         .feedback-action-btn.active {
           font-weight: 600;
+          color: #fff;
+          border-color: transparent;
         }
+        .feedback-action-btn.status-open.active { background: var(--warning); }
+        .feedback-action-btn.status-in_progress.active { background: var(--accent); }
+        .feedback-action-btn.status-resolved.active { background: var(--success); }
+        .feedback-action-btn.status-dismissed.active { background: var(--text-muted); }
         .empty-state {
           text-align: center;
           padding: 40px;
