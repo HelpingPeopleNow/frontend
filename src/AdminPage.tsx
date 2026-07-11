@@ -77,6 +77,14 @@ export default function AdminPage() {
             </div>
           </a>
 
+          <a href="/admin/feedback" class="admin-menu-card">
+            <div class="admin-menu-icon">💬</div>
+            <div>
+              <div class="admin-menu-title">Feedback</div>
+              <div class="admin-menu-desc">View and manage user feedback submissions</div>
+            </div>
+          </a>
+
           {isAdmin && (
             <a href="https://adminer.helpingpeople.cloud" target="_blank" rel="noopener noreferrer" class="admin-menu-card">
               <div class="admin-menu-icon">🗄</div>

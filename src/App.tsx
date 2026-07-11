@@ -29,6 +29,8 @@ import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
 import CookiesPage from './pages/CookiesPage';
 import CookieConsent from './components/CookieConsent';
+import FeedbackWidget from './components/feedback/FeedbackWidget';
+import FeedbackAdminPage from './FeedbackAdminPage';
 
 function ProtectedRoute({ component: Component, ...props }: any) {
   const { session, loading } = useAuth();
@@ -90,6 +92,9 @@ function AppRouter() {
       {/* Messages */}
       <Route path="/admin/messages" component={() => <ErrorBoundary><ProtectedRoute component={MessagesPage} /></ErrorBoundary>} />
       <Route path="/admin/messages/:id" component={({ id }: { id: string }) => <ErrorBoundary><ProtectedRoute component={MessageDetailPage} id={id} /></ErrorBoundary>} />
+
+      {/* Feedback admin */}
+      <Route path="/admin/feedback" component={() => <ErrorBoundary><ProtectedRoute component={FeedbackAdminPage} /></ErrorBoundary>} />
     </Router>
   );
 }
@@ -100,6 +105,7 @@ export default function App() {
       <>
       <AppRouter />
       <CookieConsent />
+      <FeedbackWidget />
       </>
     </AuthProvider>
   );

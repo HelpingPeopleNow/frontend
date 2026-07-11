@@ -92,6 +92,16 @@ Multi-stage: `node:22-alpine` build → `nginx:alpine` runtime. The stage-2 imag
 - **Block/Report**: DirectMessagePage has ⋯ action menu with Archive, Block, Report. Block shows confirmation dialog in red, report in warning. Archive navigates to /inbox.
 - **WorkerCard**: Made clickable in Phase 2 — `onClick` calls `route('/workers/:id', false)` (pushState for back button support)
 
+## Feedback system
+
+In-app feedback widget with admin dashboard for triaging user submissions.
+
+- **API client**: `src/lib/feedbackApi.ts` — `submitFeedback({ message, page_url, category })`. Types: `Feedback`, `FeedbackCategory`.
+- **FeedbackWidget**: `src/components/feedback/FeedbackWidget.tsx` — Fixed-position FAB (bottom-right, 💬 icon). Clicking opens/closes a `FeedbackPopover`. Hidden on `/admin/*` pages. Mounted in `App.tsx` alongside `CookieConsent`.
+- **FeedbackPopover**: `src/components/feedback/FeedbackPopover.tsx` — Form with 4 category buttons (🐛 Bug, 💡 Idea, 😤 Complaint, 💬 General), textarea (1–2000 chars), character counter, submit button. Shows ✅ success toast on submit, then auto-resets after 2s.
+- **FeedbackAdminPage**: `src/FeedbackAdminPage.tsx` — Admin-only page at `/admin/feedback`. Lists all feedback submissions with status filter dropdown. Each card shows category emoji, status (color-coded), message, page URL, user ID (truncated), and status update buttons. Uses `AppShell` layout. Route added in `App.tsx`, link added in `AdminPage.tsx`.
+- **CSS-in-JS**: All styles in `<style>` tags within each component — no external CSS files. Uses design tokens (`var(--surface)`, `var(--accent)`, `var(--text-secondary)`, etc.).
+
 ## GPS Geolocation
 
 - **Hook**: `src/hooks/useGeolocation.ts` — wraps the browser `navigator.geolocation` API. Returns `{ latitude, longitude, loading, permissionDenied, error }`. Uses `maximumAge: 300000` (5 min cache) so the browser reuses recent fixes. Falls back gracefully: if `navigator.geolocation` is unsupported or permission is denied, `permissionDenied` / `error` are set; pages degrade to showing results without distance ranking.
