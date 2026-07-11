@@ -245,7 +245,7 @@ export default function PublicProfilePage({ slug }: Props) {
         <section class="profile-cta">
           <div class="captcha-widget">
             <cap-widget
-              data-cap-api-endpoint="https://cap.helpingpeople.cloud/YOUR_SITE_KEY/"
+              data-cap-api-endpoint="https://cap.helpingpeople.cloud/a84b33bde64ae8d2ad0dae15844bd51a/"
               data-cap-hidden-field-name="cap-token"
             />
           </div>
