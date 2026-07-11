@@ -2,6 +2,7 @@ import { h } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { route } from 'preact-router';
 import FeedbackPopover from './FeedbackPopover';
+import { log } from '../../lib/logger';
 
 export default function FeedbackWidget() {
   const [open, setOpen] = useState(false);
@@ -13,6 +14,7 @@ export default function FeedbackWidget() {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
+        log('feedback', 'close via outside click');
       }
     };
     document.addEventListener('mousedown', handler);
@@ -28,13 +30,13 @@ export default function FeedbackWidget() {
     <div class="feedback-widget" ref={ref}>
       {open && (
         <div class="feedback-popover-container">
-          <FeedbackPopover onSubmit={() => setOpen(false)} />
+          <FeedbackPopover onSubmit={() => { setOpen(false); log('feedback', 'close via submit'); }} />
         </div>
       )}
 
       <button
         class={`feedback-fab ${open ? 'active' : ''}`}
-        onClick={() => setOpen(!open)}
+        onClick={() => { const next = !open; setOpen(next); log('feedback', next ? 'open' : 'close'); }}
         aria-label="Send feedback"
       >
         💬

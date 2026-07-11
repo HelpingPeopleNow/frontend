@@ -1,7 +1,7 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
-import { logError } from '../lib/logger';
+import { log, logError } from './lib/logger';
 import AppShell from './AppShell';
 import { ApiError } from './services/api';
 
@@ -30,6 +30,7 @@ export default function FeedbackAdminPage() {
   const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
+    log('feedback', 'admin page mount');
     fetchItems();
   }, [statusFilter]);
 
@@ -46,6 +47,7 @@ export default function FeedbackAdminPage() {
       if (!res.ok) throw new ApiError(res.status, `Failed to load feedback`);
       const data = await res.json();
       setItems(Array.isArray(data) ? data : []);
+      log('feedback', 'admin list ok', { count: Array.isArray(data) ? data.length : 0, statusFilter });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'request failed';
       logError('admin', `list feedback failed: ${msg}`);
@@ -66,6 +68,7 @@ export default function FeedbackAdminPage() {
       setItems(prev =>
         prev.map(item => (item.id === id ? { ...item, status } : item))
       );
+      log('feedback', 'admin status update ok', { id, status });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'update failed';
       logError('admin', `update feedback ${id} failed: ${msg}`);

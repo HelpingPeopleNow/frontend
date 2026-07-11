@@ -13,6 +13,7 @@ const PREFIXES = {
   app: '[App]',
   profile: '[Profile]',
   landing: '[Landing]',
+  feedback: '[Feedback]',
   geo: '[Geo]',
 } as const;
 

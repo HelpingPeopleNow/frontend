@@ -1,7 +1,7 @@
 import { h } from 'preact';
 import { useState } from 'preact/hooks';
 import { submitFeedback, FeedbackCategory } from '../../lib/feedbackApi';
-import { logError } from '../../lib/logger';
+import { log, logError } from '../../lib/logger';
 
 const CATEGORIES: { value: FeedbackCategory; label: string; emoji: string }[] = [
   { value: 'bug', label: 'Bug', emoji: '🐛' },
@@ -34,6 +34,7 @@ export default function FeedbackPopover({ onSubmit }: Props) {
         category,
       });
       setSubmitted(true);
+      log('feedback', 'submit success');
       onSubmit?.();
       setTimeout(() => {
         setSubmitted(false);
@@ -42,7 +43,7 @@ export default function FeedbackPopover({ onSubmit }: Props) {
       }, 2000);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to submit';
-      logError('feedback', msg);
+      logError('feedback', msg, err);
       setError(msg);
     } finally {
       setSubmitting(false);

@@ -83,4 +83,21 @@ describe('FeedbackPopover', () => {
 
     expect(screen.getByText('5/2000')).toBeTruthy();
   });
+
+  it('shows error state when API rejects', async () => {
+    const { submitFeedback } = await import('../src/lib/feedbackApi');
+    vi.mocked(submitFeedback).mockRejectedValueOnce(new Error('Network down'));
+
+    render(<FeedbackPopover />);
+
+    const textarea = screen.getByPlaceholderText(/What's on your mind/);
+    fireEvent.input(textarea, { target: { value: 'Bug report' } });
+
+    const submitBtn = screen.getByText('Send');
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Network down')).toBeTruthy();
+    });
+  });
 });
