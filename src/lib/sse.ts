@@ -11,6 +11,8 @@ const MAX_RECONNECT_MS = 30000;
 const POLL_INTERVAL_MS = 4000;
 const POLL_TIMEOUT_MS = POLL_INTERVAL_MS * 2;
 
+import { log, logWarn, logError } from '../lib/logger';
+
 export class DirectMessageSSE {
   private es: EventSource | null = null;
   private reconnectAttempts = 0;
@@ -25,7 +27,7 @@ export class DirectMessageSSE {
     this.running = true;
 
     if (typeof EventSource === 'undefined') {
-      console.log('[SSE] EventSource not available, starting polling');
+      log('sse', 'EventSource not available, starting polling');
       this.startPolling();
       return;
     }
@@ -55,7 +57,7 @@ export class DirectMessageSSE {
     try {
       return JSON.parse(raw);
     } catch (e) {
-      console.warn('[SSE] dropping malformed frame:', e);
+      logWarn('sse', 'dropping malformed frame:', e);
       return undefined;
     }
   }
@@ -97,7 +99,7 @@ export class DirectMessageSSE {
       this.reconnectAttempts = 0;
       this.stopPolling();
       this.callback?.({ type: 'open', data: {} });
-      console.log('[SSE] connected');
+      log('sse', 'connected');
     };
 
     this.es.onerror = () => {
@@ -108,13 +110,13 @@ export class DirectMessageSSE {
 
       this.reconnectAttempts++;
       const delay = Math.min(MAX_RECONNECT_MS, 1000 * Math.pow(2, this.reconnectAttempts));
-      console.log(`[SSE] reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
+      log('sse', `reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
 
       if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
       this.reconnectTimer = setTimeout(() => this.openSSE(), delay);
 
       if (this.reconnectAttempts > 3) {
-        console.log('[SSE] switching to polling fallback');
+        log('sse', 'switching to polling fallback');
         this.startPolling();
       }
     };
@@ -140,7 +142,7 @@ export class DirectMessageSSE {
           }
         }
       } catch (e) {
-        console.warn('[sse] poll error:', e);
+        logWarn('sse', 'poll error:', e);
       }
     };
 

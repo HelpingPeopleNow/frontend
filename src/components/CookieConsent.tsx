@@ -1,6 +1,7 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { useLanguage } from '../i18n';
+import { logWarn } from '../lib/logger';
 
 const STORAGE_KEY = 'hp_cookie_consent_seen';
 
@@ -15,7 +16,7 @@ export default function CookieConsent() {
     try {
       seen = localStorage.getItem(STORAGE_KEY);
     } catch (e) {
-      console.warn('[cookie] localStorage unavailable:', e);
+      logWarn('cookie', 'localStorage unavailable:', e);
     }
     if (!seen) {
       // Small delay to avoid blocking initial render
@@ -28,7 +29,7 @@ export default function CookieConsent() {
     try {
       localStorage.setItem(STORAGE_KEY, '1');
     } catch (e) {
-      console.warn('[cookie] localStorage unavailable:', e);
+      logWarn('cookie', 'localStorage unavailable:', e);
     }
     setVisible(false);
   };

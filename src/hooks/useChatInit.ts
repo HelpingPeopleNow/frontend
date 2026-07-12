@@ -13,12 +13,14 @@ interface UseChatInitReturn {
   initialMessages: ChatMessage[];
   initialConversationId: string | null;
   loading: boolean;
+  error: boolean;
 }
 
 export function useChatInit(convType: string): UseChatInitReturn {
   const [initialMessages, setInitialMessages] = useState<ChatMessage[]>([]);
   const [initialConversationId, setInitialConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const load = useCallback(async () => {
     log('chat', `loading previous conversation type=${convType}`);
@@ -54,6 +56,7 @@ export function useChatInit(convType: string): UseChatInitReturn {
       }
     } catch (e) {
       logError('chat', `load conversation failed: ${e instanceof Error ? e.message : String(e)}`);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -61,10 +64,11 @@ export function useChatInit(convType: string): UseChatInitReturn {
 
   useEffect(() => {
     setLoading(true);
+    setError(false);
     setInitialMessages([]);
     setInitialConversationId(null);
     load();
   }, [load]);
 
-  return { initialMessages, initialConversationId, loading };
+  return { initialMessages, initialConversationId, loading, error };
 }

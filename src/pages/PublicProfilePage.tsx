@@ -22,6 +22,7 @@ export default function PublicProfilePage({ slug }: Props) {
   const { session, loading: authLoading } = useAuth();
   const [state, setState] = useState<ProfileState>({ status: 'loading' });
   const [contactLoading, setContactLoading] = useState(false);
+  const [contactError, setContactError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -55,11 +56,13 @@ export default function PublicProfilePage({ slug }: Props) {
     }
     if (state.status !== 'loaded') return;
     setContactLoading(true);
+    setContactError('');
     try {
       const data = await getContact(state.profile.id);
       if (data.conversation_id) route(`/inbox/${data.conversation_id}`, true);
     } catch (err) {
       logError('profile', `contact failed: ${String(err)}`);
+      setContactError('Failed to connect. Please try again.');
       setContactLoading(false);
     }
   };
@@ -229,6 +232,20 @@ export default function PublicProfilePage({ slug }: Props) {
 
         {/* ── CTA ───────────────────────────────────── */}
         <section class="profile-cta">
+          {contactError && (
+            <div style={{
+              padding: 'var(--sp-3) var(--sp-4)',
+              marginBottom: 'var(--sp-3)',
+              borderRadius: 'var(--radius)',
+              background: 'var(--error-subtle)',
+              color: 'var(--error)',
+              fontSize: 'var(--text-sm)',
+              textAlign: 'center',
+              cursor: 'pointer',
+            }} onClick={() => setContactError('')}>
+              ⚠️ {contactError}
+            </div>
+          )}
           <button
             class="btn btn-primary btn-lg"
             onClick={handleContact}

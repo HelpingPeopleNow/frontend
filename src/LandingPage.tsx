@@ -9,9 +9,10 @@ import { fetchLatestProfiles, WorkerPublicProfile } from './lib/publicProfileApi
 import { logError } from './lib/logger';
 
 export default function LandingPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { session, loading } = useAuth();
   const [latestProfiles, setLatestProfiles] = useState<WorkerPublicProfile[]>([]);
+  const [profilesError, setProfilesError] = useState(false);
 
   useEffect(() => {
     document.title = `Helping People — ${t('landing.hero.badge')}`;
@@ -20,6 +21,7 @@ export default function LandingPage() {
   useEffect(() => {
     fetchLatestProfiles(10).then(setLatestProfiles).catch(err => {
       logError('landing', `fetchLatestProfiles failed: ${err?.message || String(err)}`);
+      setProfilesError(true);
     });
   }, []);
 
@@ -100,6 +102,15 @@ export default function LandingPage() {
               {t('profile.view_all')} →
             </button>
           </div>
+        </section>
+      )}
+
+      {/* ── Profiles load error (non-blocking) ──────── */}
+      {profilesError && latestProfiles.length === 0 && (
+        <section class="landing-section" style={{ textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>
+            ⚠️ {lang === 'es' ? 'No se pudieron cargar los perfiles. Inténtalo más tarde.' : 'Could not load profiles. Please try again later.'}
+          </p>
         </section>
       )}
 

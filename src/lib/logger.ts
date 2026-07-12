@@ -15,6 +15,7 @@ const PREFIXES = {
   landing: '[Landing]',
   feedback: '[Feedback]',
   geo: '[Geo]',
+  cookie: '[Cookie]',
 } as const;
 
 type LoggerCategory = keyof typeof PREFIXES;

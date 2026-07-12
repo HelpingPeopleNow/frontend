@@ -67,6 +67,7 @@ export default function DirectMessagePage({ convId }: Props) {
       await sendMessage(convId, body);
     } catch (e) {
       logError('thread', `send failed conv=${convId}: ${e instanceof Error ? e.message : String(e)}`);
+      setError('Failed to send message. Please try again.');
     } finally {
       setSending(false);
     }

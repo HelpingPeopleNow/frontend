@@ -1,4 +1,5 @@
 import { h, Component, ComponentChildren } from 'preact';
+import { logError } from '../lib/logger';
 
 interface Props {
   children: ComponentChildren;
@@ -20,7 +21,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: { componentStack?: string }) {
-    console.error('[ErrorBoundary]', error, info);
+    logError('app', 'ErrorBoundary caught an error:', error, info);
   }
 
   handleTryAgain = () => {
