@@ -44,13 +44,13 @@ export default function FeedbackWidget() {
       <style>{`
         .feedback-widget {
           position: fixed;
-          bottom: 20px;
+          bottom: 84px;
           right: 20px;
           z-index: 9998;
         }
         .feedback-popover-container {
           position: absolute;
-          bottom: 52px;
+          bottom: 56px;
           right: 0;
         }
         .feedback-fab {
