@@ -11,7 +11,7 @@ const MAX_RECONNECT_MS = 30000;
 const POLL_INTERVAL_MS = 4000;
 const POLL_TIMEOUT_MS = POLL_INTERVAL_MS * 2;
 
-import { log, logWarn, logError } from '../lib/logger';
+import { log, logWarn } from '../lib/logger';
 
 export class DirectMessageSSE {
   private es: EventSource | null = null;

@@ -867,7 +867,7 @@ button { cursor: pointer; font-family: inherit; }
 /* ── Profile cards (landing page latest 10) ────────────── */
 .profile-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--sp-4);
 }
 
@@ -914,6 +914,16 @@ button { cursor: pointer; font-family: inherit; }
   border-radius: var(--r-full);
   letter-spacing: 0.02em;
   text-transform: uppercase;
+}
+
+.profile-card-bio {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .profile-card-city {

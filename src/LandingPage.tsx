@@ -89,10 +89,11 @@ export default function LandingPage() {
             <p>{t('landing.profiles.subtitle')}</p>
           </div>
           <div class="profile-card-grid">
-            {latestProfiles.map(p => (
+            {latestProfiles.filter(p => p.bio && p.bio.trim()).map(p => (
               <a href={`/profile/${p.slug || p.id}`} class="profile-card" key={p.id}>
                 <span class="profile-card-name">{p.business_name}</span>
                 <span class="profile-card-profession">{p.profession}</span>
+                <span class="profile-card-bio">{p.bio.length > 120 ? p.bio.slice(0, 117) + '…' : p.bio}</span>
                 {p.city && <span class="profile-card-city">📍 {p.city}</span>}
               </a>
             ))}
