@@ -169,12 +169,12 @@ export default function FeedbackPopover({ onSubmit, submitted: controlledSubmitt
           transition: all 0.15s ease;
         }
         .feedback-cat-btn:hover {
-          border-color: var(--accent);
+          border-color: var(--primary);
           color: var(--text);
         }
         .feedback-cat-btn.active {
-          background: var(--accent);
-          border-color: var(--accent);
+          background: var(--primary);
+          border-color: var(--primary);
           color: #fff;
         }
         .feedback-textarea {
@@ -192,7 +192,7 @@ export default function FeedbackPopover({ onSubmit, submitted: controlledSubmitt
         }
         .feedback-textarea:focus {
           outline: none;
-          border-color: var(--accent);
+          border-color: var(--primary);
         }
         .feedback-textarea::placeholder {
           color: var(--text-secondary);
