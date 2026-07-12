@@ -38,6 +38,8 @@ export interface DMMessage {
   id: string;
   conversation_id: string;
   sender_id: string;
+  /** 'user' | 'client' | 'worker'. Backend derives this from the conv row. */
+  sender_role: string;
   body: string;
   created_at: string;
   read_at: string | null;
