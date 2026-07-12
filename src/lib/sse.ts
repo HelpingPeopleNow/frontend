@@ -1,6 +1,6 @@
 export interface SSEEvent {
   type: 'message' | 'read' | 'open' | 'archive' | 'block' | 'report';
-  data: any;
+  data: unknown;
 }
 
 type EventCallback = (e: SSEEvent) => void;
@@ -51,7 +51,7 @@ export class DirectMessageSSE {
     }
   }
 
-  private safeParse(raw: string): any | undefined {
+  private safeParse(raw: string): unknown {
     try {
       return JSON.parse(raw);
     } catch (e) {

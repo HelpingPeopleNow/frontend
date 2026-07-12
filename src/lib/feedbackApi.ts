@@ -1,4 +1,4 @@
-import { log, logError } from './logger';
+import { log } from './logger';
 import { request } from '../services/api';
 
 // ── Types ────────────────────────────────────────────────────────────────────

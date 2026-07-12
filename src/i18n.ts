@@ -1,4 +1,4 @@
-import { h, createContext } from 'preact';
+import { h, ComponentChildren, createContext } from 'preact';
 import { useContext, useState, useEffect } from 'preact/hooks';
 
 // ── Translation dictionary ──────────────────────────────────────────────
@@ -703,7 +703,7 @@ export function useLanguage() {
   return useContext(LangContext);
 }
 
-export function LanguageProvider({ children }: { children: any }) {
+export function LanguageProvider({ children }: { children: ComponentChildren }) {
   const [lang, setLangState] = useState<Lang>('es');
 
   useEffect(() => {

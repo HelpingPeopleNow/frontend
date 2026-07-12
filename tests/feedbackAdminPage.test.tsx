@@ -82,7 +82,7 @@ describe('FeedbackAdminPage', () => {
   it('calls updateStatus when status button clicked', async () => {
     let updateCalled = false;
     global.fetch = vi.fn().mockImplementation((url: string) => {
-      if (url.includes('admin/feedback') && url.includes('id=')) {
+      if (url.includes('/api/v1/admin/feedback/') && typeof url === 'string') {
         updateCalled = true;
         return Promise.resolve({ ok: true, status: 200 } as Response);
       }

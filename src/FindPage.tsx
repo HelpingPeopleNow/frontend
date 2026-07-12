@@ -156,8 +156,8 @@ export default function FindPage() {
           <input
             class="input"
             value={input}
-            onInput={(e: any) => setInput(e.target.value)}
-            onKeyDown={(e: any) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
+            onInput={(e: Event) => setInput((e.target as HTMLInputElement).value)}
+            onKeyDown={(e: KeyboardEvent) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
             placeholder={isListening ? t('chat.mic.listening') : t('find.placeholder')}
             disabled={loading}
             ref={inputRef}

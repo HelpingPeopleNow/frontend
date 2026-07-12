@@ -8,7 +8,7 @@ export default function AdminPage() {
   const { session } = useAuth();
   document.title = `Admin | Helping People`;
 
-  const isAdmin = (session as any)?.user?.is_admin === true;
+  const isAdmin = session?.user?.is_admin === true;
 
   return (
     <AppShell currentPath="/admin" title="Admin">

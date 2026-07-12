@@ -1,4 +1,4 @@
-import { log, logError } from '../lib/logger';
+import { log } from '../lib/logger';
 import { request } from './api';
 import { WorkerCard } from './chat';
 

@@ -1,6 +1,5 @@
 import { h } from 'preact';
 import { useState, useEffect, useRef } from 'preact/hooks';
-import { route } from 'preact-router';
 import FeedbackPopover from './FeedbackPopover';
 import { log } from '../../lib/logger';
 

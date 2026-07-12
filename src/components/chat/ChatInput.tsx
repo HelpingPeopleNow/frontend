@@ -76,7 +76,7 @@ export default function ChatInput({ onSend, disabled, inputRef }: Props) {
       <input
         class="input"
         value={value}
-        onInput={(e: any) => setValue(e.currentTarget.value)}
+        onInput={(e: Event) => setValue((e.currentTarget as HTMLInputElement).value)}
         onKeyDown={handleKeyDown}
         placeholder={isListening ? t('chat.mic.listening') : t('chat.placeholder')}
         disabled={disabled}

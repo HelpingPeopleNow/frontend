@@ -1,4 +1,4 @@
-import { h, Fragment } from 'preact';
+import { h } from 'preact';
 import { Router, Route, route } from 'preact-router';
 import { useEffect } from 'preact/hooks';
 import { AuthProvider, useAuth } from './AuthProvider';
@@ -32,7 +32,8 @@ import CookieConsent from './components/CookieConsent';
 import FeedbackWidget from './components/feedback/FeedbackWidget';
 import FeedbackAdminPage from './FeedbackAdminPage';
 
-function ProtectedRoute({ component: Component, ...props }: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function ProtectedRoute({ component: Component, ...props }: { component: preact.ComponentType<any>; [key: string]: unknown }) {
   const { session, loading } = useAuth();
   useEffect(() => {
     if (!loading && !session) {
@@ -55,7 +56,7 @@ function AppRouter() {
   return (
     <Router>
       <Route path="/" component={() => <ErrorBoundary><LandingPage /></ErrorBoundary>} />
-      <Route path="/login" component={({ onNavigate }: any) => <ErrorBoundary><LoginPage onNavigate={onNavigate || ((p: string) => route(p))} /></ErrorBoundary>} onNavigate={(p: string) => route(p)} />
+      <Route path="/login" component={({ onNavigate }: { onNavigate?: (path: string) => void }) => <ErrorBoundary><LoginPage onNavigate={onNavigate || ((p: string) => route(p))} /></ErrorBoundary>} onNavigate={(p: string) => route(p)} />
       <Route path="/terms" component={() => <ErrorBoundary><TermsPage /></ErrorBoundary>} />
       <Route path="/privacy" component={() => <ErrorBoundary><PrivacyPage /></ErrorBoundary>} />
       <Route path="/cookies" component={() => <ErrorBoundary><CookiesPage /></ErrorBoundary>} />

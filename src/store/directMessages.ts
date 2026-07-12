@@ -107,13 +107,14 @@ export const useDirectMessages = create<DMState>((set, get) => ({
       }));
       log('dm', `message sent conv=${convId} msg_id=${msg.id}`);
       return msg;
-    } catch (err: any) {
-      if (err?.message?.includes('rate_limited') || err?.message?.includes('429')) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('rate_limited') || msg.includes('429')) {
         logWarn('dm', `rate limited conv=${convId}`);
         set({ rateLimited: true });
         setTimeout(() => get().clearRateLimited(), 5000);
       } else {
-        logError('dm', `sendMessage ${convId} failed: ${err?.message || String(err)}`);
+        logError('dm', `sendMessage ${convId} failed: ${msg}`);
       }
       throw err;
     }

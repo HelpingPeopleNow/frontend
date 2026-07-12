@@ -234,8 +234,8 @@ export default function DirectMessagePage({ convId }: Props) {
             <input
               class="input"
               value={input}
-              onInput={(e: any) => setInput(e.target.value)}
-              onKeyDown={(e: any) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
+              onInput={(e: Event) => setInput((e.target as HTMLInputElement).value)}
+              onKeyDown={(e: KeyboardEvent) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
               placeholder={t('dm.placeholder')}
               disabled={sending}
               ref={inputRef}

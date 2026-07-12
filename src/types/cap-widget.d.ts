@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- side-effect import for preact type augmentation
 import { JSX } from 'preact';
 
 declare module 'cap-widget' {

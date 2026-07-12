@@ -102,7 +102,7 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onInput={(e: any) => setEmail(e.target.value)}
+                onInput={(e: Event) => setEmail((e.target as HTMLInputElement).value)}
                 required
                 autoFocus
               />

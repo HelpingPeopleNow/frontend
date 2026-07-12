@@ -13,14 +13,14 @@ interface Props {
   columns: string[];    // Columns to show in the list
   idKey?: string;       // ID column name (default: "id")
   backTo?: string;      // Back link (default: "/admin")
-  labelFn?: (row: Record<string, any>) => string; // Custom label for each row
+  labelFn?: (row: Record<string, unknown>) => string; // Custom label for each row
   linkable?: boolean;   // Whether rows link to detail page (default: true)
 }
 
-export default function EntityListPage({ entity, title, columns, idKey = 'id', backTo = '/admin', labelFn, linkable = true }: Props) {
+export default function EntityListPage({ entity, title, columns, idKey = 'id', backTo = '/admin', labelFn: _labelFn, linkable = true }: Props) {
   const { t } = useLanguage();
   document.title = `Admin - ${title.replace(/^[^\s]+\s/, '')} | Helping People`;
-  const [rows, setRows] = useState<Record<string, any>[]>([]);
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -34,11 +34,11 @@ export default function EntityListPage({ entity, title, columns, idKey = 'id', b
       });
   }, [entity]);
 
-  const handleClick = (id: any) => {
+  const handleClick = (id: unknown) => {
     route(`${backTo}/${entity}/${id}`);
   };
 
-  const handleDelete = async (id: any, e: Event) => {
+  const handleDelete = async (id: unknown, e: Event) => {
     e.stopPropagation();
     if (!confirm(t('admin.confirm_delete') || 'Delete this record?')) return;
     try {
@@ -51,7 +51,7 @@ export default function EntityListPage({ entity, title, columns, idKey = 'id', b
     }
   };
 
-  const formatVal = (v: any, col: string) => {
+  const formatVal = (v: unknown, col: string) => {
     if (v === null || v === undefined) return '—';
     if (typeof v === 'boolean') return v ? '✓' : '✗';
     const s = String(v);

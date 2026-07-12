@@ -19,10 +19,10 @@ interface Props {
 export default function EntityDetailPage({ entity, title, id, backTo, editable = true }: Props) {
   const { t } = useLanguage();
   document.title = `Admin - ${title.replace(/^[^\s]+\s/, '')} #${id} | Helping People`;
-  const [data, setData] = useState<Record<string, any> | null>(null);
+  const [data, setData] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<Record<string, any>>({});
+  const [form, setForm] = useState<Record<string, unknown>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -120,7 +120,7 @@ export default function EntityDetailPage({ entity, title, id, backTo, editable =
                   <select
                     class="input"
                     value={form[key] ? 'true' : 'false'}
-                    onChange={(e: any) => handleChange(key, e.target.value)}
+                    onChange={(e: Event) => handleChange(key, (e.target as HTMLSelectElement).value)}
                   >
                     <option value="true">true</option>
                     <option value="false">false</option>
@@ -130,7 +130,7 @@ export default function EntityDetailPage({ entity, title, id, backTo, editable =
                     class="input"
                     type={typeof data[key] === 'number' ? 'number' : 'text'}
                     value={form[key] === null ? '' : String(form[key] ?? '')}
-                    onInput={(e: any) => handleChange(key, e.target.value)}
+                    onInput={(e: Event) => handleChange(key, (e.target as HTMLInputElement).value)}
                   />
                 )
               ) : (

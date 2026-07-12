@@ -1,7 +1,7 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { submitFeedback, FeedbackCategory } from '../../lib/feedbackApi';
-import { log, logError } from '../../lib/logger';
+import { logError } from '../../lib/logger';
 
 const CATEGORIES: { value: FeedbackCategory; label: string; emoji: string }[] = [
   { value: 'bug', label: 'Bug', emoji: '🐛' },
@@ -100,7 +100,7 @@ export default function FeedbackPopover({ onSubmit, submitted: controlledSubmitt
           rows={4}
           maxLength={2000}
           value={message}
-          onInput={(e: any) => setMessage(e.target.value)}
+          onInput={(e: Event) => setMessage((e.target as HTMLTextAreaElement).value)}
         />
 
         <div class="feedback-footer">
