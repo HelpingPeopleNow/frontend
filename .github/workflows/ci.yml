@@ -182,7 +182,19 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ──────────────────────────────────────────────
-  # Step 6: Playwright e2e (non-blocking, opt-in)
+  # Step 6: Deploy to Hermes (self-hosted runner)
+  # ──────────────────────────────────────────────
+  deploy:
+    name: Deploy to Hermes
+    runs-on: self-hosted
+    needs: [docker]
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Deploy
+        run: /home/ec2-user/infra/scripts/deploy-service.sh frontend ${{ github.sha }}
+
+  # ──────────────────────────────────────────────
+  # Step 7: Playwright e2e (non-blocking, opt-in)
   # ──────────────────────────────────────────────
   # Disabled by default. The existing Playwright specs (deploy.spec.js,
   # two-user-chat.spec.js) target the production deployment with hardcoded
