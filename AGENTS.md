@@ -30,13 +30,15 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 | `/admin/conversations/:id` | ConversationDetailPage | Yes (admin) |
 | `/admin/messages` | MessagesPage | Yes (admin) |
 | `/admin/messages/:id` | MessageDetailPage | Yes (admin) |
+| `/admin/feedback` | FeedbackAdminPage | Yes (admin) |
 
 ## Conventions
 
 - Preact with `preact-router` v4 client-side routing
 - `AuthProvider` context wraps app → exposes `useAuth()`: `session`, `loading`, `sendMagicLink`, `logout`, `refreshSession`
+- Centralized logger: `src/lib/logger.ts` — `createLogger(prefix)` returns a scoped `console.log/warn/error` wrapper. All 16 component prefixes are defined here.
 - API calls use relative URLs (`/api/v1/...`, `/api/auth/...`) — proxied by Traefik; no Vite proxy config needed
-- Console logging with component prefixes: `[Chat]`, `[Admin]`, `[Auth]`, `[Nav]`, `[ModeChooser]`
+- Console logging with component prefixes: `[Chat]`, `[Auth]`, `[Admin]`, `[DM]`, `[Nav]`, `[ModeChooser]`, `[API]`, `[SSE]`, `[Inbox]`, `[Thread]`, `[Speech]`, `[App]`, `[Profile]`, `[Landing]`, `[Feedback]`, `[Geo]`
 - Public profile API client: `src/lib/publicProfileApi.ts` — `fetchPublicProfile(slug)` + `fetchLatestProfiles(limit)`, types `WorkerPublicProfile` and `SocialLink`
 - CSS-in-JS via `<style>` tags in each component; `src/style.css` is the shared design system
 - Worker profile stores arrays as JSON fields (certifications, languages, social_links)
@@ -46,9 +48,21 @@ Preact + Vite SPA served behind nginx. Dark-themed chat interface for the Helpin
 ## Auth flow
 
 - `/api/auth/get-session` — session check on mount & route change (Better Auth default endpoint)
-- `/api/auth/sign-in/magic-link` — POST with `{ email, callbackURL: '/', metadata: { lang } }`
+- `/api/auth/sign-in/magic-link` — POST with `{ email, callbackURL: '/', metadata: { lang, capToken } }`
+- `sendMagicLink(email, capToken, lang)` — AuthProvider method; constructs the POST body with `capToken` in `metadata` for bot protection
 - `/api/auth/sign-out` — POST (best-effort, credentials: include)
 - `ProtectedRoute` redirects to `/login` if no session; shows "Checking authentication..." while loading
+
+## Cap CAPTCHA
+
+- **Provider**: [Cap](https://cap.helpingpeople.cloud) — open-source CAPTCHA service
+- **Widget**: `<cap-widget>` custom element embedded on `LoginPage` and `PublicProfilePage` (for the contact-CTA `getContact` flow)
+- **Token delivery**: `capToken` is obtained from the widget and sent:
+  - In `metadata.capToken` when calling `sendMagicLink` (magic-link login/signup)
+  - As a `?capToken=` query parameter when calling `GET /api/v1/workers/:id/contact` (public profile CTA)
+- **CSP requirements**: The Content-Security-Policy in `nginx.conf` must allow:
+  - `script-src` / `worker-src`: `cap.helpingpeople.cloud` and `wasm-unsafe-eval`
+  - `connect-src`: `cap.helpingpeople.cloud`
 
 ## Dev
 

@@ -34,6 +34,7 @@ Preact + Vite SPA served behind nginx. Dark-themed home-services platform where 
 | `/inbox/:convId` | `DirectMessagePage.tsx` | Yes | DM thread with send, block, report, archive |
 | `/workers/:workerId` | `WorkerContactPage.tsx` | Yes | Create/resume DM with a worker, redirects to inbox |
 | `/admin` | `AdminPage.tsx` | Yes | Admin menu — links to LLM provider, prompts, and entity CRUD pages |
+| `/admin/feedback` | `FeedbackAdminPage.tsx` | Yes | Admin feedback dashboard — triage user-submitted feedback |
 
 ---
 
@@ -79,6 +80,17 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 4. `ProtectedRoute` wrapper redirects to `/login` if no valid session
 5. After login, user lands on LandingPage → `ModeChooser` (or navigates to `/chat?mode=...`)
 
+### Cap CAPTCHA
+
+- **Provider**: [Cap](https://cap.helpingpeople.cloud) — open-source CAPTCHA service
+- **Widget**: `<cap-widget>` custom element embedded on `LoginPage` and `PublicProfilePage` (for the contact-CTA `getContact` flow)
+- **Token delivery**: `capToken` is obtained from the widget and sent:
+  - In `metadata.capToken` when calling `sendMagicLink` (magic-link login/signup)
+  - As a `?capToken=` query parameter when calling `GET /api/v1/workers/:id/contact` (public profile CTA)
+- **CSP requirements**: The Content-Security-Policy in `nginx.conf` must allow:
+  - `script-src` / `worker-src`: `cap.helpingpeople.cloud` and `wasm-unsafe-eval`
+  - `connect-src`: `cap.helpingpeople.cloud`
+
 ### Internationalization (i18n)
 
 - Spanish is the default language (configurable via `LangToggle` in sidebar)
@@ -111,8 +123,20 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 | `src/AdminPage.tsx` | Admin menu — links to `/admin/llm`, `/admin/prompts`, and entity CRUD pages |
 | `src/AdminLLMPage.tsx` | LLM provider dropdown — calls `PUT /api/v1/system-prompts/provider` |
 | `src/AdminPromptsPage.tsx` | 4-prompt textarea editor — calls `PUT /api/v1/system-prompts/{column}` |
-| `src/LoginPage.tsx` | Magic-link login + signup — email input, send link |
+| `src/FeedbackAdminPage.tsx` | Admin feedback dashboard — lists/subcategories feedback with status filters |
+| `src/LoginPage.tsx` | Magic-link login + signup — email input, send link (embeds Cap CAPTCHA widget) |
+| `src/PublicProfilePage.tsx` | Public worker profile with hero, stats, bio, links, CTA (embeds Cap CAPTCHA for contact) |
+| `src/TermsPage.tsx` | Bilingual EN/ES terms and conditions |
+| `src/PrivacyPage.tsx` | Bilingual EN/ES privacy policy |
+| `src/CookiesPage.tsx` | Bilingual EN/ES cookie policy |
 | `src/i18n.ts` | Internationalization — translations, language toggle |
+| `src/lib/logger.ts` | Centralized logger — `createLogger(prefix)` for scoped console output |
+| `src/lib/feedbackApi.ts` | Feedback API client — `submitFeedback()`, `listFeedback()`, `updateFeedbackStatus()` |
+| `src/lib/publicProfileApi.ts` | Public profile API — `fetchPublicProfile(slug)`, `fetchLatestProfiles(limit)` |
+| `src/lib/validate.ts` | Anti-corruption validators — `assertString`, `assertNumber`, `assertArray`, etc. |
+| `src/components/feedback/FeedbackWidget.tsx` | Feedback FAB button (💬) — fixed-position, opens FeedbackPopover |
+| `src/components/feedback/FeedbackPopover.tsx` | Feedback form — category buttons, textarea, submit with success toast |
+| `src/components/CookieConsent.tsx` | Cookie consent banner — shown on first visit |
 | `src/hooks/useGeolocation.ts` | GPS geolocation — wraps `navigator.geolocation`, returns `{ latitude, longitude, loading, permissionDenied, error }` |
 | `nginx.conf` | Static file serving + SPA fallback (`try_files $uri /index.html`) + security headers (CSP/HSTS/X-Frame-Options/etc.), gzip, asset caching (audit P1-2) |
 | `Dockerfile` | Multi-stage: `node:22-alpine` build → `nginx:alpine` runtime. Runs as non-root `nginx` user on port 8080 with `HEALTHCHECK` (audit P2-1) |
@@ -258,12 +282,21 @@ Browser console logging with component prefixes:
 | Prefix | Component | Events |
 |--------|-----------|--------|
 | `[Chat]` | ChatPage | Request timing, answer length, mode, errors |
-| `[Admin]` | AdminLLMPage / AdminPromptsPage | Prompt load/save, provider switch, timing |
 | `[Auth]` | AuthProvider | Session check, login/logout, redirect |
+| `[Admin]` | AdminLLMPage / AdminPromptsPage | Prompt load/save, provider switch, timing |
+| `[DM]` | DirectMessagePage / WorkerContactPage | DM send, block, report, archive |
 | `[Nav]` | App router | Route changes, auth redirects |
 | `[ModeChooser]` | ModeChooser | Card click navigation |
+| `[API]` | services/api.ts | Generic fetch calls, error handling |
 | `[SSE]` | DirectMessageSSE | Connect, disconnect, reconnect attempts, polling fallback |
-| `[ErrorBoundary]` | ErrorBoundary | Caught errors |
+| `[Inbox]` | InboxPage | Thread list load, unread badge |
+| `[Thread]` | DirectMessagePage | Message load, scroll, read receipt |
+| `[Speech]` | useSpeechRecognition | Voice input start/stop/error |
+| `[App]` | App.tsx | Mount, route init |
+| `[Profile]` | PublicProfilePage | Profile load, CTA click |
+| `[Landing]` | LandingPage | Hero load, latest professionals |
+| `[Feedback]` | FeedbackWidget / FeedbackPopover | Submit, success, error |
+| `[Geo]` | useGeolocation | GPS permission, coords, error |
 
 Open browser DevTools (F12) → Console for debugging.
 
@@ -290,14 +323,19 @@ frontend/
 │   ├── auth.ts                   # Barrel re-export of services/auth
 │   ├── i18n.ts                   # EN/ES translations + LanguageProvider + LangToggle
 │   ├── style.css                 # Shared design system
-│   ├── LoginPage.tsx             # Magic link login + signup
+│   ├── LoginPage.tsx             # Magic link login + signup (embeds Cap CAPTCHA widget)
 │   ├── LandingPage.tsx           # Marketing landing for visitors / ModeChooser for authed
 │   ├── ChatPage.tsx              # Worker/client intake chat (mode in query string)
 │   ├── FindPage.tsx              # Search/find professional chat
+│   ├── PublicProfilePage.tsx     # Public worker profile with hero, stats, bio, links, CTA
 │   ├── ModeChooser.tsx           # 3-card mode selector
 │   ├── AdminPage.tsx             # Admin menu
 │   ├── AdminLLMPage.tsx          # LLM provider dropdown
 │   ├── AdminPromptsPage.tsx      # 4-prompt textarea editor
+│   ├── FeedbackAdminPage.tsx     # Admin feedback dashboard — status filters, category, message
+│   ├── TermsPage.tsx             # Bilingual EN/ES terms and conditions
+│   ├── PrivacyPage.tsx           # Bilingual EN/ES privacy policy
+│   ├── CookiesPage.tsx           # Bilingual EN/ES cookie policy
 │   ├── UsersPage / UserDetailPage.tsx
 │   ├── WorkersPage / WorkerDetailPage.tsx
 │   ├── ClientsPage / ClientDetailPage.tsx
@@ -307,6 +345,10 @@ frontend/
 │   ├── EntityDetailPage.tsx      # Generic admin CRUD detail
 │   ├── components/
 │   │   ├── ErrorBoundary.tsx     # Catches render errors
+│   │   ├── CookieConsent.tsx     # Cookie consent banner — shown on first visit
+│   │   ├── feedback/
+│   │   │   ├── FeedbackWidget.tsx   # Fixed-position FAB (💬) — opens FeedbackPopover
+│   │   │   └── FeedbackPopover.tsx  # Feedback form — category, textarea, submit
 │   │   └── chat/
 │   │       ├── ChatInput.tsx     # Input bar with optional mic button
 │   │       ├── ChatMessages.tsx  # Bubble list with worker card grid
@@ -318,6 +360,10 @@ frontend/
 │   │   ├── useGeolocation.ts     # GPS geolocation (latitude, longitude, permissionDenied)
 │   │   └── useSpeechRecognition.ts  # Voice input via Web Speech API
 │   ├── lib/
+│   │   ├── logger.ts              # Centralized logger — createLogger(prefix)
+│   │   ├── feedbackApi.ts         # Feedback API — submitFeedback, listFeedback, updateFeedbackStatus
+│   │   ├── publicProfileApi.ts    # Public profile API — fetchPublicProfile, fetchLatestProfiles
+│   │   ├── validate.ts            # Anti-corruption validators — assertString, assertArray, etc.
 │   │   ├── directMessageApi.ts   # DM API client (contact, inbox, messages, etc.)
 │   │   └── sse.ts                # DirectMessageSSE class with reconnect + polling fallback
 │   ├── pages/
