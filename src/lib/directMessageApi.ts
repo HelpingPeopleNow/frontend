@@ -51,9 +51,8 @@ export interface DMContactResult {
 
 // ── API Functions ────────────────────────────────────────────────────────────
 
-export async function getContact(workerProfileId: string, capToken?: string): Promise<DMContactResult> {
-  const qs = capToken ? `?capToken=${encodeURIComponent(capToken)}` : '';
-  return fetchJSON(`/workers/${workerProfileId}/contact${qs}`);
+export async function getContact(workerProfileId: string): Promise<DMContactResult> {
+  return fetchJSON(`/workers/${workerProfileId}/contact`);
 }
 
 export async function listConversations(params: {

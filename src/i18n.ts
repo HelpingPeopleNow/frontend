@@ -31,6 +31,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'auth.name': 'Name',
     'auth.email.required': 'Email is required',
     'auth.name.email.required': 'Name and email are required',
+    'auth.captcha.required': "Please complete the CAPTCHA — we need to verify you're human before sending the magic link.",
 
     // Landing nav
     'landing.nav.how_it_works': 'How it works',
@@ -370,6 +371,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'auth.name': 'Nombre',
     'auth.email.required': 'El email es obligatorio',
     'auth.name.email.required': 'Nombre y email son obligatorios',
+    'auth.captcha.required': 'Por favor completa el CAPTCHA — necesitamos verificar que eres humano antes de enviar el enlace mágico.',
 
     // Landing nav
     'landing.nav.how_it_works': 'Cómo funciona',
