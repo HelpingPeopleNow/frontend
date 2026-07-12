@@ -44,7 +44,7 @@ export default function FeedbackWidget() {
       <style>{`
         .feedback-widget {
           position: fixed;
-          bottom: 84px;
+          bottom: 140px;
           right: 20px;
           z-index: 9998;
         }
