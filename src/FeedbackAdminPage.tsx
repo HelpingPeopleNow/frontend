@@ -1,6 +1,5 @@
 import { h } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
-import { route } from 'preact-router';
 import { log, logError } from './lib/logger';
 import AppShell from './AppShell';
 import { ApiError } from './services/api';
@@ -59,9 +58,11 @@ export default function FeedbackAdminPage() {
 
   const updateStatus = async (id: string, status: string) => {
     try {
-      const res = await fetch(`/api/v1/admin/feedback?id=${id}&status=${status}`, {
+      const res = await fetch(`/api/v1/admin/feedback/${id}`, {
         method: 'PUT',
         credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
         signal: AbortSignal.timeout(10000),
       });
       if (!res.ok) throw new ApiError(res.status, 'Update failed');
@@ -106,7 +107,7 @@ export default function FeedbackAdminPage() {
             <select
               class="select"
               value={statusFilter}
-              onChange={(e: any) => setStatusFilter(e.target.value)}
+              onChange={(e: Event) => setStatusFilter((e.target as HTMLSelectElement).value)}
             >
               <option value="">All statuses</option>
               {STATUS_OPTIONS.map(s => (
