@@ -58,7 +58,7 @@ export default function FeedbackWidget() {
           width: 48px;
           height: 48px;
           border-radius: 50%;
-          background: var(--accent);
+          background: var(--gradient-primary);
           border: none;
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
           cursor: pointer;

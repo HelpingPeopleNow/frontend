@@ -214,7 +214,7 @@ export default function FeedbackPopover({ onSubmit, submitted: controlledSubmitt
         }
         .feedback-submit-btn {
           margin-left: auto;
-          background: var(--accent);
+          background: var(--gradient-primary);
           color: #fff;
           border: none;
           border-radius: 8px;

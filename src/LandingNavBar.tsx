@@ -74,14 +74,24 @@ export default function LandingNavBar() {
 
         {/* Desktop primary nav links */}
         <div class="landing-nav-primary">
+          {session && (
+            <button class="nav-link" onClick={() => go('/chat')}>
+              💬 {t('nav.chat')}
+            </button>
+          )}
           <button class="nav-link" onClick={() => go('/find')}>
             🔍 {t('nav.find')}
           </button>
           {session && (
-            <button class="nav-link" onClick={() => go('/inbox')}>
-              ✉️ {t('nav.inbox')}
-              {unreadTotal > 0 && <span class="nav-badge">{unreadTotal}</span>}
-            </button>
+            <>
+              <button class="nav-link" onClick={() => go('/inbox')}>
+                ✉️ {t('nav.inbox')}
+                {unreadTotal > 0 && <span class="nav-badge">{unreadTotal}</span>}
+              </button>
+              <button class="nav-link" onClick={() => go('/admin')}>
+                ⚙️ {t('nav.admin')}
+              </button>
+            </>
           )}
           {!loading && !session && (
             <a class="nav-link nav-link-external" href="#features">
@@ -113,12 +123,18 @@ export default function LandingNavBar() {
                 <div class="user-menu-header">
                   <div class="user-menu-name">{userLabel}</div>
                 </div>
+                <button class="user-menu-item" onClick={() => go('/chat')}>
+                  💬 {t('nav.chat')}
+                </button>
                 <button class="user-menu-item" onClick={() => go('/find')}>
                   🔍 {t('nav.find')}
                 </button>
                 <button class="user-menu-item" onClick={() => go('/inbox')}>
                   ✉️ {t('nav.inbox')}
                   {unreadTotal > 0 && <span class="nav-badge">{unreadTotal}</span>}
+                </button>
+                <button class="user-menu-item" onClick={() => go('/admin')}>
+                  ⚙️ {t('nav.admin')}
                 </button>
                 <div class="user-menu-divider" />
                 <button class="user-menu-item user-menu-logout" onClick={handleLogout}>
