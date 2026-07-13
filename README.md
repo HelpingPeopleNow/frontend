@@ -109,6 +109,16 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 - Backend computes distance; `WorkerCard` renders `· 📍 X.X km` inline (values <1 km show as `<1 km`)
 - When location permission is denied, a blue banner (`.location-banner`) shows with `t('chat.location.denied')` guiding users to enable it in browser settings
 
+**GPS source precedence (highest → lowest):**
+1. Request `latitude`/`longitude` from browser geolocation (most current)
+2. Stored `client_profiles.latitude`/`longitude` from intake
+3. Absent → no distance sorting, no proximity filter
+
+**City source precedence (highest → lowest):**
+1. City extracted from the user's message by the Pass-1 LLM
+2. Stored `client_profiles.city` from intake
+3. Absent → no city filter
+
 ---
 
 ## Key Files
