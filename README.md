@@ -119,6 +119,28 @@ The nginx config has a `/health` location block that returns `200 OK` with body 
 2. Stored `client_profiles.city` from intake
 3. Absent → no city filter
 
+### Search response shape
+
+When `mode: "search"`, the backend returns a different response envelope than intake modes:
+
+```json
+{
+  "answer": "Here are the plumbers I found near you...",
+  "workers": [
+    { "id": "...", "full_name": "...", "profession": "Plumber", "city": "Madrid",
+      "distance_km": 2.3, "slug": "carlos-plumbing", ... }
+  ],
+  "conversation_id": "42",
+  "branch": "vector",
+  "top_score": 0.82
+}
+```
+
+- `workers[]` — array of matched worker cards (rendered as `WorkerCard` grid by `FindPage`)
+- `branch` — which search path was taken: `vector` (pgvector cosine), `ilike` (text match), `ilike_low_top_score` (vector score below threshold), `ilike_embed_failed` (embedding error)
+- `top_score` — highest cosine similarity score from the vector search (absent for ILIKE-only results)
+- `distance_km` — Haversine distance in km from the client's GPS coordinates (absent when coordinates unavailable)
+
 ---
 
 ## Key Files
