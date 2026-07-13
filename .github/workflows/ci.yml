@@ -190,6 +190,8 @@ jobs:
     needs: [docker]
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     steps:
+      - name: Pull latest code
+        run: git -C /home/ec2-user/frontend pull --ff-only origin main
       - name: Deploy
         run: /home/ec2-user/infra/scripts/deploy-service.sh frontend ${{ github.sha }}
 
