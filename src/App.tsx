@@ -31,6 +31,7 @@ import CookiesPage from './pages/CookiesPage';
 import CookieConsent from './components/CookieConsent';
 import FeedbackWidget from './components/feedback/FeedbackWidget';
 import FeedbackAdminPage from './FeedbackAdminPage';
+import DirectConversationsPage from './DirectConversationsPage';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ProtectedRoute({ component: Component, ...props }: { component: preact.ComponentType<any>; [key: string]: unknown }) {
@@ -93,6 +94,9 @@ function AppRouter() {
       {/* Messages */}
       <Route path="/admin/messages" component={() => <ErrorBoundary><ProtectedRoute component={MessagesPage} /></ErrorBoundary>} />
       <Route path="/admin/messages/:id" component={({ id }: { id: string }) => <ErrorBoundary><ProtectedRoute component={MessageDetailPage} id={id} /></ErrorBoundary>} />
+
+      {/* Direct Conversations (DM) */}
+      <Route path="/admin/direct-conversations" component={() => <ErrorBoundary><ProtectedRoute component={DirectConversationsPage} /></ErrorBoundary>} />
 
       {/* Feedback admin */}
       <Route path="/admin/feedback" component={() => <ErrorBoundary><ProtectedRoute component={FeedbackAdminPage} /></ErrorBoundary>} />

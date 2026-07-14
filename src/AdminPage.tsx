@@ -77,6 +77,14 @@ export default function AdminPage() {
             </div>
           </a>
 
+          <a href="/admin/direct-conversations" class="admin-menu-card">
+            <div class="admin-menu-icon">📩</div>
+            <div>
+              <div class="admin-menu-title">{t('admin.menu.direct_conversations') || 'Direct Conversations'}</div>
+              <div class="admin-menu-desc">{t('admin.menu.direct_conversations.desc') || 'Worker ↔ client direct messages'}</div>
+            </div>
+          </a>
+
           <a href="/admin/feedback" class="admin-menu-card">
             <div class="admin-menu-icon">💬</div>
             <div>
