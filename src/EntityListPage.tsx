@@ -15,22 +15,44 @@ interface Props {
   backTo?: string;      // Back link (default: "/admin")
   labelFn?: (row: Record<string, unknown>) => string; // Custom label for each row
   linkable?: boolean;   // Whether rows link to detail page (default: true)
+  userColumns?: string[]; // Columns holding user IDs to resolve to emails
 }
 
-export default function EntityListPage({ entity, title, columns, idKey = 'id', backTo = '/admin', labelFn: _labelFn, linkable = true }: Props) {
+export default function EntityListPage({ entity, title, columns, idKey = 'id', backTo = '/admin', labelFn: _labelFn, linkable = true, userColumns }: Props) {
   const { t } = useLanguage();
   document.title = `Admin - ${title.replace(/^[^\s]+\s/, '')} | Helping People`;
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+  const [userMap, setUserMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    listEntities<Record<string, unknown>>(entity, 200)
-      .then(data => { setRows(Array.isArray(data) ? data : []); setLoading(false); })
-      .catch(err => {
-        const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'request failed';
-        logError('admin', `list ${entity} failed: ${msg}`);
-        setError(msg); setLoading(false);
+    const tasks: [Promise<unknown>, (data: unknown) => void][] = [
+      [listEntities<Record<string, unknown>>(entity, 200), (data) => {
+        setRows(Array.isArray(data) ? data : []);
+      }],
+    ];
+    if (userColumns && userColumns.length > 0) {
+      tasks.push([listEntities<{ id: string; email: string }>('users', 1000), (data) => {
+        const map: Record<string, string> = {};
+        if (Array.isArray(data)) for (const u of data as { id: string; email: string }[]) map[u.id] = u.email;
+        setUserMap(map);
+      }]);
+    }
+
+    Promise.allSettled(tasks.map(t => t[0]))
+      .then(results => {
+        results.forEach((res, i) => {
+          if (res.status === 'fulfilled') {
+            tasks[i][1]((res as PromiseFulfilledResult<unknown>).value);
+          } else if (i === 0) {
+            const reason = (res as PromiseRejectedResult).reason;
+            const msg = reason instanceof ApiError ? reason.message : reason instanceof Error ? reason.message : 'request failed';
+            logError('admin', `list ${entity} failed: ${msg}`);
+            setError(msg);
+          }
+        });
+        setLoading(false);
       });
   }, [entity]);
 
@@ -55,7 +77,7 @@ export default function EntityListPage({ entity, title, columns, idKey = 'id', b
     if (v === null || v === undefined) return '—';
     if (typeof v === 'boolean') return v ? '✓' : '✗';
     const s = String(v);
-    if (col.toLowerCase().includes('id') && s.length > 8) {
+    if (col.toLowerCase().includes('id') && s.length > 8 && !s.includes('@')) {
       return <span title={s} style={{ cursor: 'help' }}>{s.substring(0, 4)}…{s.substring(s.length - 4)}</span>;
     }
     if (s.length > 60) return s.substring(0, 57) + '…';
@@ -86,9 +108,11 @@ export default function EntityListPage({ entity, title, columns, idKey = 'id', b
               <tbody>
                 {rows.map((row, idx) => (
                   <tr key={String(row[idKey]) || idx} onClick={linkable ? () => handleClick(row[idKey]) : undefined} style={{ cursor: linkable ? 'pointer' : 'default' }}>
-                    {columns.map(col => (
-                      <td key={col}>{formatVal(row[col], col)}</td>
-                    ))}
+                    {columns.map(col => {
+                      const raw = row[col];
+                      const resolved = userColumns?.includes(col) && typeof raw === 'string' && userMap[raw] ? userMap[raw] : raw;
+                      return <td key={col}>{formatVal(resolved, col)}</td>;
+                    })}
                     <td>
                       <button
                         class="btn btn-ghost btn-sm"

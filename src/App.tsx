@@ -18,8 +18,8 @@ import ClientsPage from './ClientsPage';
 import ClientDetailPage from './ClientDetailPage';
 import ConversationsPage from './ConversationsPage';
 import ConversationDetailPage from './ConversationDetailPage';
-import MessagesPage from './MessagesPage';
-import MessageDetailPage from './MessageDetailPage';
+import DirectConversationsPage from './DirectConversationsPage';
+import DirectConversationDetailPage from './DirectConversationDetailPage';
 import LoginPage from './LoginPage';
 import WorkerContactPage from './pages/WorkerContactPage';
 import InboxPage from './pages/InboxPage';
@@ -31,7 +31,6 @@ import CookiesPage from './pages/CookiesPage';
 import CookieConsent from './components/CookieConsent';
 import FeedbackWidget from './components/feedback/FeedbackWidget';
 import FeedbackAdminPage from './FeedbackAdminPage';
-import DirectConversationsPage from './DirectConversationsPage';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ProtectedRoute({ component: Component, ...props }: { component: preact.ComponentType<any>; [key: string]: unknown }) {
@@ -92,11 +91,9 @@ function AppRouter() {
       <Route path="/admin/conversations/:id" component={({ id }: { id: string }) => <ErrorBoundary><ProtectedRoute component={ConversationDetailPage} id={id} /></ErrorBoundary>} />
 
       {/* Messages */}
-      <Route path="/admin/messages" component={() => <ErrorBoundary><ProtectedRoute component={MessagesPage} /></ErrorBoundary>} />
-      <Route path="/admin/messages/:id" component={({ id }: { id: string }) => <ErrorBoundary><ProtectedRoute component={MessageDetailPage} id={id} /></ErrorBoundary>} />
-
       {/* Direct Conversations (DM) */}
       <Route path="/admin/direct-conversations" component={() => <ErrorBoundary><ProtectedRoute component={DirectConversationsPage} /></ErrorBoundary>} />
+      <Route path="/admin/direct-conversations/:id" component={({ id }: { id: string }) => <ErrorBoundary><ProtectedRoute component={DirectConversationDetailPage} id={id} /></ErrorBoundary>} />
 
       {/* Feedback admin */}
       <Route path="/admin/feedback" component={() => <ErrorBoundary><ProtectedRoute component={FeedbackAdminPage} /></ErrorBoundary>} />

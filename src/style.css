@@ -2777,6 +2777,60 @@ button { cursor: pointer; font-family: inherit; }
   padding: 0 var(--sp-1);
 }
 
+/* ── Admin transcript bubbles (conversation / DM detail) ── */
+.admin-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: var(--sp-1);
+}
+
+.dm-bubble {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.dm-bubble.dm-out {
+  border-left: 3px solid var(--primary);
+}
+
+.dm-bubble.dm-in {
+  border-left: 3px solid var(--border-strong);
+}
+
+.dm-bubble-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+
+.dm-bubble-sender {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.dm-bubble-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.dm-bubble-body {
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* ── Input bar ──────────────────────────────────────────── */
 
 .dm-input-bar {
