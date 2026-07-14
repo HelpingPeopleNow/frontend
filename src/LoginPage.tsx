@@ -4,6 +4,8 @@ import { useAuth } from './AuthProvider';
 import { useLanguage } from './i18n';
 import 'cap-widget';
 
+const capEnabled = !!import.meta.env.VITE_CAP_API_ENDPOINT;
+
 export default function LoginPage({ onNavigate }: { onNavigate: (path: string) => void }) {
   document.title = `Sign In | Helping People`;
   const [email, setEmail] = useState('');
@@ -17,6 +19,7 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
   const widgetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!capEnabled) return;
     const widget = widgetRef.current?.querySelector('cap-widget');
     if (widget) {
       const handleSolve = (e: CustomEvent<{ token: string }>) => {
@@ -32,13 +35,13 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
     setError('');
     if (!email) { setError(t('auth.email.required')); return; }
 
-    if (!capToken) {
+    if (capEnabled && !capToken) {
       setError(t('auth.captcha.required'));
       return;
     }
 
     setSubmitting(true);
-    const result = await sendMagicLink(email, capToken);
+    const result = await sendMagicLink(email, capToken ?? undefined);
     setSubmitting(false);
     if (!result.ok) {
       setCapToken(null);
@@ -108,16 +111,18 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
               />
             </div>
 
-            <div class="captcha-widget" ref={widgetRef}>
-              <div key={capKey}>
-                <cap-widget
-                  data-cap-api-endpoint={import.meta.env.VITE_CAP_API_ENDPOINT || 'https://cap.helpingpeople.cloud/0a4189abe8/'}
-                  data-cap-hidden-field-name="cap-token"
-                />
+            {capEnabled && (
+              <div class="captcha-widget" ref={widgetRef}>
+                <div key={capKey}>
+                  <cap-widget
+                    data-cap-api-endpoint={import.meta.env.VITE_CAP_API_ENDPOINT}
+                    data-cap-hidden-field-name="cap-token"
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
-            <button class="btn btn-primary" type="submit" disabled={submitting || !capToken} style={{ width: '100%', padding: '12px' }}>
+            <button class="btn btn-primary" type="submit" disabled={submitting || (capEnabled && !capToken)} style={{ width: '100%', padding: '12px' }}>
               {submitting && <span class="spinner" />}
               {submitting ? t('auth.sending') : t('auth.send.magic')}
             </button>
