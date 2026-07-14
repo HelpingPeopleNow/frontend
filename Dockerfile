@@ -4,6 +4,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+ARG VITE_CAP_API_ENDPOINT
+ENV VITE_CAP_API_ENDPOINT=$VITE_CAP_API_ENDPOINT
 RUN npm run build
 
 # Stage 2: Serve with nginx

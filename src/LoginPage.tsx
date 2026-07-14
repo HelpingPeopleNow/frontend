@@ -111,7 +111,7 @@ export default function LoginPage({ onNavigate }: { onNavigate: (path: string) =
             <div class="captcha-widget" ref={widgetRef}>
               <div key={capKey}>
                 <cap-widget
-                  data-cap-api-endpoint="https://cap.helpingpeople.cloud/0a4189abe8/"
+                  data-cap-api-endpoint={import.meta.env.VITE_CAP_API_ENDPOINT || 'https://cap.helpingpeople.cloud/0a4189abe8/'}
                   data-cap-hidden-field-name="cap-token"
                 />
               </div>
