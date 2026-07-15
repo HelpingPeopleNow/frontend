@@ -837,6 +837,36 @@ button { cursor: pointer; font-family: inherit; }
   margin-top: var(--sp-1);
 }
 
+/* ── Benefit chips (replaces stats) ──────────────────── */
+.benefit-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-2);
+  max-width: 720px;
+  margin: var(--sp-12) auto 0;
+  animation: fadeInUp var(--duration-slow) var(--ease) 500ms both;
+}
+
+.benefit-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  transition: border-color var(--duration) var(--ease), background var(--duration) var(--ease);
+}
+
+.benefit-chip:hover {
+  border-color: var(--border-strong);
+  background: var(--surface);
+}
+
 /* ── Sections ──────────────────────────────────────────── */
 .landing-section {
   padding: var(--sp-20) var(--sp-6);
@@ -1084,6 +1114,59 @@ button { cursor: pointer; font-family: inherit; }
 .testimonial-role {
   font-size: var(--text-xs);
   color: var(--text-muted);
+}
+
+/* ── Scenarios (replaces testimonials) ─────────────────── */
+.scenarios-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+}
+
+.scenario-card {
+  padding: var(--sp-6);
+  background: var(--gradient-card), var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  transition: border-color var(--duration) var(--ease), transform var(--duration) var(--ease);
+}
+
+.scenario-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.scenario-card h3 {
+  font-size: var(--text-base);
+  font-weight: 600;
+  margin-bottom: var(--sp-3);
+  color: var(--text);
+}
+
+.scenario-card p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ── Why we built it ───────────────────────────────────── */
+.why-section {
+  text-align: center;
+  max-width: 720px;
+}
+
+.why-section h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--sp-4);
+}
+
+.why-body {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  font-style: italic;
 }
 
 /* ── CTA ───────────────────────────────────────────────── */
@@ -3420,6 +3503,14 @@ button { cursor: pointer; font-family: inherit; }
 
   .stats-bar {
     gap: var(--sp-3);
+  }
+
+  .benefit-chips {
+    gap: var(--sp-2);
+  }
+
+  .scenarios-grid {
+    grid-template-columns: 1fr;
   }
 
   .chat-bubble {

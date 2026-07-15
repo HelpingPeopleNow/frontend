@@ -64,20 +64,13 @@ export default function LandingPage() {
           </button>
         </div>
 
-        {/* ── Stats ──────────────────────────────────── */}
-        <div class="stats-bar">
-          <div class="stat-item">
-            <div class="stat-value">500+</div>
-            <div class="stat-label">{t('landing.stats.professionals')}</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">2,400+</div>
-            <div class="stat-label">{t('landing.stats.jobs_done')}</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">4.9</div>
-            <div class="stat-label">{t('landing.stats.rating')}</div>
-          </div>
+        {/* ── Benefit chips (replace stats) ───────────── */}
+        <div class="benefit-chips">
+          <span class="benefit-chip">✓ {t('landing.benefits.chip1')}</span>
+          <span class="benefit-chip">✓ {t('landing.benefits.chip2')}</span>
+          <span class="benefit-chip">✓ {t('landing.benefits.chip3')}</span>
+          <span class="benefit-chip">✓ {t('landing.benefits.chip4')}</span>
+          <span class="benefit-chip">✓ {t('landing.benefits.chip5')}</span>
         </div>
       </section>
 
@@ -115,7 +108,7 @@ export default function LandingPage() {
         </section>
       )}
 
-      {/* ── Features ─────────────────────────────────── */}
+      {/* ── Features (6 plain-language cards) ────────── */}
       <section class="landing-section">
         <div class="section-header">
           <h2>{t('landing.features.title')}</h2>
@@ -123,34 +116,34 @@ export default function LandingPage() {
         </div>
         <div class="features-grid">
           <div class="feature-card animate-in">
-            <div class="feature-icon blue">🔒</div>
-            <h3>{t('landing.features.verified.title')}</h3>
-            <p>{t('landing.features.verified.desc')}</p>
+            <div class="feature-icon teal">🎤</div>
+            <h3>{t('landing.features.voice.title')}</h3>
+            <p>{t('landing.features.voice.desc')}</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-1">
-            <div class="feature-icon teal">💬</div>
-            <h3>{t('landing.features.ai.title')}</h3>
-            <p>{t('landing.features.ai.desc')}</p>
+            <div class="feature-icon blue">💡</div>
+            <h3>{t('landing.features.understand.title')}</h3>
+            <p>{t('landing.features.understand.desc')}</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-2">
-            <div class="feature-icon green">⚡</div>
-            <h3>{t('landing.features.instant.title')}</h3>
-            <p>{t('landing.features.instant.desc')}</p>
+            <div class="feature-icon green">📍</div>
+            <h3>{t('landing.features.results.title')}</h3>
+            <p>{t('landing.features.results.desc')}</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-3">
-            <div class="feature-icon orange">📊</div>
-            <h3>{t('landing.features.pricing.title')}</h3>
-            <p>{t('landing.features.pricing.desc')}</p>
+            <div class="feature-icon blue">🌐</div>
+            <h3>{t('landing.features.languages.title')}</h3>
+            <p>{t('landing.features.languages.desc')}</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-4">
-            <div class="feature-icon blue">🌍</div>
-            <h3>{t('landing.features.multilingual.title')}</h3>
-            <p>{t('landing.features.multilingual.desc')}</p>
+            <div class="feature-icon teal">💬</div>
+            <h3>{t('landing.features.chat.title')}</h3>
+            <p>{t('landing.features.chat.desc')}</p>
           </div>
           <div class="feature-card animate-in animate-in-delay-4">
-            <div class="feature-icon green">📱</div>
-            <h3>{t('landing.features.mobile.title')}</h3>
-            <p>{t('landing.features.mobile.desc')}</p>
+            <div class="feature-icon green">🔒</div>
+            <h3>{t('landing.features.passwordless.title')}</h3>
+            <p>{t('landing.features.passwordless.desc')}</p>
           </div>
         </div>
       </section>
@@ -186,53 +179,32 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Testimonials ─────────────────────────────── */}
+      {/* ── Scenarios (replace testimonials) ──────────── */}
       <section class="landing-section">
         <div class="section-header">
-          <h2>{t('landing.testimonials.title')}</h2>
-          <p>{t('landing.testimonials.subtitle')}</p>
+          <h2>{t('landing.scenarios.title')}</h2>
+          <p>{t('landing.scenarios.subtitle')}</p>
         </div>
-        <div class="testimonials-grid">
-          <div class="testimonial-card animate-in">
-            <div class="testimonial-stars">★★★★★</div>
-            <p class="testimonial-text">
-              {t('landing.testimonials.1.text')}
-            </p>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">MG</div>
-              <div>
-                <div class="testimonial-name">{t('landing.testimonials.1.name')}</div>
-                <div class="testimonial-role">{t('landing.testimonials.1.role')}</div>
-              </div>
-            </div>
+        <div class="scenarios-grid">
+          <div class="scenario-card animate-in">
+            <h3>{t('landing.scenarios.1.title')}</h3>
+            <p>{t('landing.scenarios.1.desc')}</p>
           </div>
-          <div class="testimonial-card animate-in animate-in-delay-1">
-            <div class="testimonial-stars">★★★★★</div>
-            <p class="testimonial-text">
-              {t('landing.testimonials.2.text')}
-            </p>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">JR</div>
-              <div>
-                <div class="testimonial-name">{t('landing.testimonials.2.name')}</div>
-                <div class="testimonial-role">{t('landing.testimonials.2.role')}</div>
-              </div>
-            </div>
+          <div class="scenario-card animate-in animate-in-delay-1">
+            <h3>{t('landing.scenarios.2.title')}</h3>
+            <p>{t('landing.scenarios.2.desc')}</p>
           </div>
-          <div class="testimonial-card animate-in animate-in-delay-2">
-            <div class="testimonial-stars">★★★★★</div>
-            <p class="testimonial-text">
-              {t('landing.testimonials.3.text')}
-            </p>
-            <div class="testimonial-author">
-              <div class="testimonial-avatar">AL</div>
-              <div>
-                <div class="testimonial-name">{t('landing.testimonials.3.name')}</div>
-                <div class="testimonial-role">{t('landing.testimonials.3.role')}</div>
-              </div>
-            </div>
+          <div class="scenario-card animate-in animate-in-delay-2">
+            <h3>{t('landing.scenarios.3.title')}</h3>
+            <p>{t('landing.scenarios.3.desc')}</p>
           </div>
         </div>
+      </section>
+
+      {/* ── Why we built it ───────────────────────────── */}
+      <section class="landing-section why-section">
+        <h2>{t('landing.why.title')}</h2>
+        <p class="why-body">{t('landing.why.body')}</p>
       </section>
 
       {/* ── CTA ──────────────────────────────────────── */}
