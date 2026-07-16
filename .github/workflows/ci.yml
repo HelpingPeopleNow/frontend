@@ -178,6 +178,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_CAP_API_ENDPOINT=${{ vars.VITE_CAP_API_ENDPOINT || secrets.VITE_CAP_API_ENDPOINT || 'https://cap.helpingpeople.cloud' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
