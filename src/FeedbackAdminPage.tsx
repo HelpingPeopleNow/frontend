@@ -153,8 +153,8 @@ export default function FeedbackAdminPage() {
                   >
                     {item.page_url}
                   </a>
-                  <span class="feedback-user" title={item.user_id}>
-                    user: {item.user_id.substring(0, 8)}…
+                  <span class="feedback-user" title={item.user_id || 'anonymous'}>
+                    {item.user_id ? `user: ${item.user_id.substring(0, 8)}…` : 'anonymous'}
                   </span>
                 </div>
                 <div class="feedback-actions">
