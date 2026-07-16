@@ -59,9 +59,6 @@ export default function LandingPage() {
           <button class="btn btn-primary btn-lg" onClick={() => route('/login')}>
             {t('landing.hero.cta.start')}
           </button>
-          <button class="btn btn-secondary btn-lg" onClick={() => route('/login')}>
-            {t('landing.hero.cta.signin')}
-          </button>
         </div>
 
         {/* ── Benefit chips (replace stats) ───────────── */}
