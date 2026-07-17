@@ -15,18 +15,19 @@ export default function ChatInput({ onSend, disabled, inputRef }: Props) {
   const internalRef = useRef<HTMLInputElement>(null);
   const ref = inputRef ?? internalRef;
 
-  const { isSupported: micSupported, isListening, toggle: toggleRecording, transcript } = useSpeechRecognition();
+  const { isSupported: micSupported, isListening, toggle: toggleRecording, transcript, clearTranscript } = useSpeechRecognition();
 
   // Keep a fresh ref to value so the transcript effect never sees a stale closure
   const valueRef = useRef(value);
   valueRef.current = value;
 
-  // Append recognized speech to the input
+  // Append recognized speech to the input, then clear it so repeats append cleanly
   useEffect(() => {
     if (transcript) {
-      setValue((prev) => (prev ? prev + ' ' + transcript : transcript));
+      setValue((prev) => (prev ? prev + ' ' + transcript : transcript).trimStart());
+      clearTranscript();
     }
-  }, [transcript]);
+  }, [transcript, clearTranscript]);
 
   // Focus the input when it becomes enabled
   useEffect(() => {

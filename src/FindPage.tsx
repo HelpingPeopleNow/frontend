@@ -28,7 +28,7 @@ export default function FindPage() {
 
   document.title = `${t('find.title')} | Helping People`;
 
-  const { isSupported: micSupported, isListening, toggle: toggleRecording, transcript } = useSpeechRecognition();
+  const { isSupported: micSupported, isListening, toggle: toggleRecording, transcript, clearTranscript } = useSpeechRecognition();
 
   useEffect(() => {
     setMessages(initialMessages);
@@ -36,8 +36,11 @@ export default function FindPage() {
   }, [initialMessages, initialConversationId]);
 
   useEffect(() => {
-    if (transcript) setInput((prev) => (prev ? prev + ' ' + transcript : transcript));
-  }, [transcript]);
+    if (transcript) {
+      setInput((prev) => (prev ? prev + ' ' + transcript : transcript).trimStart());
+      clearTranscript();
+    }
+  }, [transcript, clearTranscript]);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });

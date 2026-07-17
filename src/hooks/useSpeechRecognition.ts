@@ -35,6 +35,7 @@ interface UseSpeechRecognitionReturn {
   isListening: boolean;
   toggle: () => void;
   transcript: string;
+  clearTranscript: () => void;
 }
 
 declare global {
@@ -48,6 +49,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const listeningRef = useRef(false);
 
   const isSupported = typeof window !== 'undefined' &&
     (typeof window.SpeechRecognition === 'function' ||
@@ -58,22 +60,47 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Ctor) return;
     const recognition = new Ctor();
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.lang = (typeof navigator !== 'undefined' && navigator.language) || 'en-US';
 
+    let finalText = '';
+
     recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      log('speech', 'transcript received', { text });
-      setTranscript(text);
-      setIsListening(false);
+      let interim = '';
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        const text = result[0]?.transcript ?? '';
+        if (result.length > 0 && (result as unknown as { isFinal: boolean }).isFinal) {
+          finalText += text + ' ';
+        } else {
+          interim += text;
+        }
+      }
+      const combined = (finalText + interim).trim();
+      log('speech', 'transcript received', { combined });
+      setTranscript(combined);
     };
     recognition.onerror = (event) => {
       logError('speech', `recognition error: ${event.error}`);
-      setIsListening(false);
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        listeningRef.current = false;
+        setIsListening(false);
+      }
     };
     recognition.onend = () => {
       log('speech', 'recognition ended');
+      if (listeningRef.current) {
+        // Auto-stopped (silence/continuous boundary). Restart while still toggled on.
+        try {
+          recognition.start();
+          return;
+        } catch {
+          listeningRef.current = false;
+          setIsListening(false);
+        }
+      }
+      listeningRef.current = false;
       setIsListening(false);
     };
     recognitionRef.current = recognition;
@@ -81,6 +108,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
 
   useEffect(() => {
     return () => {
+      listeningRef.current = false;
       recognitionRef.current?.stop();
     };
   }, []);
@@ -88,15 +116,21 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
   const toggle = useCallback(() => {
     const recognition = recognitionRef.current;
     if (!recognition) return;
-    if (isListening) {
+    if (listeningRef.current) {
+      listeningRef.current = false;
       recognition.stop();
       setIsListening(false);
     } else {
       setTranscript('');
-      recognition.start();
-      setIsListening(true);
+      try {
+        recognition.start();
+        listeningRef.current = true;
+        setIsListening(true);
+      } catch (err) {
+        logError('speech', `start failed: ${String(err)}`);
+      }
     }
-  }, [isListening]);
+  }, []);
 
-  return { isSupported, isListening, toggle, transcript };
+  return { isSupported, isListening, toggle, transcript, clearTranscript: () => setTranscript('') };
 }
