@@ -19,9 +19,9 @@ describe('i18n — useLanguage / LanguageProvider', () => {
     vi.useRealTimers();
   });
 
-  it('defaults to "es" when no lang is stored', () => {
+  it('defaults to browser language when no lang is stored (en in jsdom)', () => {
     const { result } = renderWithProvider();
-    expect(result.current.lang).toBe('es');
+    expect(result.current.lang).toBe('en');
   });
 
   it('reads stored lang from localStorage on mount', () => {
@@ -30,10 +30,10 @@ describe('i18n — useLanguage / LanguageProvider', () => {
     expect(result.current.lang).toBe('en');
   });
 
-  it('ignores invalid stored values', () => {
+  it('ignores invalid stored values, falls back to browser language', () => {
     localStorage.setItem('hermes_lang', 'fr');
     const { result } = renderWithProvider();
-    expect(result.current.lang).toBe('es');
+    expect(result.current.lang).toBe('en');
   });
 
   it('persists new lang to localStorage on setLang', () => {
@@ -45,6 +45,8 @@ describe('i18n — useLanguage / LanguageProvider', () => {
 
   describe('t() lookup priority', () => {
     it('returns the Spanish translation when lang=es', () => {
+      // Set lang explicitly since jsdom navigator.language is 'en'
+      localStorage.setItem('hermes_lang', 'es');
       const { result } = renderWithProvider();
       expect(result.current.t('app.title')).toBe('Helping People');
       expect(result.current.t('auth.signin')).toBe('Iniciar Sesión');

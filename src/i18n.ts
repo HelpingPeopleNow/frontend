@@ -722,6 +722,13 @@ export function LanguageProvider({ children }: { children: ComponentChildren }) 
     const stored = localStorage.getItem(STORAGE_KEY) as Lang | null;
     if (stored === 'en' || stored === 'es') {
       setLangState(stored);
+      return;
+    }
+    // First visit — check browser language
+    const browserLang = (navigator.language || '').slice(0, 2);
+    if (browserLang === 'en' || browserLang === 'es') {
+      setLangState(browserLang);
+      localStorage.setItem(STORAGE_KEY, browserLang);
     }
   }, []);
 
