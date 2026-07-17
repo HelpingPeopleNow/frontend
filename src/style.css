@@ -1943,6 +1943,29 @@ button { cursor: pointer; font-family: inherit; }
   cursor: not-allowed;
 }
 
+/* ── Voice unavailable banner (Web Speech API failure) ───── */
+.chat-input-wrap {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  overflow: hidden;
+}
+
+.voice-unavailable-banner {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  border-top: 1px solid rgba(239, 68, 68, 0.25);
+  padding: var(--sp-2) var(--sp-4);
+  font-size: var(--fs-sm, 0.875rem);
+  text-align: center;
+}
+
+.chat-mic-error {
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+  opacity: 0.85;
+}
+
 /* ── Mic button (voice input) ────────────────────────────── */
 .chat-mic-btn {
   width: 40px;

@@ -7,6 +7,7 @@ import AppShell from './AppShell';
 import { sendChat, WorkerCard as WorkerCardData } from './services/chat';
 import { useChatInit } from './hooks/useChatInit';
 import { useSpeechRecognition } from './hooks/useSpeechRecognition';
+import { mergeSpeechTranscript } from './lib/speechInput';
 import WorkerCard from './components/chat/WorkerCard';
 
 interface ChatMsg {
@@ -28,7 +29,27 @@ export default function FindPage() {
 
   document.title = `${t('find.title')} | Helping People`;
 
-  const { isSupported: micSupported, isListening, toggle: toggleRecording, transcript, clearTranscript } = useSpeechRecognition();
+  const {
+    isSupported: micSupported,
+    isListening,
+    toggle: toggleRecording,
+    transcript,
+    error: speechError,
+  } = useSpeechRecognition();
+
+  // Text present when listening began. Interim results REPLACE the live
+  // speech segment (base + transcript) instead of appending each hypothesis.
+  const speechBaseRef = useRef('');
+  const inputValueRef = useRef(input);
+  inputValueRef.current = input;
+
+  const handleMic = () => {
+    if (!isListening) {
+      // Snapshot synchronously so the first onresult cannot race a useEffect.
+      speechBaseRef.current = inputValueRef.current;
+    }
+    toggleRecording();
+  };
 
   useEffect(() => {
     setMessages(initialMessages);
@@ -36,11 +57,9 @@ export default function FindPage() {
   }, [initialMessages, initialConversationId]);
 
   useEffect(() => {
-    if (transcript) {
-      setInput((prev) => (prev ? prev + ' ' + transcript : transcript).trimStart());
-      clearTranscript();
-    }
-  }, [transcript, clearTranscript]);
+    if (!transcript) return;
+    setInput(mergeSpeechTranscript(speechBaseRef.current, transcript));
+  }, [transcript]);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
@@ -54,6 +73,7 @@ export default function FindPage() {
     const text = input.trim();
     if (!text || loading) return;
     setInput('');
+    speechBaseRef.current = '';
     const userMsg: ChatMsg = { role: 'user', text };
     const updatedMessages = [...messages, userMsg];
     setMessages(updatedMessages);
@@ -140,38 +160,64 @@ export default function FindPage() {
           )}
         </div>
 
-        <div class="chat-input-bar">
-          {micSupported && (
-            <button
-              class={`chat-mic-btn ${isListening ? 'chat-mic-recording' : ''}`}
-              onClick={toggleRecording}
-              disabled={loading}
-              title={isListening ? t('chat.mic.stop') : t('chat.mic.start')}
-              type="button"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                <line x1="12" y1="19" x2="12" y2="22" />
-              </svg>
-            </button>
+        <div class="chat-input-wrap">
+          {speechError && (
+            <div class="voice-unavailable-banner" role="status">
+              {t('chat.mic.unavailable')}
+            </div>
           )}
-          <input
-            class="input"
-            value={input}
-            onInput={(e: Event) => setInput((e.target as HTMLInputElement).value)}
-            onKeyDown={(e: KeyboardEvent) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
-            placeholder={isListening ? t('chat.mic.listening') : t('find.placeholder')}
-            disabled={loading}
-            ref={inputRef}
-          />
-          <button
-            class="chat-send-btn"
-            onClick={send}
-            disabled={loading || !input.trim()}
-          >
-            {loading ? '...' : '↑'}
-          </button>
+          <div class="chat-input-bar">
+            {micSupported && (
+              <button
+                class={`chat-mic-btn ${isListening ? 'chat-mic-recording' : ''} ${speechError ? 'chat-mic-error' : ''}`}
+                onClick={handleMic}
+                disabled={loading}
+                title={
+                  speechError
+                    ? t('chat.mic.unavailable')
+                    : isListening
+                      ? t('chat.mic.stop')
+                      : t('chat.mic.start')
+                }
+                aria-label={
+                  speechError
+                    ? t('chat.mic.unavailable')
+                    : isListening
+                      ? t('chat.mic.stop')
+                      : t('chat.mic.start')
+                }
+                type="button"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="22" />
+                </svg>
+              </button>
+            )}
+            <input
+              class="input"
+              value={input}
+              onInput={(e: Event) => setInput((e.target as HTMLInputElement).value)}
+              onKeyDown={(e: KeyboardEvent) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
+              placeholder={
+                speechError
+                  ? t('chat.mic.unavailable')
+                  : isListening
+                    ? t('chat.mic.listening')
+                    : t('find.placeholder')
+              }
+              disabled={loading}
+              ref={inputRef}
+            />
+            <button
+              class="chat-send-btn"
+              onClick={send}
+              disabled={loading || !input.trim()}
+            >
+              {loading ? '...' : '↑'}
+            </button>
+          </div>
         </div>
       </div>
     </AppShell>

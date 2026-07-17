@@ -1,16 +1,24 @@
 import { useState, useCallback, useEffect, useRef } from 'preact/hooks';
+import { log, logError } from '../lib/logger';
 
-interface SpeechRecognitionResultLike {
+interface SpeechRecognitionAlternativeLike {
   transcript: string;
 }
 
-interface SpeechRecognitionResultsLike {
-  0: SpeechRecognitionResultLike;
+interface SpeechRecognitionResultItemLike {
+  0: SpeechRecognitionAlternativeLike;
   length: number;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionResultListLike {
+  length: number;
+  [index: number]: SpeechRecognitionResultItemLike;
 }
 
 interface SpeechRecognitionEventLike {
-  results: SpeechRecognitionResultsLike[];
+  resultIndex: number;
+  results: SpeechRecognitionResultListLike;
 }
 
 interface SpeechRecognitionErrorEventLike {
@@ -28,7 +36,29 @@ interface SpeechRecognitionLike {
   stop: () => void;
 }
 
-import { log, logError } from '../lib/logger';
+/** Transient errors — stop listening without surfacing a "voice unavailable" banner. */
+const TRANSIENT_ERRORS = new Set(['no-speech', 'aborted']);
+
+/**
+ * Fatal/transport errors that mean voice input won't work right now.
+ * Surfaced to the UI so the user can fall back to typing.
+ */
+const FATAL_ERRORS = new Set([
+  'network',
+  'not-allowed',
+  'service-not-allowed',
+  'audio-capture',
+  'language-not-supported',
+]);
+
+export type SpeechRecognitionErrorCode =
+  | 'network'
+  | 'not-allowed'
+  | 'service-not-allowed'
+  | 'audio-capture'
+  | 'language-not-supported'
+  | 'start-failed'
+  | string;
 
 interface UseSpeechRecognitionReturn {
   isSupported: boolean;
@@ -36,6 +66,9 @@ interface UseSpeechRecognitionReturn {
   toggle: () => void;
   transcript: string;
   clearTranscript: () => void;
+  /** Fatal error code when voice is unavailable; null when healthy. */
+  error: SpeechRecognitionErrorCode | null;
+  clearError: () => void;
 }
 
 declare global {
@@ -48,11 +81,14 @@ declare global {
 export function useSpeechRecognition(): UseSpeechRecognitionReturn {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [error, setError] = useState<SpeechRecognitionErrorCode | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const listeningRef = useRef(false);
   const erroredRef = useRef(false);
+  const finalTextRef = useRef('');
 
-  const isSupported = typeof window !== 'undefined' &&
+  const isSupported =
+    typeof window !== 'undefined' &&
     (typeof window.SpeechRecognition === 'function' ||
       typeof window.webkitSpeechRecognition === 'function');
 
@@ -65,46 +101,50 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     recognition.interimResults = true;
     recognition.lang = (typeof navigator !== 'undefined' && navigator.language) || 'en-US';
 
-    let finalText = '';
-
     recognition.onresult = (event) => {
       let interim = '';
-      for (let i = 0; i < event.results.length; i++) {
+      // Accumulate from resultIndex for correctness; finals live in finalTextRef
+      // so interim updates replace rather than re-append when the parent applies them.
+      for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
         const text = result[0]?.transcript ?? '';
-        if (result.length > 0 && (result as unknown as { isFinal: boolean }).isFinal) {
-          finalText += text + ' ';
+        if (result.isFinal) {
+          finalTextRef.current += text + ' ';
         } else {
           interim += text;
         }
       }
-      const combined = (finalText + interim).trim();
+      const combined = (finalTextRef.current + interim).trim();
       log('speech', 'transcript received', { combined });
       setTranscript(combined);
     };
+
     recognition.onerror = (event) => {
       logError('speech', `recognition error: ${event.error}`);
-      // Fatal/transport errors: stop cleanly, do NOT auto-restart (avoids
-      // the start->error->end->start loop that amplifies `network` errors).
-      if (event.error === 'no-speech' || event.error === 'aborted') {
+      // Transient: silence / user abort — no banner, just let onend settle.
+      if (TRANSIENT_ERRORS.has(event.error)) {
         return;
       }
+      // Fatal/transport: stop cleanly, do NOT auto-restart (avoids
+      // start→error→end→start amplifying `network` into dozens of errors).
       erroredRef.current = true;
       listeningRef.current = false;
       setIsListening(false);
+      if (FATAL_ERRORS.has(event.error) || event.error) {
+        setError(event.error);
+      }
     };
+
     recognition.onend = () => {
       log('speech', 'recognition ended');
-      if (erroredRef.current) {
-        erroredRef.current = false;
-        listeningRef.current = false;
-        setIsListening(false);
-        return;
-      }
-      // Clean end (silence) while still toggled on: append final and stop.
       listeningRef.current = false;
       setIsListening(false);
+      if (erroredRef.current) {
+        // Keep `error` state for the UI; only clear the loop-guard flag.
+        erroredRef.current = false;
+      }
     };
+
     recognitionRef.current = recognition;
   }, [isSupported]);
 
@@ -115,6 +155,9 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     };
   }, []);
 
+  const clearError = useCallback(() => setError(null), []);
+  const clearTranscript = useCallback(() => setTranscript(''), []);
+
   const toggle = useCallback(() => {
     const recognition = recognitionRef.current;
     if (!recognition) return;
@@ -123,7 +166,11 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
       recognition.stop();
       setIsListening(false);
     } else {
+      // Fresh utterance session
+      finalTextRef.current = '';
       setTranscript('');
+      setError(null);
+      erroredRef.current = false;
       try {
         recognition.start();
         listeningRef.current = true;
@@ -132,9 +179,18 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
         logError('speech', `start failed: ${String(err)}`);
         listeningRef.current = false;
         setIsListening(false);
+        setError('start-failed');
       }
     }
   }, []);
 
-  return { isSupported, isListening, toggle, transcript, clearTranscript: () => setTranscript('') };
+  return {
+    isSupported,
+    isListening,
+    toggle,
+    transcript,
+    clearTranscript,
+    error,
+    clearError,
+  };
 }

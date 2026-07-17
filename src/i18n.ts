@@ -112,6 +112,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.mic.start': 'Press to speak',
     'chat.mic.stop': 'Stop recording',
     'chat.mic.listening': 'Listening...',
+    'chat.mic.unavailable': 'Voice unavailable — please type',
 
     // Mode Chooser
     'chooser.title': 'What would you like to do?',
@@ -456,6 +457,7 @@ const translations: Record<Lang, Record<string, string>> = {
     'chat.mic.start': 'Pulsa para hablar',
     'chat.mic.stop': 'Detener grabación',
     'chat.mic.listening': 'Escuchando...',
+    'chat.mic.unavailable': 'Voz no disponible — escribe el mensaje',
 
     // Mode Chooser
     'chooser.title': '¿Qué te gustaría hacer?',
