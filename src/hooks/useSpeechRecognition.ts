@@ -50,6 +50,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const listeningRef = useRef(false);
+  const erroredRef = useRef(false);
 
   const isSupported = typeof window !== 'undefined' &&
     (typeof window.SpeechRecognition === 'function' ||
@@ -60,7 +61,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Ctor) return;
     const recognition = new Ctor();
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = true;
     recognition.lang = (typeof navigator !== 'undefined' && navigator.language) || 'en-US';
 
@@ -83,23 +84,24 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     };
     recognition.onerror = (event) => {
       logError('speech', `recognition error: ${event.error}`);
-      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        listeningRef.current = false;
-        setIsListening(false);
+      // Fatal/transport errors: stop cleanly, do NOT auto-restart (avoids
+      // the start->error->end->start loop that amplifies `network` errors).
+      if (event.error === 'no-speech' || event.error === 'aborted') {
+        return;
       }
+      erroredRef.current = true;
+      listeningRef.current = false;
+      setIsListening(false);
     };
     recognition.onend = () => {
       log('speech', 'recognition ended');
-      if (listeningRef.current) {
-        // Auto-stopped (silence/continuous boundary). Restart while still toggled on.
-        try {
-          recognition.start();
-          return;
-        } catch {
-          listeningRef.current = false;
-          setIsListening(false);
-        }
+      if (erroredRef.current) {
+        erroredRef.current = false;
+        listeningRef.current = false;
+        setIsListening(false);
+        return;
       }
+      // Clean end (silence) while still toggled on: append final and stop.
       listeningRef.current = false;
       setIsListening(false);
     };
@@ -128,6 +130,8 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
         setIsListening(true);
       } catch (err) {
         logError('speech', `start failed: ${String(err)}`);
+        listeningRef.current = false;
+        setIsListening(false);
       }
     }
   }, []);
