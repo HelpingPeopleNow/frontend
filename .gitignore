@@ -6,3 +6,7 @@ test-results/
 
 test-results/
 playwright-report/
+
+# Local env files (never tracked; secrets / dev overrides)
+.env.local
+.env.*.local
