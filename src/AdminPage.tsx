@@ -1,4 +1,6 @@
 import { h } from 'preact';
+import { useEffect } from 'preact/hooks';
+import { log } from './lib/logger';
 import { useLanguage } from './i18n';
 import AppShell from './AppShell';
 import { useAuth } from './AuthProvider';
@@ -9,6 +11,10 @@ export default function AdminPage() {
   document.title = `Admin | Helping People`;
 
   const isAdmin = session?.user?.is_admin === true;
+
+  useEffect(() => {
+    log('admin', `admin page mounted is_admin=${isAdmin}`);
+  }, [isAdmin]);
 
   return (
     <AppShell currentPath="/admin" title="Admin">

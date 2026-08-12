@@ -13,7 +13,12 @@ export default defineConfig({
   // against prod, set PLAYWRIGHT_INCLUDE_PROD=1.
   testIgnore: process.env.PLAYWRIGHT_INCLUDE_PROD === '1'
     ? '**/__manual__/**'
-    : '**/two-user-chat.spec.js',
+    : [
+        '**/two-user-chat.spec.js',
+        '**/gps-geolocation.spec.js',
+        '**/chat-intake.spec.js',
+        '**/find-professional.spec.js',
+      ],
   use: {
     baseURL: 'https://helpingpeople.cloud',
     headless: true,

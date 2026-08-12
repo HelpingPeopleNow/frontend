@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import { useEffect } from 'preact/hooks';
+import { log, logError } from './lib/logger';
 import { useGeolocation } from './hooks/useGeolocation';
 import { useAuth } from './AuthProvider';
 import { useLanguage } from './i18n';
@@ -26,7 +27,13 @@ export default function ChatPage() {
   const modeParam = getModeParam();
   const convType = modeParam === 'worker_intake' ? 'worker' : 'client';
 
-  const { initialMessages, initialConversationId, loading: initialLoading } = useChatInit(convType);
+  const { initialMessages, initialConversationId, loading: initialLoading, error: initError } = useChatInit(convType);
+
+  useEffect(() => {
+    if (initError) {
+      logError('chat', `failed to load previous conversation type=${convType}`);
+    }
+  }, [initError, convType]);
 
   const { messages, isLoading, isStreaming, sendMessage, listRef } = useChat({
     mode: modeParam || '',
@@ -50,6 +57,12 @@ export default function ChatPage() {
       : modeParam === 'client_intake'
         ? t('client.title')
         : t('chooser.title');
+
+  useEffect(() => {
+    if (modeParam) {
+      log('chat', `chat page mounted mode=${modeParam} conv=${initialConversationId || 'new'}`);
+    }
+  }, [modeParam, initialConversationId]);
 
   if (!modeParam) {
     return (

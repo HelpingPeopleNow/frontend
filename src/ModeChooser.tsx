@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import { route } from 'preact-router';
+import { log } from './lib/logger';
 import { useLanguage } from './i18n';
 
 export default function ModeChooser() {
@@ -41,7 +42,10 @@ export default function ModeChooser() {
           <button
             key={m.mode}
             class="chooser-card"
-            onClick={() => route(m.route, false)}
+            onClick={() => {
+              log('mode', `selected ${m.mode}`);
+              route(m.route, false);
+            }}
           >
             <div class="chooser-card-icon">{m.icon}</div>
             <div class="chooser-card-label">{m.label}</div>
