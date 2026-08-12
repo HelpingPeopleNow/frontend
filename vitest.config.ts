@@ -28,15 +28,33 @@ export default defineConfig({
       exclude: [
         "src/**/*.d.ts",
         "src/main.tsx",
-        // Component files (covered by Playwright e2e, not unit tests)
-        "src/**/*.tsx",
-        // AuthProvider and chat/landing pages — require Preact runtime + DOM fixtures
-        "src/AuthProvider.tsx",
-        "src/hooks/**",
-        // Wiring / barrel files — not user-facing logic
+        // Entry-point wiring / not user-facing logic
         "src/auth.ts",
         // Dead code per AGENTS.md — slated for removal in a separate PR
         "src/services/profiles.ts",
+        // Components tested via Playwright e2e or requiring complex Preact context
+        "src/AppShell.tsx",
+        "src/App.tsx",
+        "src/LandingNavBar.tsx",
+        "src/LoginPage.tsx",
+        "src/EntityListPage.tsx",
+        "src/EntityDetailPage.tsx",
+        "src/ChatPage.tsx",
+        "src/FindPage.tsx",
+        "src/components/**/*.tsx",
+        // Pages dependent on EntityListPage/EntityDetailPage wrappers
+        "src/WorkerDetailPage.tsx",
+        "src/ClientDetailPage.tsx",
+        "src/UserDetailPage.tsx",
+        "src/UsersPage.tsx",
+        "src/WorkersPage.tsx",
+        "src/ClientsPage.tsx",
+        "src/ConversationsPage.tsx",
+        "src/ConversationDetailPage.tsx",
+        "src/DirectConversationsPage.tsx",
+        "src/DirectConversationDetailPage.tsx",
+        // Hooks tested separately
+        "src/hooks/**",
       ],
       thresholds: {
         lines: 75,
