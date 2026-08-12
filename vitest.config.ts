@@ -40,7 +40,6 @@ export default defineConfig({
         "src/EntityListPage.tsx",
         "src/EntityDetailPage.tsx",
         "src/ChatPage.tsx",
-        "src/FindPage.tsx",
         "src/components/**/*.tsx",
         // Pages dependent on EntityListPage/EntityDetailPage wrappers
         "src/WorkerDetailPage.tsx",
