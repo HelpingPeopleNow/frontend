@@ -7,6 +7,10 @@ test-results/
 test-results/
 playwright-report/
 
-# Local env files (never tracked; secrets / dev overrides)
-.env.local
-.env.*.local
+# Environment files — the live env file is `.env` (never tracked); only `*.example` templates are tracked
+.env
+.env.*
+*.env
+secrets/
+!.env.example
+!.env.*.example

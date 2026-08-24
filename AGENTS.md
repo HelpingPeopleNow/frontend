@@ -75,6 +75,11 @@ npm run typecheck    # tsc --noEmit
 npm run lint         # eslint src/
 ```
 
+Env: `VITE_*` vars come from `frontend/.env` (gitignored; template in
+`frontend/.env.example`) when running Vite standalone. When run via docker
+compose the `VITE_*` build args in `infra/docker-compose(-dev).yaml` take
+precedence and `frontend/.env` is not read.
+
 ## Tests
 
 ```bash

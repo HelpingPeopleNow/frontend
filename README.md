@@ -233,7 +233,6 @@ The Client intake mode is reached via `/chat?mode=client_intake`. The chat is th
 | City | `city` | string |
 | Address | `address` | string |
 | Bio | `bio` | string |
-| Preferred Contact | `preferred_contact` | string |
 | Property Type | `property_type` | string |
 | Notes | `notes` | string |
 
