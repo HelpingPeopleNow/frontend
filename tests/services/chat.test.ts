@@ -59,4 +59,16 @@ describe('services/chat', () => {
     const result = await sendChat({ mode: 'search', message: 'plumber', lang: 'en' });
     expect(result).toBe(upstream);
   });
+
+  it('logs and rethrows when fetch throws synchronously (network layer failure)', () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    fetchSpy.mockImplementation(() => {
+      throw new Error('socket hung up');
+    });
+
+    // sendChat is a sync wrapper around fetch — a synchronous throw propagates
+    // straight through the catch block (logged, then rethrown).
+    expect(() => sendChat({ mode: 'search', message: 'plumber', lang: 'en' })).toThrow('socket hung up');
+    expect(errSpy).toHaveBeenCalled();
+  });
 });
