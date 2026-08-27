@@ -8,6 +8,8 @@ import { ApiError } from './services/api';
 
 const PROVIDERS: { value: string; labelKey?: string; label?: string }[] = [
   { value: '', labelKey: 'admin.provider.default' },
+  { value: 'groq', label: 'Groq (gpt-oss-20b)' },
+  { value: 'openrouter', label: 'OpenRouter (llama-3.1-8b)' },
   { value: 'opencode0', label: 'OpenCode 0 (Big Pickle)' },
   { value: 'opencode1', label: 'OpenCode 1 (DeepSeek V4 Flash)' },
   { value: 'opencode2', label: 'OpenCode 2 (Mimo V2.5)' },
