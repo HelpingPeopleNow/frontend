@@ -82,8 +82,8 @@ describe('AdminLLMPage', () => {
 
     const select = screen.getByRole('combobox') as HTMLSelectElement;
     await waitFor(() => expect(select.value).toBe('mistral'));
-    // All six options rendered
-    expect(select.options.length).toBe(6);
+    // All eight options rendered (default + groq, openrouter, opencode0-2, ollama, mistral)
+    expect(select.options.length).toBe(8);
     expect(screen.queryByText(/LLM Provider changed/)).toBeNull();
   });
 
