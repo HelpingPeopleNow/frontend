@@ -6,8 +6,8 @@ export interface SystemPromptDTO {
   client_profile_prompt: string;
   find_trader_search_prompt: string;
   find_trader_presentation_prompt: string;
-  llm_provider: string;
-  [key: string]: string;
+  llm_providers: string[];
+  updated_at: string;
 }
 
 export function getSystemPrompts(): Promise<SystemPromptDTO> {
@@ -23,10 +23,10 @@ export function updateSystemPromptColumn(column: string, content: string): Promi
   });
 }
 
-export function updateLlmProvider(provider: string): Promise<SystemPromptDTO> {
-  log('admin', `updating LLM provider to ${provider}`);
+export function updateLlmProviders(providers: string[]): Promise<SystemPromptDTO> {
+  log('admin', `updating LLM providers to [${providers.join(', ')}]`);
   return request<SystemPromptDTO>('/api/v1/system-prompts/provider', {
     method: 'PUT',
-    body: JSON.stringify({ content: provider }),
+    body: JSON.stringify({ providers }),
   });
 }

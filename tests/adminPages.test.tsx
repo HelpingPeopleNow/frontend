@@ -21,15 +21,14 @@ vi.mock('../src/AuthProvider', () => ({
 vi.spyOn(console, 'log').mockImplementation(() => {});
 vi.spyOn(console, 'error').mockImplementation(() => {});
 
-// ── systemPrompts service mock ───────────────────────────────────────────────
 const promptsService = {
   getSystemPrompts: vi.fn(),
-  updateLlmProvider: vi.fn(),
+  updateLlmProviders: vi.fn(),
   updateSystemPromptColumn: vi.fn(),
 };
 vi.mock('../src/services/systemPrompts', () => ({
   getSystemPrompts: (...a: unknown[]) => promptsService.getSystemPrompts(...a),
-  updateLlmProvider: (...a: unknown[]) => promptsService.updateLlmProvider(...a),
+  updateLlmProviders: (...a: unknown[]) => promptsService.updateLlmProviders(...a),
   updateSystemPromptColumn: (...a: unknown[]) => promptsService.updateSystemPromptColumn(...a),
 }));
 
@@ -38,7 +37,8 @@ const promptDTO = {
   client_profile_prompt: 'client prompt text',
   find_trader_search_prompt: 'search prompt text',
   find_trader_presentation_prompt: 'presentation prompt text',
-  llm_provider: 'mistral',
+  llm_providers: ['mistral'],
+  updated_at: '2026-01-01T00:00:00Z',
 };
 
 describe('AdminPage', () => {
@@ -65,65 +65,65 @@ describe('AdminLLMPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     promptsService.getSystemPrompts.mockResolvedValue(promptDTO);
-    promptsService.updateLlmProvider.mockResolvedValue({ ...promptDTO, llm_provider: '' });
+    promptsService.updateLlmProviders.mockResolvedValue({ ...promptDTO, llm_providers: [] });
   });
 
   afterEach(() => cleanup());
 
-  function pickProvider(value: string) {
-    const select = screen.getByRole('combobox') as HTMLSelectElement;
-    select.value = value;
-    fireEvent(select, new Event('change', { bubbles: true }));
-  }
-
-  it('loads and preselects the current provider', async () => {
+  it('loads and checks the current providers', async () => {
     render(<AdminLLMPage />);
     await waitFor(() => expect(promptsService.getSystemPrompts).toHaveBeenCalled());
 
-    const select = screen.getByRole('combobox') as HTMLSelectElement;
-    await waitFor(() => expect(select.value).toBe('mistral'));
-    // All eight options rendered (default + groq, openrouter, opencode0-2, ollama, mistral)
-    expect(select.options.length).toBe(8);
-    expect(screen.queryByText(/LLM Provider changed/)).toBeNull();
-  });
-
-  it('falls back to default (empty) when llm_provider is null', async () => {
-    promptsService.getSystemPrompts.mockResolvedValue({ ...promptDTO, llm_provider: null });
-    render(<AdminLLMPage />);
-    const select = screen.getByRole('combobox') as HTMLSelectElement;
-    await waitFor(() => expect(select.value).toBe(''));
-  });
-
-  it('saves the selected provider and shows a success message with its label', async () => {
-    render(<AdminLLMPage />);
-    await waitFor(() => {
-      const select = screen.getByRole('combobox') as HTMLSelectElement;
-      return expect(select.value).toBe('mistral');
+    const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[];
+    expect(checkboxes.length).toBe(6);
+    const mistralBox = checkboxes.find(cb => {
+      const row = cb.closest('tr');
+      return row && row.textContent && row.textContent.includes('Mistral');
     });
+    await waitFor(() => expect(mistralBox?.checked).toBe(true));
+    expect(screen.queryByText(/providers updated/)).toBeNull();
+  });
 
-    pickProvider('ollama');
+  it('falls back to empty selection when llm_providers is null', async () => {
+    promptsService.getSystemPrompts.mockResolvedValue({ ...promptDTO, llm_providers: null });
+    render(<AdminLLMPage />);
+    await waitFor(() => expect(promptsService.getSystemPrompts).toHaveBeenCalled());
+    const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[];
+    checkboxes.forEach(cb => expect(cb.checked).toBe(false));
+  });
+
+  it('toggles a checkbox and saves the providers array', async () => {
+    render(<AdminLLMPage />);
+    await waitFor(() => expect(promptsService.getSystemPrompts).toHaveBeenCalled());
+
+    const ollamaRow = screen.getAllByRole('row').find(r => r.textContent?.includes('Ollama'));
+    fireEvent.click(ollamaRow!);
     fireEvent.click(screen.getByText('admin.save'));
 
-    await waitFor(() => expect(promptsService.updateLlmProvider).toHaveBeenCalledWith('ollama'));
-    await waitFor(() => {
-      expect(screen.getByText(/✓ LLM Provider changed to Ollama \(local\)/)).toBeTruthy();
-    });
+    await waitFor(() =>
+      expect(promptsService.updateLlmProviders).toHaveBeenCalledWith(
+        expect.arrayContaining(['mistral', 'ollama'])
+      )
+    );
+    await waitFor(() => expect(screen.getByText(/✓ LLM providers updated/)).toBeTruthy());
   });
 
-  it('shows the raw provider value in the success message for unnamed providers', async () => {
+  it('shows ollama message when only ollama is selected', async () => {
+    promptsService.getSystemPrompts.mockResolvedValue({ ...promptDTO, llm_providers: [] });
+    promptsService.updateLlmProviders.mockResolvedValue({ ...promptDTO, llm_providers: ['ollama'] });
     render(<AdminLLMPage />);
-    await waitFor(() => expect(screen.getByRole('combobox')).toBeTruthy());
+    await waitFor(() => expect(promptsService.getSystemPrompts).toHaveBeenCalled());
 
-    pickProvider('');
     fireEvent.click(screen.getByText('admin.save'));
-
-    await waitFor(() => expect(promptsService.updateLlmProvider).toHaveBeenCalledWith(''));
+    await waitFor(() =>
+      expect(screen.getByText(/LLM providers updated: ollama/)).toBeTruthy()
+    );
   });
 
   it('shows an error message when saving fails with ApiError', async () => {
-    promptsService.updateLlmProvider.mockRejectedValue(new ApiError(500, 'backend exploded'));
+    promptsService.updateLlmProviders.mockRejectedValue(new ApiError(500, 'backend exploded'));
     render(<AdminLLMPage />);
-    await waitFor(() => expect(screen.getByRole('combobox')).toBeTruthy());
+    await waitFor(() => expect(promptsService.getSystemPrompts).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText('admin.save'));
     await waitFor(() => {
@@ -132,14 +132,13 @@ describe('AdminLLMPage', () => {
   });
 
   it('re-enables the save button after a failed save (saving state cleared)', async () => {
-    promptsService.updateLlmProvider.mockRejectedValue(new Error('boom'));
+    promptsService.updateLlmProviders.mockRejectedValue(new Error('boom'));
     render(<AdminLLMPage />);
-    await waitFor(() => expect(screen.getByRole('combobox')).toBeTruthy());
+    await waitFor(() => expect(promptsService.getSystemPrompts).toHaveBeenCalled());
 
     const btn = screen.getByText('admin.save') as HTMLButtonElement;
     fireEvent.click(btn);
     await waitFor(() => expect(screen.getByText(/✕ boom/)).toBeTruthy());
-    // Re-query: the button node is replaced by the post-error re-render
     expect((screen.getByText('admin.save') as HTMLButtonElement).disabled).toBe(false);
   });
 

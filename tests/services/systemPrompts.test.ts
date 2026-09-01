@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   getSystemPrompts,
   updateSystemPromptColumn,
-  updateLlmProvider,
+  updateLlmProviders,
 } from '../../src/services/systemPrompts';
 import { jsonResponse } from '../helpers/fetch';
 
@@ -31,13 +31,13 @@ describe('services/systemPrompts', () => {
     });
   });
 
-  it('updateLlmProvider PUTs to /api/v1/system-prompts/provider', async () => {
+  it('updateLlmProviders PUTs to /api/v1/system-prompts/provider', async () => {
     fetchSpy.mockResolvedValue(jsonResponse({ body: {} }));
-    await updateLlmProvider('mistral');
+    await updateLlmProviders(['opencode0', 'mistral']);
     const url = fetchSpy.mock.calls[0][0] as string;
     const init = fetchSpy.mock.calls[0][1] as RequestInit;
     expect(url).toBe('/api/v1/system-prompts/provider');
     expect(init.method).toBe('PUT');
-    expect(JSON.parse(init.body as string)).toEqual({ content: 'mistral' });
+    expect(JSON.parse(init.body as string)).toEqual({ providers: ['opencode0', 'mistral'] });
   });
 });
